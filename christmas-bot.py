@@ -5,6 +5,7 @@
 
 import logging
 from telegram.ext import Updater, CommandHandler
+from telegram import ReplyKeyboardMarkup, ReplyKeyboardRemove
 from random import choice, shuffle
 from flantier import *
 
@@ -54,12 +55,55 @@ def tirage():
 
     return 0
 
+
+def find_wishes(tg_id, name):
+    """Trouve et retourne la liste de souhaits avec le nom de la personne"""
+    matches = [qqun for qqun in participants if (qqun.name == name)]
+
+    if(len(matches) == 0):
+        return "Je n'ai trouvé personne correspondant à ta recherche. N'oublie pas la majuscule."
+
+    if(matches[0].tg_id == tg_id):
+        return  "Hop hop hop ! Tu ne peux pas consulter ta propre liste de cadeaux, ça gacherait la surprise."
+
+    souhaits = ""
+    for i in range (1, len(matches[0].wishes)):
+        souhaits += str(i) + " : " + matches[0].wishes[i] + "\n"
+
+    if len(souhaits) == 0:
+        souhaits = name + " n'a rien demandé pour Noël :'("
+
+    return souhaits
+
+
+def build_keyboard(bot, update):
+    """Créer le clavier avec les noms des participants et force la réposne"""
+    
+    button_list = ["/cadeaux " + qqun.name for qqun in participants]
+    header_buttons=None
+    footer_buttons=None
+    n_cols = 2
+
+    menu = [button_list[i:i + n_cols] for i in range(0, len(button_list), n_cols)]
+    if header_buttons:
+        menu.insert(0, header_buttons)
+    if footer_buttons:
+        menu.append(footer_buttons)
+
+    reply_keyboard = ReplyKeyboardMarkup(keyboard=menu, one_time_keyboard=True)
+    bot.send_message(chat_id=update.message.chat_id, 
+        text="De qui voulez-vous afficher la liste de souhaits ?",
+        reply_markup=reply_keyboard)
+
+
 # COMMANDES
 
 def start(bot, update):
     """lance la campagne d'inscription"""
     global inscriptions
 
+    print(type(administrateur))
+    print(administrateur)
     if (update.message.from_user.id != administrateur.tg_id):
         bot.send_message(chat_id=update.message.chat_id,
             text="C'est {} l'administrateur, petit canaillou !"
@@ -153,37 +197,28 @@ def liste(bot, update):
 
 
 def wishes(bot, update):
-    """Affiche les souhaits du participant passé en argument"""    
+    """Lance la procédure de recherche et d'affichage des cadeaux"""
     if(len(update.message.text.split(' ')) > 1):
         name = update.message.text.split(' ')[1]
-        print(name)
         
-        matches = [qqun for qqun in participants if (qqun.name == name)]
-        
-        if(len(matches) == 0):
-            bot.send_message(chat_id=update.message.chat_id,
-                text="Je n'ai trouvé personne correspondant à ta recherche. N'oublie pas la majuscule.")
-            return
+        reply_del_kb = ReplyKeyboardRemove()
+        bot.send_message(chat_id=update.message.chat_id, 
+            text=find_wishes(update.message.from_user.id, name),
+            reply_markup=reply_del_kb)
 
-        if(matches[0].tg_id == update.message.from_user.id):
-            bot.send_message(chat_id=update.message.chat_id,
-                text="Hop hop hop ! Tu ne peux pas consulter ta propre liste de cadeaux, ça gacherai la surprise.")
-            return
-
-        cadeaux = ""
-        for i in range (1, len(matches[0].cadeaux)):
-            cadeaux += str(i) + " : " + matches[0].cadeaux[i] + "\n"
-        bot.send_message(chat_id=update.message.chat_id, text=cadeaux)        
-    
     else:
-        bot.send_message(chat_id=update.message.chat_id,
-            text="Donnez moi le nom d'un personne avec la commande que je puisse faire quelque chose enfin !")
+        build_keyboard(bot, update)
 
 
 def update_presents(bot, update):
     """Met à jour la liste des cadeaux"""
-    init_cadeaux()
-    backup_cadeaux()
+    if (update.message.from_user.id != administrateur.tg_id):
+        bot.send_message(chat_id=update.message.chat_id,
+            text="C'est {} l'administrateur, petit canaillou !"
+            .format(administrateur.name))
+    else:
+        init_cadeaux()
+        backup_cadeaux()
 
 
 def hello(bot, update):
@@ -202,6 +237,7 @@ def main():
     dp = updater.dispatcher
 
     # on different commands - answer in Telegram
+    
     dp.add_handler(CommandHandler('start', start))
     dp.add_handler(CommandHandler('stop', stop))
     dp.add_handler(CommandHandler('participer', register))
@@ -209,18 +245,14 @@ def main():
     dp.add_handler(CommandHandler('liste', liste))
     dp.add_handler(CommandHandler('tirage', process))
     dp.add_handler(CommandHandler('cadeaux', wishes))
-    dp.add_handler(CommandHandler('maj', update_presents))
+    dp.add_handler(CommandHandler('geschenk', update_presents))
 
     # log all errors
     dp.add_error_handler(error)
 
     # initialize participants and presents
-    init_participants()
-
-    # TODO change
-    #init_cadeaux()
-    #backup_cadeaux()
-    load_cadeaux()
+    init_participants(administrateur, participants)
+    backup_cadeaux()
 
     # Start the Bot
     updater.start_polling()

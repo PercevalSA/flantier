@@ -20,12 +20,6 @@ spreadsheet_id = ''
 sheet_id = ''
 data_range = ''
 
-# Global variables
-data_json = None
-participants = []
-administrateur = 0
-inscriptions = False
-
 
 class Personne:
     def __init__(self, tg_id, name):
@@ -37,8 +31,15 @@ class Personne:
         self.dest = None
 
         # cadeaux qui viennent du google doc
-        self.cadeaux = None
-        self.commantaires = None
+        self.wishes = None
+        self.comments = None
+
+# Global variables
+imp_total = []
+data_json = None
+participants = []
+administrateur = None
+inscriptions = False
 
 
 def init_cadeaux():
@@ -46,6 +47,7 @@ def init_cadeaux():
     global data_json
 
     print("init cadeaux\n")
+
     # init
     service = build('sheets', 'v4', credentials=None, developerKey=API_key)
     request = service.spreadsheets().values().get(spreadsheetId=spreadsheet_id, range=data_range, majorDimension='COLUMNS')
@@ -53,8 +55,6 @@ def init_cadeaux():
     values = spreadsheet.get('values')
 
     data_json = json.dumps(values, indent=4, ensure_ascii=False)
-    # print(json.dumps(values, indent=4, ensure_ascii=False))
-
     return values
 
 
@@ -70,41 +70,35 @@ def load_cadeaux():
     data_json = json.loads(data)
 
 
-def init_participants():
-
-    global administrateur
-    global participants
+def init_participants(administrateur, participants):
 
     print("init participants\n")
+
     # liste des personnes
     user1 = Personne(00000000, "User1")
     user2 = Personne(00000000, "User2")
     user3 = Personne(00000000, "User3")
 
-    # tableaux des impossibilités
-    imp_total = []
-    imp_user1 = [user2]
-    imp_user2 = [user1]
-    imp_user3 = []
-
-    # on rajoute les tableaux
-    user1.impossible = imp_user1
-    user2.impossible = imp_user2
-    user3.impossible = imp_user3
+    # on rajoute les tableaux des impossibilités
+    user1.impossible = [user2]
+    user2.impossible = [user1]
+    user3.impossible = []
 
     values = init_cadeaux()
 
-    user1.cadeaux = values[0]
-    user1.commentaires = values[1]
-    user2.cadeaux = values[2]
-    user2.commentaires = values[3]
-    user3.cadeaux = values[4]
-    user3.commentaires = values[5]
+    user1.wishes = values[0]
+    user1.comments = values[1]
+    user2.wishes = values[2]
+    user2.comments = values[3]
+    user3.wishes = values[4]
+    user3.comments = values[5]
 
     # on compose le tout
+    print("setup administrator\n")
+    administrateur = user1
+
     print("composition\n")
     participants.extend([user1, user2, user3])
-    administrateur = user1
 
 
 citations = ["Tu n'es pas seulement un lâche, tu es un traitre, comme ta petite taille le laissait deviner.",
