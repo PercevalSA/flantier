@@ -1,13 +1,33 @@
 #!/usr/bin/env python3
-# -*- coding: utf-8 -*-
+#  -*- coding: utf-8 -*-
 #
+# Herr Flantier der Geschenk Manager
+
+from apiclient.discovery import build
+import json
+
 # Telegram bot token
-TOKEN = ""
+TOKEN = ''
+# Google API Token
+API_key = ''
+
 # file to store users data
-FILE = "participants.txt"
+PARTICIPANTS = "participants.txt"
+CADEAUX = "cadeaux.txt"
+
+# Google Sheets Document
+spreadsheet_id = ''
+sheet_id = ''
+data_range = ''
+
+# Global variables
+data_json = None
+participants = []
+administrateur = 0
+inscriptions = False
+
 
 class Personne:
-
     def __init__(self, tg_id, name):
         self.tg_id = tg_id
         self.name = name
@@ -16,34 +36,75 @@ class Personne:
         # personne à qui offrir
         self.dest = None
 
-
-    def get_impossibles(self):
-        retour = ""
-        for qqun in self.impossible:
-            retour += qqun.name + ", "
-
-        return retour
+        # cadeaux qui viennent du google doc
+        self.cadeaux = None
+        self.commantaires = None
 
 
-# liste des personnes
-user1 = Personne(00000000, "User1")
-user2 = Personne(00000000, "User2")
-user3 = Personne(00000000, "User3")
+def init_cadeaux():
 
-# tableaux des impossibilités
-imp_total = []
-imp_user1 = [user2]
-imp_user2 = [user1]
-imp_user3 = []
+    global data_json
 
-# on rajoute les tableaux
-user1.impossible = imp_user1
-user2.impossible = imp_user2
-user3.impossible = imp_user3
+    print("init cadeaux\n")
+    # init
+    service = build('sheets', 'v4', credentials=None, developerKey=API_key)
+    request = service.spreadsheets().values().get(spreadsheetId=spreadsheet_id, range=data_range, majorDimension='COLUMNS')
+    spreadsheet = request.execute()
+    values = spreadsheet.get('values')
 
-participants = [user1, user2, user3]
-administrateur = user1
-inscriptions = False
+    data_json = json.dumps(values, indent=4, ensure_ascii=False)
+    # print(json.dumps(values, indent=4, ensure_ascii=False))
+
+    return values
+
+
+def backup_cadeaux():
+    with open(CADEAUX, 'w+') as file:
+        file.write(data_json)
+
+
+def load_cadeaux():
+    global data_json
+    with open(CADEAUX, 'r') as file:
+        data = file.read()
+    data_json = json.loads(data)
+
+
+def init_participants():
+
+    global administrateur
+    global participants
+
+    print("init participants\n")
+    # liste des personnes
+    user1 = Personne(00000000, "User1")
+    user2 = Personne(00000000, "User2")
+    user3 = Personne(00000000, "User3")
+
+    # tableaux des impossibilités
+    imp_total = []
+    imp_user1 = [user2]
+    imp_user2 = [user1]
+    imp_user3 = []
+
+    # on rajoute les tableaux
+    user1.impossible = imp_user1
+    user2.impossible = imp_user2
+    user3.impossible = imp_user3
+
+    values = init_cadeaux()
+
+    user1.cadeaux = values[0]
+    user1.commentaires = values[1]
+    user2.cadeaux = values[2]
+    user2.commentaires = values[3]
+    user3.cadeaux = values[4]
+    user3.commentaires = values[5]
+
+    # on compose le tout
+    print("composition\n")
+    participants.extend([user1, user2, user3])
+    administrateur = user1
 
 
 citations = ["Tu n'es pas seulement un lâche, tu es un traitre, comme ta petite taille le laissait deviner.",

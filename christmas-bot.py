@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 #
-# CHRISTMAS BOT
+# Herr Flantier der Geschenk Manager
 
 import logging
 from telegram.ext import Updater, CommandHandler
@@ -15,7 +15,7 @@ logger = logging.getLogger(__name__)
 
 
 def tirage():
-    """"algorithme de tirage au sort, complète automatique les champs 'dest'"""
+    """algorithme de tirage au sort, complète automatique les champs 'dest'"""
     # init
     global imp_total
     imp_total = []
@@ -89,7 +89,7 @@ def register(bot, update):
     if(inscriptions == True):
 
         # récupère l'id et ajoute le participant au fichier
-        with open('participants.txt', 'a') as file:
+        with open(PARTICIPANTS, 'a') as file:
             file.write(str(update.message.from_user.id)
                        + ":"
                        + update.message.from_user.first_name
@@ -118,9 +118,13 @@ def process(bot, update):
             .format(administrateur.name)
             + "Pour participer, envoyez moi la commande /participer")
     else:
-        # tant que le tirage ne fonctionne pas on relance
-        while (tirage() != 0):
-            continue
+        if(inscriptions == True):
+            bot.send_message(chat_id=update.message.chat_id,
+                text="Les inscriptions ne sont pas encore terminées.")
+        else:
+            # tant que le tirage ne fonctionne pas on relance
+            while (tirage() != 0):
+                continue
 
         # on envoie les résultats en message privé
         for qqun in participants:
@@ -148,6 +152,40 @@ def liste(bot, update):
             text="Il n'y a encore aucun participant inscrit.")
 
 
+def wishes(bot, update):
+    """Affiche les souhaits du participant passé en argument"""    
+    if(len(update.message.text.split(' ')) > 1):
+        name = update.message.text.split(' ')[1]
+        print(name)
+        
+        matches = [qqun for qqun in participants if (qqun.name == name)]
+        
+        if(len(matches) == 0):
+            bot.send_message(chat_id=update.message.chat_id,
+                text="Je n'ai trouvé personne correspondant à ta recherche. N'oublie pas la majuscule.")
+            return
+
+        if(matches[0].tg_id == update.message.from_user.id):
+            bot.send_message(chat_id=update.message.chat_id,
+                text="Hop hop hop ! Tu ne peux pas consulter ta propre liste de cadeaux, ça gacherai la surprise.")
+            return
+
+        cadeaux = ""
+        for i in range (1, len(matches[0].cadeaux)):
+            cadeaux += str(i) + " : " + matches[0].cadeaux[i] + "\n"
+        bot.send_message(chat_id=update.message.chat_id, text=cadeaux)        
+    
+    else:
+        bot.send_message(chat_id=update.message.chat_id,
+            text="Donnez moi le nom d'un personne avec la commande que je puisse faire quelque chose enfin !")
+
+
+def update_presents(bot, update):
+    """Met à jour la liste des cadeaux"""
+    init_cadeaux()
+    backup_cadeaux()
+
+
 def hello(bot, update):
     """Petit Comique !"""
     bot.send_message(chat_id=update.message.chat_id, text=choice(citations))
@@ -170,9 +208,19 @@ def main():
     dp.add_handler(CommandHandler('bonjour', hello))
     dp.add_handler(CommandHandler('liste', liste))
     dp.add_handler(CommandHandler('tirage', process))
+    dp.add_handler(CommandHandler('cadeaux', wishes))
+    dp.add_handler(CommandHandler('maj', update_presents))
 
     # log all errors
     dp.add_error_handler(error)
+
+    # initialize participants and presents
+    init_participants()
+
+    # TODO change
+    #init_cadeaux()
+    #backup_cadeaux()
+    load_cadeaux()
 
     # Start the Bot
     updater.start_polling()
