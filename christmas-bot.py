@@ -15,71 +15,16 @@ logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s
 logger = logging.getLogger(__name__)
 
 
-def tirage():
-    """algorithme de tirage au sort, complète automatique les champs 'dest'"""
-    # init
-    global imp_total
-    imp_total = []
-
-    for qqun in participants:
-        qqun.dest = 0
-
-    print("\nC'est parti !!!\n")
-
-    # mélange
-    shuffle(participants)
-
-    # attribution
-    for quelquun in participants:
-
-        # determine la liste des possibles
-        possibles = []
-        for possibilite in participants:
-            if(possibilite in imp_total or possibilite in quelquun.impossible):
-                continue
-            else:
-                possibles.append(possibilite)
-
-        # s'il n'y a pas de solution on redémarre
-        if len(possibles) == 0:
-            print("\nOn recommence !!!\n")
-            return -1
-
-        # selectionne qqun
-        quelquun.dest = choice(possibles)
-        # l'ajoute aux tirés"
-        imp_total.append(quelquun.dest)
-        # passe au suivant
-
-    print("\nC'est fini !!!\n")
-
-    return 0
-
-
-def find_wishes(tg_id, name):
-    """Trouve et retourne la liste de souhaits avec le nom de la personne"""
-    matches = [qqun for qqun in participants if (qqun.name == name)]
-
-    if(len(matches) == 0):
-        return "Je n'ai trouvé personne correspondant à ta recherche. N'oublie pas la majuscule."
-
-    if(matches[0].tg_id == tg_id):
-        return  "Hop hop hop ! Tu ne peux pas consulter ta propre liste de cadeaux, ça gacherait la surprise."
-
-    souhaits = ""
-    for i in range (1, len(matches[0].wishes)):
-        souhaits += str(i) + " : " + matches[0].wishes[i] + "\n"
-
-    if len(souhaits) == 0:
-        souhaits = name + " n'a rien demandé pour Noël :'("
-
-    return souhaits
-
-
-def build_keyboard(bot, update):
-    """Créer le clavier avec les noms des participants et force la réposne"""
+def build_people_keyboard(bot, update, offer_flag=False, comments=False):
+    """Créer le clavier avec les noms des participants"""
     
-    button_list = ["/cadeaux " + qqun.name for qqun in participants]
+    if offer_flag:
+        button_list = ["/offrir " + qqun.name for qqun in participants]
+    elif comments:
+        button_list = ["/commentaires " + qqun.name for qqun in participants]
+    else:
+        button_list = ["/cadeaux " + qqun.name for qqun in participants]
+
     header_buttons=None
     footer_buttons=None
     n_cols = 2
@@ -91,19 +36,45 @@ def build_keyboard(bot, update):
         menu.append(footer_buttons)
 
     reply_keyboard = ReplyKeyboardMarkup(keyboard=menu, one_time_keyboard=True)
-    bot.send_message(chat_id=update.message.chat_id, 
-        text="De qui voulez-vous afficher la liste de souhaits ?",
+
+    if offer_flag:
+        text = "À qui veux-tu offrir ?"
+    else:
+        text = "De qui veux-tu afficher la liste de souhaits ?"
+    
+    bot.send_message(chat_id=update.message.chat_id, text=text, reply_markup=reply_keyboard)
+
+
+def build_wish_keyboard(bot, update, name):
+    destinataire = next(qqun for qqun in participants if qqun.name == name)
+    
+    i = 1
+    button_list = []
+    while(destinataire.wishes[i] != None):
+        button_list.append("/offrir " + name + " " + str(i))
+        i += 1
+
+    header_buttons=None
+    footer_buttons=["/annuler"]
+    n_cols = 2
+
+    menu = [button_list[i:i + n_cols] for i in range(0, len(button_list), n_cols)]
+    if header_buttons:
+        menu.insert(0, header_buttons)
+    if footer_buttons:
+        menu.append(footer_buttons)
+
+    reply_keyboard = ReplyKeyboardMarkup(keyboard=menu, one_time_keyboard=True)
+    bot.send_message(chat_id=update.message.chat_id, text="Quel cadeau veux tu offrir ?", 
         reply_markup=reply_keyboard)
 
 
 # COMMANDES
 
 def start(bot, update):
-    """lance la campagne d'inscription"""
+    """Lance la campagne d'inscription"""
     global inscriptions
 
-    print(type(administrateur))
-    print(administrateur)
     if (update.message.from_user.id != administrateur.tg_id):
         bot.send_message(chat_id=update.message.chat_id,
             text="C'est {} l'administrateur, petit canaillou !"
@@ -111,10 +82,10 @@ def start(bot, update):
     else:
         inscriptions = True
         bot.send_message(chat_id=update.message.chat_id,
-            text="Vous pouvez directement vous inscrire en envoyant /participer")
+            text="Tu peux directement t'inscrire en envoyant /participer")
 
 def stop(bot, update):
-    """arrête la campagne d'inscription"""
+    """Arrête la campagne d'inscription"""
     global inscriptions
 
     if(update.message.from_user.id != administrateur.tg_id):
@@ -207,18 +178,100 @@ def wishes(bot, update):
             reply_markup=reply_del_kb)
 
     else:
-        build_keyboard(bot, update)
+        build_people_keyboard(bot, update)
 
 
-def update_presents(bot, update):
-    """Met à jour la liste des cadeaux"""
-    if (update.message.from_user.id != administrateur.tg_id):
-        bot.send_message(chat_id=update.message.chat_id,
-            text="C'est {} l'administrateur, petit canaillou !"
-            .format(administrateur.name))
+def comments(bot, update):
+    """Affiche les cadeaux et les commentaires"""
+    if(len(update.message.text.split(' ')) > 1):
+        name = update.message.text.split(' ')[1]
+        
+        reply_del_kb = ReplyKeyboardRemove()
+        bot.send_message(chat_id=update.message.chat_id, 
+            text=find_wishes(update.message.from_user.id, name, with_comments=True),
+            reply_markup=reply_del_kb)
+
     else:
-        init_cadeaux()
-        backup_cadeaux()
+        build_people_keyboard(bot, update, comments=True)
+
+def offer(bot, update):
+    """Permet de selectionner un cadeau à offrir"""
+
+    # aucun argument fourni
+    if(len(update.message.text.split(' ')) == 1):
+        build_people_keyboard(bot, update, offer_flag=True)
+
+    # fourni que le nom
+    elif(len(update.message.text.split(' ')) == 2):     
+        name = update.message.text.split(' ')[1]
+        if any([qqun for qqun in participants if (qqun.name == name)]):
+            build_wish_keyboard(bot, update, name)
+        else:
+            bot.send_message(chat_id=update.message.chat_id,
+                text="Je ne trouve pas la personne dont tu parles...")
+
+
+    # fourni le nom et le numéro
+    elif(len(update.message.text.split(' ')) == 3):
+
+        # doit vérifier que la personne existe
+        # doit vérifier que le cadeau existe et est disponible
+        name = update.message.text.split(' ')[1]
+        cadeau = int(update.message.text.split(' ')[2])
+
+        if any(qqun.name == name for qqun in participants):
+            
+            wishes = find_wishes(update.message.from_user.id, name, table=True)
+
+            if len(wishes) > 0 and len(wishes) >= cadeau:
+                index = next((i for i, qqun in enumerate(participants) if qqun.name == name), -1)
+
+                if participants[index].offre[cadeau] == None:
+                    text = "Tu offres désormais " + wishes[cadeau] + " à " + name
+                    participants[index].offre[cadeau] = update.message.from_user.id
+
+                elif participants[index].offre[cadeau] == update.message.from_user.id:
+                    text = "Tu offres déjà " + wishes[cadeau] + " à " + name
+
+                else:
+                    text = "Quelqu'un d'autre offre déjà " + wishes[cadeau] + " à " + name
+
+            else:
+                text = "Je ne trouve pas le cadeau dont tu parles..."
+        else:
+            text = "Je ne trouve pas la personne dont tu parles..."
+
+        reply_del_kb = ReplyKeyboardRemove()
+        bot.send_message(chat_id=update.message.chat_id, text=text, reply_markup=reply_del_kb)
+
+    # on comprend rien
+    else:
+        reply_del_kb = ReplyKeyboardRemove()
+        bot.send_message(chat_id=update.message.chat_id,
+            text="Enfin! Parle Français: /offrir Prénom Numéro_Cadeau", reply_markup=reply_del_kb)
+
+
+def dont_offer(bot, update):
+    # trouver tous les cadeaux qu'on offre
+    # proposer de les annuler
+    print("TODO : annuler un cadeau")
+
+def cancel(bot, update):
+    reply_del_kb = ReplyKeyboardRemove()
+    bot.send_message(chat_id=update.message.chat_id,
+        text="Opération d'offrande annulée, Égoïste!", reply_markup=reply_del_kb)
+
+
+def update(bot, update):
+    """Met à jour la liste des cadeaux"""
+    init_cadeaux()
+
+def backup(bot, update):
+    backup_cadeaux()
+
+def restore(bot, update):
+    global participants
+    participants = load_cadeaux()
 
 
 def hello(bot, update):
@@ -245,14 +298,20 @@ def main():
     dp.add_handler(CommandHandler('liste', liste))
     dp.add_handler(CommandHandler('tirage', process))
     dp.add_handler(CommandHandler('cadeaux', wishes))
-    dp.add_handler(CommandHandler('geschenk', update_presents))
+    dp.add_handler(CommandHandler('commentaires', comments))
+    dp.add_handler(CommandHandler('offrir', offer))
+    dp.add_handler(CommandHandler('retirer', dont_offer))
+    dp.add_handler(CommandHandler('annuler', cancel))
+    dp.add_handler(CommandHandler('backup', backup))
+    dp.add_handler(CommandHandler('restore', restore))
+
 
     # log all errors
     dp.add_error_handler(error)
 
     # initialize participants and presents
-    init_participants(administrateur, participants)
-    backup_cadeaux()
+    global administrateur
+    administrateur = init_participants(participants)
 
     # Start the Bot
     updater.start_polling()
