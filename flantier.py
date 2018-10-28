@@ -16,16 +16,18 @@ API_key = ''
 PARTICIPANTS = 'participants.txt'
 CADEAUX = 'cadeaux.bak'
 
-# Google Sheets Document
-spreadsheet_id = ''
-sheet_id = ''
-data_range = ''
-
 # Global variables
 participants = []
 imp_total = []
 inscriptions = False
 administrateur = None
+nb_cadeaux = 30
+
+# Google Sheets Document
+spreadsheet_id = ''
+sheet_id = ''
+data_range = '' + str(nb_cadeaux)
+
 
 
 class Personne:
@@ -38,10 +40,13 @@ class Personne:
         self.dest = None
 
         # cadeaux qui viennent du google doc
-        self.wishes = [None] * 30
-        self.comments = [None] * 30
+        self.wishes = [None] * nb_cadeaux
+        self.comments = [None] * nb_cadeaux
         # liste des personnes qui offrent les cadeaux correspondant
-        self.offre = [None] * 30
+        self.donor = [None] * nb_cadeaux
+
+        # liste de [personne, cadeau] que la personne a décidé d'offrir
+        self.offer_to = []
 
 
 def get_cadeaux():
@@ -53,6 +58,7 @@ def get_cadeaux():
 
     values = spreadsheet.get('values')
     # data_json = json.dumps(values, indent=4, ensure_ascii=False)
+    new_data_flag = False
 
     for column in range(0, len(values), 2):
         name = values[column][0]
@@ -73,8 +79,10 @@ def get_cadeaux():
                     participants[index].comments[i] = values[column + 1][i]
 
             if update_flag:
+                new_data_flag = True
                 print("mise à jour des cadeaux de " + participants[index].name)
-                # TODO : ajouter un message dans le groupe pour prévenir du changement de cadeaux
+
+    return new_data_flag
 
 
 def backup_cadeaux():
@@ -98,6 +106,7 @@ def init_participants(participants):
     """
     print("init participants\n")
 
+    # TODO : automatiser à partir d'un fichier de participants
     # liste des personnes
     user1 = Personne(00000000, "User1")
     user2 = Personne(00000000, "User2")
