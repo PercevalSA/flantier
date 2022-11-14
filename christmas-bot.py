@@ -6,11 +6,11 @@
 import logging
 from telegram.ext import Updater, CommandHandler
 from telegram import ReplyKeyboardMarkup, ReplyKeyboardRemove
-from random import choice, shuffle
+from random import choice
 from flantier import *
 
 # Enable logging
-logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', 
+logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
                     level=logging.INFO)
 logger = logging.getLogger(__name__)
 
@@ -18,9 +18,9 @@ logger = logging.getLogger(__name__)
 # GESTION DES CLAVIERS #
 ########################
 
-def build_people_keyboard(bot, update, offer_flag=False, comments=False):
-    """Créer le clavier avec les noms des participants"""
 
+def build_people_keyboard(bot, update, offer_flag=False, comments=False):
+    """Créer le clavier avec les noms des participants."""
     if offer_flag:
         button_list = ["/offrir " + qqun.name for qqun in participants]
     elif comments:
@@ -28,8 +28,8 @@ def build_people_keyboard(bot, update, offer_flag=False, comments=False):
     else:
         button_list = ["/cadeaux " + qqun.name for qqun in participants]
 
-    header_buttons=None
-    footer_buttons=["/annuler"]
+    header_buttons = None
+    footer_buttons = ["/annuler"]
     n_cols = 2
 
     menu = [button_list[i:i + n_cols] for i in range(0, len(button_list), n_cols)]
@@ -49,39 +49,39 @@ def build_people_keyboard(bot, update, offer_flag=False, comments=False):
 
 
 def build_wish_keyboard(bot, update, name):
-    """Affiche le clavier des souhaits d'une personne"""
+    """Affiche le clavier des souhaits d'une personne."""
     destinataire = next(qqun for qqun in participants if qqun.name == name)
 
     i = 1
     button_list = []
-    while(destinataire.wishes[i] != None):
+    while(destinataire.wishes[i] is not None):
         button_list.append("/offrir " + name + " " + str(i))
         i += 1
 
-    header_buttons=None
-    footer_buttons=["/annuler"]
+    header_buttons = None
+    footer_buttons = ["/annuler"]
     n_cols = 2
 
-    menu = [button_list[i:i + n_cols] for i in range(0, len(button_list) - 1, n_cols)]
+    menu = [button_list[j:j + n_cols] for j in range(0, len(button_list) - 1, n_cols)]
     if header_buttons:
         menu.insert(0, header_buttons)
     if footer_buttons:
         menu.append(footer_buttons)
 
     reply_keyboard = ReplyKeyboardMarkup(keyboard=menu, one_time_keyboard=True)
-    bot.send_message(chat_id=update.message.chat_id, text="Quel cadeau veux tu offrir ?", 
+    bot.send_message(chat_id=update.message.chat_id, text="Quel cadeau veux tu offrir ?",
         reply_markup=reply_keyboard)
 
 
 def build_present_keyboard(bot, update):
-    """Affiche le clavier des cadeau que l'on souhaite offrir"""
+    """Affiche le clavier des cadeau que l'on souhaite offrir."""
     offrant = next(qqun for qqun in participants if qqun.tg_id == update.message.from_user.id)
 
     text = ""
     button_list = []
 
     if(len(offrant.offer_to)) == 0:
-        bot.send_message(chat_id=update.message.chat_id, 
+        bot.send_message(chat_id=update.message.chat_id,
             text="Tu n'offres encore aucun cadeau, égoïste !")
         return
 
@@ -93,8 +93,8 @@ def build_present_keyboard(bot, update):
             text += participants[offrant.offer_to[i][0]].wishes[offrant.offer_to[i][1]] + "\n"
             button_list.append("/retirer " + str(offrant.offer_to[i][0]) + " " + str(offrant.offer_to[i][1]))
 
-        header_buttons=None
-        footer_buttons=["/annuler"]
+        header_buttons = None
+        footer_buttons = ["/annuler"]
         n_cols = 2
 
         menu = [button_list[i:i + n_cols] for i in range(0, len(button_list), n_cols)]
@@ -105,7 +105,7 @@ def build_present_keyboard(bot, update):
 
         reply_keyboard = ReplyKeyboardMarkup(keyboard=menu, one_time_keyboard=True)
 
-        bot.send_message(chat_id=update.message.chat_id, text=text, 
+        bot.send_message(chat_id=update.message.chat_id, text=text,
             reply_markup=reply_keyboard)
 
 
@@ -114,14 +114,13 @@ def build_present_keyboard(bot, update):
 #########################
 
 def hello(bot, update):
-    """Petit Comique !"""
+    """Petit Comique."""
     bot.send_message(chat_id=update.message.chat_id, text=choice(citations))
 
 
 def register(bot, update):
-    """Permet de s'inscrire au tirage au sort"""
-
-    if(inscriptions == True):
+    """Permet de s'inscrire au tirage au sort."""
+    if(inscriptions):
 
         # récupère l'id et ajoute le participant au fichier
         with open(PARTICIPANTS, 'a') as file:
@@ -130,7 +129,7 @@ def register(bot, update):
                        + update.message.from_user.first_name
                        + "\n")
 
-        print("Inscription de : " + update.message.from_user.first_name + " : " 
+        logger.info("Inscription de : " + update.message.from_user.first_name + " : " 
             + str(update.message.from_user.id))
 
         bot.send_message(chat_id=update.message.chat_id,
@@ -139,7 +138,7 @@ def register(bot, update):
 
     else:
         bot.send_message(chat_id=update.message.chat_id,
-            text="Patience {}, les inscriptions n'ont pas encore commencé !"
+            text="Patience {}, les inscriptions n'ont pas encore commencées ou sont déjà terminées !"
             .format(update.message.from_user.first_name))
 
 
@@ -170,7 +169,7 @@ def wishes(bot, update):
         name = update.message.text.split(' ')[1]
 
         reply_del_kb = ReplyKeyboardRemove()
-        bot.send_message(chat_id=update.message.chat_id, 
+        bot.send_message(chat_id=update.message.chat_id,
             text=find_wishes(update.message.from_user.id, name),
             reply_markup=reply_del_kb)
 
@@ -179,7 +178,7 @@ def wishes(bot, update):
 
 
 def comments(bot, update):
-    """Affiche la liste de cadeaux et les commentaires associés d'une personne"""
+    """Affiche la liste de cadeaux et les commentaires associés d'une personne."""
     if(len(update.message.text.split(' ')) > 1):
         name = update.message.text.split(' ')[1]
 
@@ -224,7 +223,7 @@ def offer(bot, update):
             if len(wishes) > 0 and len(wishes) >= cadeau_index:
                 receiver_index = next((i for i, qqun in enumerate(participants) if qqun.name == name), -1)
 
-                if participants[receiver_index].donor[cadeau_index] == None:
+                if participants[receiver_index].donor[cadeau_index] is None:
                     text = "Tu offres désormais " + wishes[cadeau_index - 1] + " à " + name
                     # ajoute l'id de l'offrant dans la liste des souhaits du destinataire
                     participants[receiver_index].donor[cadeau_index] = update.message.from_user.id
@@ -256,11 +255,12 @@ def offer(bot, update):
 
 
 def dont_offer(bot, update):
-    """Annule la réservation d'un cadeau à offrir"""
+    """Annule la réservation d'un cadeau à offrir.
 
-    # trouver tous les cadeaux qu'on offre
-    # implémenter la find wishes pour le offer to
-    # proposer de les annuler
+    trouver tous les cadeaux qu'on offre
+    implémenter la find wishes pour le offer to
+    proposer de les annuler
+    """
     if(len(update.message.text.split(' ')) != 3):
         bot.send_message(chat_id=update.message.chat_id,
             text="Voici la liste des cadeaux que tu offres. Lequel veux-tu supprimer?")
@@ -272,7 +272,6 @@ def dont_offer(bot, update):
         command = update.message.text.split(' ')
         receiver_index = int(command[1])
         cadeau_index = int(command[2])
-
 
         if any(offrande for offrande in offrant.offer_to if offrande == (receiver_index, cadeau_index)):
             offrande_index = next((i for i, offrande in enumerate(offrant.offer_to) if offrande == (int(command[1]), int(command[2]))), -1)
@@ -297,8 +296,9 @@ def cancel(bot, update):
 # COMMANDES ADMINISTRATEUR #
 ############################
 
+
 def start(bot, update):
-    """Lance la campagne d'inscription"""
+    """Lance la campagne d'inscription."""
     global inscriptions
 
     if (update.message.from_user.id != administrateur.tg_id):
@@ -310,8 +310,9 @@ def start(bot, update):
         bot.send_message(chat_id=update.message.chat_id,
             text="Tu peux directement t'inscrire en envoyant /participer")
 
+
 def stop(bot, update):
-    """Termine la campagne d'inscription"""
+    """Termine la campagne d'inscription."""
     global inscriptions
 
     if(update.message.from_user.id != administrateur.tg_id):
@@ -323,17 +324,15 @@ def stop(bot, update):
         bot.send_message(chat_id=update.message.chat_id,
             text="Les inscriptions sont fermées, c'est bientôt l'heure des résultats ! ;)")
 
-def process(bot, update):
-    """Lance le tirage au sort et envoie les réponses en message privé"""
 
+def process(bot, update):
+    """Lance le tirage au sort et envoie les réponses en message privé."""
     # check admin
     if (update.message.from_user.id != administrateur.tg_id):
         bot.send_message(chat_id=update.message.chat_id,
-            text="C'est {} l'administrateur, petit canaillou !\n"
-            .format(administrateur.name)
-            + "Pour participer, envoyez moi la commande /participer")
+            text=f"C'est {administrateur.name} l'administrateur, petit canaillou !\nPour participer, envoyez moi la commande /participer")
     else:
-        if(inscriptions == True):
+        if(inscriptions):
             bot.send_message(chat_id=update.message.chat_id,
                 text="Les inscriptions ne sont pas encore terminées.")
         else:
@@ -348,43 +347,41 @@ def process(bot, update):
 
 
 def update(bot, update):
-    """Met à jour la liste des cadeaux"""
-
+    """Met à jour la liste des cadeaux."""
     if get_cadeaux():
         text = "liste des cadeaux inchangée\n"
     else:
         text = "liste des cadeaux mise à jour\n"
 
     bot.send_message(chat_id=update.message.chat_id, text=text)
-    print(text)
+    logger.info(text)
 
 
 def backup(bot, update):
-    """Sauvegarde l'état de flantier dans un fichier"""
-
+    """Sauvegarde l'état de flantier dans un fichier."""
     backup_cadeaux()
 
     text = "État de Flantier sauvegardé\n"
     bot.send_message(chat_id=update.message.chat_id, text=text)
-    print(text)
+    logger.info(text)
+
 
 def restore(bot, update):
-    """Restaure l'état de flantier sauvegardé dans un fichier"""
-
+    """Restaure l'état de flantier sauvegardé dans un fichier."""
     global participants
     participants = load_cadeaux()
 
     text = "État de Flantier restauré\n"
     bot.send_message(chat_id=update.message.chat_id, text=text)
-    print(text)
+    logger.info(text)
 
 ############
 # BOT CODE #
 ############
 
-def error(bot, update, error):
-    """bot error handler"""
 
+def error(bot, update, error):
+    """Bot error handler."""
     logger.warning('Update "%s" caused error "%s"' % (update, error))
 
 
@@ -412,7 +409,6 @@ def main():
     dp.add_handler(CommandHandler('update', update))
     dp.add_handler(CommandHandler('backup', backup))
     dp.add_handler(CommandHandler('restore', restore))
-
 
     # log all errors
     dp.add_error_handler(error)

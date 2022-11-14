@@ -3,6 +3,7 @@
 #
 # Herr Flantier der Geschenk Manager
 
+from random import choice
 from apiclient.discovery import build
 import pickle
 from random import choice, shuffle
@@ -29,7 +30,6 @@ sheet_id = ''
 data_range = '' + str(nb_cadeaux)
 
 
-
 class Personne:
     def __init__(self, tg_id, name):
         self.tg_id = tg_id
@@ -52,8 +52,7 @@ class Personne:
 def get_cadeaux():
 
     service = build('sheets', 'v4', credentials=None, developerKey=API_key)
-    request = service.spreadsheets().values().get(spreadsheetId=spreadsheet_id,
-        range=data_range, majorDimension='COLUMNS')
+    request = service.spreadsheets().values().get(spreadsheetId=spreadsheet_id, range=data_range, majorDimension='COLUMNS')
     spreadsheet = request.execute()
 
     values = spreadsheet.get('values')
@@ -80,7 +79,7 @@ def get_cadeaux():
 
             if update_flag:
                 new_data_flag = True
-                print("mise à jour des cadeaux de " + participants[index].name)
+                logger.info("mise à jour des cadeaux de " + participants[index].name)
 
     return new_data_flag
 
@@ -88,23 +87,23 @@ def get_cadeaux():
 def backup_cadeaux():
     with open(CADEAUX, 'wb') as file:
         pickle.dump(participants, file, protocol=pickle.HIGHEST_PROTOCOL)
-    print("sauvegarde de l'état de Flantier")
+    logger.info("sauvegarde de l'état de Flantier")
 
 
 def load_cadeaux():
     with open(CADEAUX, 'rb') as file:
         participants = pickle.load(file)
 
-    print("restauration de l'état de Flantier")
+    logger.info("restauration de l'état de Flantier")
     return participants
 
 
 def init_participants(participants):
-    """Initialise la liste des participants avec leur impossibilités et leurs cadeaux.
+    u"""Initialise la liste des participants avec leur impossibilités et leurs cadeaux.
 
     retourne l'administrateur
     """
-    print("init participants\n")
+    logger.info("init participants\n")
 
     # TODO : automatiser à partir d'un fichier de participants
     # liste des personnes
@@ -117,18 +116,18 @@ def init_participants(participants):
     user2.impossible = [user1]
     user3.impossible = []
 
-    print("setup list\n")
+    logger.info("setup list\n")
     participants.extend([user1, user2, user3])
 
-    print("init cadeaux\n")
+    logger.info("init cadeaux\n")
     get_cadeaux()
 
-    print("setup administrator\n")
-    return perceval
+    logger.info("setup administrator\n")
+    return user1
 
 
 def tirage():
-    """Algorithme de tirage au sort, complète automatique les champs 'dest'."""
+    u"""Algorithme de tirage au sort, complète automatique les champs 'dest'."""
     # init
     global imp_total
     imp_total = []
@@ -136,10 +135,7 @@ def tirage():
     for qqun in participants:
         qqun.dest = 0
 
-    print("\nC'est parti !!!\n")
-
-    # mélange
-    shuffle(participants)
+    logger.info("\nC'est parti !!!\n")
 
     # attribution
     for quelquun in participants:
@@ -154,7 +150,7 @@ def tirage():
 
         # s'il n'y a pas de solution on redémarre
         if len(possibles) == 0:
-            print("\nOn recommence !!!\n")
+            logger.info("\nOn recommence !!!\n")
             return -1
 
         # selectionne qqun
@@ -163,7 +159,8 @@ def tirage():
         imp_total.append(quelquun.dest)
         # passe au suivant
 
-    print("\nC'est fini !!!\n")
+    # backup_tirage()
+    logger.info("\nC'est fini !!!\n")
 
     return 0
 
