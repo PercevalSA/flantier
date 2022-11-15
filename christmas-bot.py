@@ -373,19 +373,27 @@ def start(update: Update, context: CallbackContext):
 
 
 def help(update: Update, context: CallbackContext):
-    help_text = """Voici les commandes disponibles:
+
+
+    simple_help = """Voici les commandes disponibles:
     /bonjour - je vous dirai bonjour à ma manière
     /participer - s'inscrire pour le secret santa
     /liste - donne la liste des participants
+
+    /help - affiche cette aide
+    /aide - affiche cette aide
+    """
+    
+    extended_help = """
     /cadeaux - donne la liste des voeux de cadeaux
     /commentaires - donne les commentaires associés aux voeux
     /offrir - reserve un cadeau à offrir (pour que personne d'autre ne l'offre)
     /retirer - annule la réservation
-
-    /help - affiche cette aide
-    /aide - affiche cette aide
     /annuler - annule l'opération en cours
     """
+
+    if santa.mode == simple
+
     context.bot.send_message(chat_id=update.effective_chat.id, 
                              text=help_text)
 
@@ -430,9 +438,9 @@ def register_commands(dispatcher):
     dispatcher.add_handler(MessageHandler(Filters.command, unknown_command))
 
 
-# def error(bot, update, error):
-#     """Bot error handler."""
-#     logger.warning('Update "%s" caused error "%s"' % (update, error))
+def error(update: Update, context: CallbackContext):
+    """Bot error handler."""
+    logger.warning('Update "%s" caused error "%s"' % (update, context.error))
 
 
 def main():
@@ -443,8 +451,8 @@ def main():
     # answer in Telegram on different commands
     register_commands(dispatcher)
 
-    # # log all errors
-    # dispatcher.add_error_handler(error)
+    # log all errors
+    dispatcher.add_error_handler(error)
 
     init_christmas()
 
