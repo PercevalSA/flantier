@@ -1,18 +1,19 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-#
-# Herr Flantier der Geschenk Manager
+#!/usr/bin/python3
+"""Herr Flantier der Geschenk Manager."""
 
-import logging
-from telegram.ext import Updater, CommandHandler
-from telegram import ReplyKeyboardMarkup, ReplyKeyboardRemove
 from random import choice
-from flantier import *
+from telegram import Update, ReplyKeyboardMarkup, ReplyKeyboardRemove
+from telegram.ext import Updater, CallbackContext, CommandHandler
+import configs
+import flantier
+import logging
+import sys
+import telegram
 
 # Enable logging
 logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
                     level=logging.INFO)
-logger = logging.getLogger(__name__)
+logger = logging.getLogger("flantier")
 
 ########################
 # GESTION DES CLAVIERS #
@@ -129,7 +130,7 @@ def register(bot, update):
                        + update.message.from_user.first_name
                        + "\n")
 
-        logger.info("Inscription de : " + update.message.from_user.first_name + " : " 
+        logger.info("Inscription de : " + update.message.from_user.first_name + " : "
             + str(update.message.from_user.id))
 
         bot.send_message(chat_id=update.message.chat_id,
@@ -143,8 +144,7 @@ def register(bot, update):
 
 
 def liste(bot, update):
-    """Liste les participants inscrits"""
-
+    """Liste les participants inscrits."""
     users = ""
     try:
         with open('participants.txt', 'r') as file:
@@ -163,8 +163,7 @@ def liste(bot, update):
 
 
 def wishes(bot, update):
-    """Affiche la liste de cadeaux d'une personne"""
-
+    """Affiche la liste de cadeaux d'une personne."""
     if(len(update.message.text.split(' ')) > 1):
         name = update.message.text.split(' ')[1]
 
@@ -193,7 +192,6 @@ def comments(bot, update):
 
 def offer(bot, update):
     """Permet de sélectionner un cadeau à offrir"""
-
     # aucun argument fourni
     if(len(update.message.text.split(' ')) == 1):
         build_people_keyboard(bot, update, offer_flag=True)
@@ -289,7 +287,7 @@ def dont_offer(bot, update):
 def cancel(bot, update):
     reply_del_kb = ReplyKeyboardRemove()
     bot.send_message(chat_id=update.message.chat_id,
-        text="Opération annulée.", reply_markup=reply_del_kb)
+                     text="Opération annulée.", reply_markup=reply_del_kb)
 
 
 ############################
@@ -297,44 +295,52 @@ def cancel(bot, update):
 ############################
 
 
-def start(bot, update):
+def is_admin(bot, chat_id, user_id: int) -> bool:
+    """check if the given telegram id is admin of the bot
+    
+    Args:
+        bot (TYPE): telegram bot
+        tid (int): telegram id to check
+    
+    Returns:
+        bool: whether the telegram user is admin of the bot or not
+    """
+    if user_id == administrateur.tg_id:
+        return True
+    else:
+        bot.send_message(chat_id=update.message.chat_id,
+                         text="C'est {} l'administrateur, petit canaillou !"
+                         .format(administrateur.name))
+        return False
+
+
+def christmas(bot, update):
     """Lance la campagne d'inscription."""
     global inscriptions
 
-    if (update.message.from_user.id != administrateur.tg_id):
-        bot.send_message(chat_id=update.message.chat_id,
-            text="C'est {} l'administrateur, petit canaillou !"
-            .format(administrateur.name))
-    else:
+    if is_admin(bot, update.message.chat_id, update.message.from_user.id):
         inscriptions = True
         bot.send_message(chat_id=update.message.chat_id,
-            text="Tu peux directement t'inscrire en envoyant /participer")
+                         text="Tu peux directement t'inscrire en envoyant /participer")
 
 
 def stop(bot, update):
     """Termine la campagne d'inscription."""
     global inscriptions
 
-    if(update.message.from_user.id != administrateur.tg_id):
-        bot.send_message(chat_id=update.message.chat_id,
-            text="C'est {} l'administrateur, petit canaillou !"
-            .format(administrateur.name))
-    else:
+    if is_admin(bot, update.message.chat_id, update.message.from_user.id):
         inscriptions = False
         bot.send_message(chat_id=update.message.chat_id,
-            text="Les inscriptions sont fermées, c'est bientôt l'heure des résultats ! ;)")
+                         text="Les inscriptions sont fermées, c'est bientôt l'heure des résultats ! ;)")
 
 
 def process(bot, update):
     """Lance le tirage au sort et envoie les réponses en message privé."""
-    # check admin
-    if (update.message.from_user.id != administrateur.tg_id):
-        bot.send_message(chat_id=update.message.chat_id,
-            text=f"C'est {administrateur.name} l'administrateur, petit canaillou !\nPour participer, envoyez moi la commande /participer")
-    else:
+
+    if is_admin(bot, update.message.chat_id, update.message.from_user.id):
         if(inscriptions):
             bot.send_message(chat_id=update.message.chat_id,
-                text="Les inscriptions ne sont pas encore terminées.")
+                             text="Les inscriptions ne sont pas encore terminées.")
         else:
             # tant que le tirage ne fonctionne pas on relance
             while (tirage() != 0):
@@ -343,11 +349,12 @@ def process(bot, update):
         # on envoie les résultats en message privé
         for qqun in participants:
             bot.send_message(qqun.tg_id,
-                text="Youpi tu offres à : {}\n".format(qqun.dest.name))
+                             text="Youpi tu offres à : {}\n"
+                             .format(qqun.dest.name))
 
 
 def update(bot, update):
-    """Met à jour la liste des cadeaux."""
+    u"""Met à jour la liste des cadeaux."""
     if get_cadeaux():
         text = "liste des cadeaux inchangée\n"
     else:
@@ -380,42 +387,54 @@ def restore(bot, update):
 ############
 
 
+def init_christmas():
+    # initialize participants and presents
+    global administrateur
+    administrateur = flantier.init_participants(flantier.participants)
+
+
+def start(update: Update, context: CallbackContext):
+    context.bot.send_message(chat_id=update.effective_chat.id, text=(u"C'est bientôt Noël! Je suis là pour vous aider à organiser tout ça Larmina mon p'tit. Je tire sort les cadeaux et vous nous faites une jolie table avec une bonne bûche pour le dessert."))
+
+
+def register_commands(dispatcher):
+    # users commands
+    dispatcher.add_handler(CommandHandler('bonjour', hello))
+    dispatcher.add_handler(CommandHandler('participer', register))
+    dispatcher.add_handler(CommandHandler('liste', liste))
+    dispatcher.add_handler(CommandHandler('cadeaux', wishes))
+    dispatcher.add_handler(CommandHandler('commentaires', comments))
+    dispatcher.add_handler(CommandHandler('offrir', offer))
+    dispatcher.add_handler(CommandHandler('retirer', dont_offer))
+    dispatcher.add_handler(CommandHandler('annuler', cancel))
+
+    # admin commands
+    dispatcher.add_handler(CommandHandler('start', start))
+    dispatcher.add_handler(CommandHandler('noel', christmas))
+    dispatcher.add_handler(CommandHandler('stop', stop))
+    dispatcher.add_handler(CommandHandler('tirage', process))
+    dispatcher.add_handler(CommandHandler('update', update))
+    dispatcher.add_handler(CommandHandler('backup', backup))
+    dispatcher.add_handler(CommandHandler('restore', restore))
+
+
 def error(bot, update, error):
     """Bot error handler."""
     logger.warning('Update "%s" caused error "%s"' % (update, error))
 
 
 def main():
-    # Create the EventHandler and pass it your bot's token.
-    updater = Updater(TOKEN)
-    dp = updater.dispatcher
+    # Create the EventHandler and pass it your bot's token
+    updater = Updater(token=configs.TOKEN, use_context=True)
+    dispatcher = updater.dispatcher
 
-    # on different commands - answer in Telegram
-
-    # users commands
-    dp.add_handler(CommandHandler('bonjour', hello))
-    dp.add_handler(CommandHandler('participer', register))
-    dp.add_handler(CommandHandler('liste', liste))
-    dp.add_handler(CommandHandler('cadeaux', wishes))
-    dp.add_handler(CommandHandler('commentaires', comments))
-    dp.add_handler(CommandHandler('offrir', offer))
-    dp.add_handler(CommandHandler('retirer', dont_offer))
-    dp.add_handler(CommandHandler('annuler', cancel))
-
-    # admin commands
-    dp.add_handler(CommandHandler('start', start))
-    dp.add_handler(CommandHandler('stop', stop))
-    dp.add_handler(CommandHandler('tirage', process))
-    dp.add_handler(CommandHandler('update', update))
-    dp.add_handler(CommandHandler('backup', backup))
-    dp.add_handler(CommandHandler('restore', restore))
+    # answer in Telegram on different commands
+    register_commands(dispatcher)
 
     # log all errors
-    dp.add_error_handler(error)
+    dispatcher.add_error_handler(error)
 
-    # initialize participants and presents
-    global administrateur
-    administrateur = init_participants(participants)
+    init_christmas()
 
     # Start the Bot
     updater.start_polling()

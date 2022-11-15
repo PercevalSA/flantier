@@ -3,32 +3,20 @@
 #
 # Herr Flantier der Geschenk Manager
 
-from random import choice
+from configs import *
+
 from apiclient.discovery import build
+import logging
 import pickle
-from random import choice, shuffle
-
-# Telegram bot token
-TOKEN = ''
-# Google API Token
-API_key = ''
-
-# file to store users data
-PARTICIPANTS = 'participants.txt'
-CADEAUX = 'cadeaux.bak'
+from random import choice
 
 # Global variables
 participants = []
 imp_total = []
 inscriptions = False
 administrateur = None
-nb_cadeaux = 30
 
-# Google Sheets Document
-spreadsheet_id = ''
-sheet_id = ''
-data_range = '' + str(nb_cadeaux)
-
+logger = logging.getLogger("flantier")
 
 class Personne:
     def __init__(self, tg_id, name):
