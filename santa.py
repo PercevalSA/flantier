@@ -6,32 +6,16 @@ from apiclient.discovery import build
 import logging
 import pickle
 from random import choice
+from users import Personne
 
 # Global variables
 participants = []
 imp_total = []
-inscriptions = False
+inscriptions = True
 
 logger = logging.getLogger("flantier")
 
-
-class Personne:
-    def __init__(self, tg_id, name):
-        self.tg_id = tg_id
-        self.name = name
-        # liste des personnes à qui la personne ne peut pas offrir
-        self.impossible = []
-        # personne à qui offrir
-        self.dest = None
-
-        # cadeaux qui viennent du google doc
-        self.wishes = [None] * configs.nb_cadeaux
-        self.comments = [None] * configs.nb_cadeaux
-        # liste des personnes qui offrent les cadeaux correspondant
-        self.donor = [None] * configs.nb_cadeaux
-
-        # liste de [personne, cadeau] que la personne a décidé d'offrir
-        self.offer_to = []
+# TODO use singleton to store state
 
 
 def get_cadeaux():
@@ -91,6 +75,27 @@ def load_cadeaux():
 
     logger.info("restauration de l'état de Flantier")
     return participants
+
+
+def register_user(tg_id: int, name: str) -> bool:
+    u"""récupère l'id telegram et ajoute le participant au fichier.
+
+    Args:
+        tg_id (int): telegram id of the new user
+        name (str): Name of the user used to filter gifts column in Google Sheets
+
+    Returns:
+        bool: whether the user is registered or not
+    """
+    if inscriptions:
+        with open(configs.USERS_FILE, "a") as file:
+            file.write(
+                f"{tg_id}:{name}\n"
+            )
+        logger.info(
+            f"Inscription de : {name} : {tg_id}"
+        )
+    return inscriptions
 
 
 def init_participants(participants):

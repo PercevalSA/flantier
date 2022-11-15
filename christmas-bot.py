@@ -14,8 +14,9 @@ import configs
 import flantier
 import logging
 import sys
-import telegram
 import santa
+import keyboards
+import users
 
 # Enable logging
 logging.basicConfig(
@@ -23,149 +24,15 @@ logging.basicConfig(
 )
 logger = logging.getLogger("flantier")
 
-########################
-# GESTION DES CLAVIERS #
-########################
-
-
-def build_people_keyboard(
-    update: Update,
-    context: CallbackContext,
-    offer_flag=False,
-    comments=False,
-):
-    """Créer le clavier avec les noms des participants."""
-    if offer_flag:
-        button_list = ["/offrir " + qqun.name for qqun in santa.participants]
-    elif comments:
-        button_list = ["/commentaires " + qqun.name for qqun in santa.participants]
-    else:
-        button_list = ["/cadeaux " + qqun.name for qqun in santa.participants]
-
-    header_buttons = None
-    footer_buttons = ["/annuler"]
-    n_cols = 2
-
-    menu = [button_list[i : i + n_cols] for i in range(0, len(button_list), n_cols)]
-    if header_buttons:
-        menu.insert(0, header_buttons)
-    if footer_buttons:
-        menu.append(footer_buttons)
-
-    reply_keyboard = ReplyKeyboardMarkup(keyboard=menu, one_time_keyboard=True)
-
-    if offer_flag:
-        text = "À qui veux-tu offrir ?"
-    else:
-        text = "De qui veux-tu afficher la liste de souhaits ?"
-
-    context.bot.send_message(
-        chat_id=update.message.chat_id, text=text, reply_markup=reply_keyboard
-    )
-
-
-def build_wish_keyboard(update: Update, context: CallbackContext, name):
-    """Affiche le clavier des souhaits d'une personne."""
-    destinataire = next(qqun for qqun in santa.participants if qqun.name == name)
-
-    i = 1
-    button_list = []
-    while destinataire.wishes[i] is not None:
-        button_list.append("/offrir " + name + " " + str(i))
-        i += 1
-
-    header_buttons = None
-    footer_buttons = ["/annuler"]
-    n_cols = 2
-
-    menu = [button_list[j : j + n_cols] for j in range(0, len(button_list) - 1, n_cols)]
-    if header_buttons:
-        menu.insert(0, header_buttons)
-    if footer_buttons:
-        menu.append(footer_buttons)
-
-    reply_keyboard = ReplyKeyboardMarkup(keyboard=menu, one_time_keyboard=True)
-    context.bot.send_message(
-        chat_id=update.message.chat_id,
-        text="Quel cadeau veux tu offrir ?",
-        reply_markup=reply_keyboard,
-    )
-
-
-def build_present_keyboard(update: Update, context: CallbackContext):
-    """Affiche le clavier des cadeau que l'on souhaite offrir."""
-    offrant = next(
-        qqun for qqun in santa.participants if qqun.tg_id == update.message.from_user.id
-    )
-
-    text = ""
-    button_list = []
-
-    if (len(offrant.offer_to)) == 0:
-        context.bot.send_message(
-            chat_id=update.message.chat_id,
-            text="Tu n'offres encore aucun cadeau, égoïste !",
-        )
-        return
-
-    else:
-
-        for i in range(0, len(offrant.offer_to)):
-            text += str(offrant.offer_to[i][0]) + " " + str(offrant.offer_to[i][1])
-            text += " [" + santa.participants[offrant.offer_to[i][0]].name + "] : "
-            text += (
-                santa.participants[offrant.offer_to[i][0]].wishes[
-                    offrant.offer_to[i][1]
-                ]
-                + "\n"
-            )
-            button_list.append(
-                f"/retirer {str(offrant.offer_to[i][0])} {str(offrant.offer_to[i][1])}"
-            )
-
-        header_buttons = None
-        footer_buttons = ["/annuler"]
-        n_cols = 2
-
-        menu = [button_list[i : i + n_cols] for i in range(0, len(button_list), n_cols)]
-        if header_buttons:
-            menu.insert(0, header_buttons)
-        if footer_buttons:
-            menu.append(footer_buttons)
-
-        reply_keyboard = ReplyKeyboardMarkup(keyboard=menu, one_time_keyboard=True)
-
-        context.bot.send_message(
-            chat_id=update.message.chat_id, text=text, reply_markup=reply_keyboard
-        )
-
-
 #########################
 # COMMANDES UTILISATEUR #
 #########################
 
 
-def hello(update: Update, context: CallbackContext):
-    """Petit Comique."""
-    context.bot.send_message(
-        chat_id=update.message.chat_id, text=choice(flantier.citations)
-    )
-
-
 def register(update: Update, context: CallbackContext):
     """Permet de s'inscrire au tirage au sort."""
-    if santa.inscriptions:
-
-        # récupère l'id et ajoute le participant au fichier
-        with open(configs.PARTICIPANTS, "a") as file:
-            file.write(
-                f"{update.message.from_user.id}:{update.message.from_user.first_name}\n"
-            )
-
-        logger.info(
-            f"Inscription de : {update.message.from_user.first_name} : {update.message.from_user.id}"
-        )
-
+    if santa.register_user(tg_id=update.message.from_user.id,
+                           name=update.message.from_user.first_name):
         context.bot.send_message(
             chat_id=update.message.chat_id,
             text=f"Bravo {update.message.from_user.first_name}, tu es bien enregistré pour le tirage au sort. :)"
@@ -182,7 +49,7 @@ def liste(update: Update, context: CallbackContext):
     """Liste les participants inscrits."""
     users = ""
     try:
-        with open(configs.PARTICIPANTS, "r") as file:
+        with open(configs.USERS_FILE, "r") as file:
             for line in file:
                 users += line
 
@@ -214,7 +81,7 @@ def wishes(update: Update, context: CallbackContext):
         )
 
     else:
-        build_people_keyboard(update, context)
+        keyboards.build_people_keyboard(update, context)
 
 
 def comments(update: Update, context: CallbackContext):
@@ -230,20 +97,20 @@ def comments(update: Update, context: CallbackContext):
         )
 
     else:
-        build_people_keyboard(update, context, comments=True)
+        keyboards.build_people_keyboard(update, context, comments=True)
 
 
 def offer(update: Update, context: CallbackContext):
-    """Permet de sélectionner un cadeau à offrir"""
+    """Permet de sélectionner un cadeau à offrir."""
     # aucun argument fourni
     if len(update.message.text.split(" ")) == 1:
-        build_people_keyboard(update, context, offer_flag=True)
+        keyboards.build_people_keyboard(update, context, offer_flag=True)
 
     # fourni que le nom
     elif len(update.message.text.split(" ")) == 2:
         name = update.message.text.split(" ")[1]
         if any([qqun for qqun in santa.participants if (qqun.name == name)]):
-            build_wish_keyboard(update, context, name)
+            keyboards.build_wish_keyboard(update, context, name)
         else:
             context.bot.send_message(
                 chat_id=update.message.chat_id,
@@ -335,7 +202,7 @@ def dont_offer(update: Update, context: CallbackContext):
             chat_id=update.message.chat_id,
             text="Voici la liste des cadeaux que tu offres. Lequel veux-tu supprimer?",
         )
-        build_present_keyboard(update, context)
+        keyboards.build_present_keyboard(update, context)
 
     else:
         reply_del_kb = ReplyKeyboardRemove()
@@ -507,22 +374,33 @@ def start(update: Update, context: CallbackContext):
 
 def help(update: Update, context: CallbackContext):
     help_text = """Voici les commandes disponibles:
-    /bonjour        je vous dirai bonjour à ma manière
-    /participer     s'inscrire pour le secret santa
-    /liste          donne la liste des participants
-    /cadeaux        donne la liste des voeux de cadeaux
-    /commentaires   donne les commentaires associés aux voeux
-    /offrir         reserver un cadeau à offrir (pour que personne d'autre ne l'offre)
-    /retirer        annuler la réservation
-    /annuler        annuler l'opération en cours
+    /bonjour - je vous dirai bonjour à ma manière
+    /participer - s'inscrire pour le secret santa
+    /liste - donne la liste des participants
+    /cadeaux - donne la liste des voeux de cadeaux
+    /commentaires - donne les commentaires associés aux voeux
+    /offrir - reserve un cadeau à offrir (pour que personne d'autre ne l'offre)
+    /retirer - annule la réservation
+
+    /help - affiche cette aide
+    /aide - affiche cette aide
+    /annuler - annule l'opération en cours
     """
-    context.bot.send_message(chat_id=update.effective_chat.id, text=help_text)
+    context.bot.send_message(chat_id=update.effective_chat.id, 
+                             text=help_text)
+
+
+def hello(update: Update, context: CallbackContext):
+    """Petit Comique."""
+    context.bot.send_message(
+        chat_id=update.message.chat_id, text=choice(flantier.citations)
+    )
 
 
 def unknown_command(update: Update, context: CallbackContext):
     context.bot.send_message(
         chat_id=update.effective_chat.id,
-        text="Sorry, I didn't understand that command.",
+        text="Le Mue... quoi? Je n'ai pas compris cette commande.",
     )
 
 
