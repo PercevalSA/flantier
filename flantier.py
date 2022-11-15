@@ -3,8 +3,7 @@
 #
 # Herr Flantier der Geschenk Manager
 
-from configs import *
-
+import configs
 from apiclient.discovery import build
 import logging
 import pickle
@@ -14,7 +13,6 @@ from random import choice
 participants = []
 imp_total = []
 inscriptions = False
-administrateur = None
 
 logger = logging.getLogger("flantier")
 
@@ -28,10 +26,10 @@ class Personne:
         self.dest = None
 
         # cadeaux qui viennent du google doc
-        self.wishes = [None] * nb_cadeaux
-        self.comments = [None] * nb_cadeaux
+        self.wishes = [None] * configs.nb_cadeaux
+        self.comments = [None] * configs.nb_cadeaux
         # liste des personnes qui offrent les cadeaux correspondant
-        self.donor = [None] * nb_cadeaux
+        self.donor = [None] * configs.nb_cadeaux
 
         # liste de [personne, cadeau] que la personne a décidé d'offrir
         self.offer_to = []
@@ -39,8 +37,8 @@ class Personne:
 
 def get_cadeaux():
 
-    service = build('sheets', 'v4', credentials=None, developerKey=API_key)
-    request = service.spreadsheets().values().get(spreadsheetId=spreadsheet_id, range=data_range, majorDimension='COLUMNS')
+    service = build('sheets', 'v4', credentials=None, developerKey=configs.API_key)
+    request = service.spreadsheets().values().get(spreadsheetId=configs.spreadsheet_id, range=configs.data_range, majorDimension='COLUMNS')
     spreadsheet = request.execute()
 
     values = spreadsheet.get('values')
@@ -111,7 +109,7 @@ def init_participants(participants):
     get_cadeaux()
 
     logger.info("setup administrator\n")
-    return user1
+    return configs.administrateur
 
 
 def tirage():

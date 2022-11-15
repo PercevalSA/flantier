@@ -3,7 +3,7 @@
 
 from random import choice
 from telegram import Update, ReplyKeyboardMarkup, ReplyKeyboardRemove
-from telegram.ext import Updater, CallbackContext, CommandHandler
+from telegram.ext import Filters, Updater, CallbackContext, CommandHandler, MessageHandler
 import configs
 import flantier
 import logging
@@ -20,7 +20,7 @@ logger = logging.getLogger("flantier")
 ########################
 
 
-def build_people_keyboard(bot, update, offer_flag=False, comments=False):
+def build_people_keyboard(update: Update, context: CallbackContext, offer_flag=False, comments=False):
     """Créer le clavier avec les noms des participants."""
     if offer_flag:
         button_list = ["/offrir " + qqun.name for qqun in participants]
@@ -46,10 +46,10 @@ def build_people_keyboard(bot, update, offer_flag=False, comments=False):
     else:
         text = "De qui veux-tu afficher la liste de souhaits ?"
 
-    bot.send_message(chat_id=update.message.chat_id, text=text, reply_markup=reply_keyboard)
+    context.bot.send_message(chat_id=update.message.chat_id, text=text, reply_markup=reply_keyboard)
 
 
-def build_wish_keyboard(bot, update, name):
+def build_wish_keyboard(update: Update, context: CallbackContext, name):
     """Affiche le clavier des souhaits d'une personne."""
     destinataire = next(qqun for qqun in participants if qqun.name == name)
 
@@ -70,11 +70,12 @@ def build_wish_keyboard(bot, update, name):
         menu.append(footer_buttons)
 
     reply_keyboard = ReplyKeyboardMarkup(keyboard=menu, one_time_keyboard=True)
-    bot.send_message(chat_id=update.message.chat_id, text="Quel cadeau veux tu offrir ?",
-        reply_markup=reply_keyboard)
+    context.bot.send_message(chat_id=update.message.chat_id,
+                     text="Quel cadeau veux tu offrir ?",
+                     reply_markup=reply_keyboard)
 
 
-def build_present_keyboard(bot, update):
+def build_present_keyboard(update: Update, context: CallbackContext):
     """Affiche le clavier des cadeau que l'on souhaite offrir."""
     offrant = next(qqun for qqun in participants if qqun.tg_id == update.message.from_user.id)
 
@@ -82,8 +83,8 @@ def build_present_keyboard(bot, update):
     button_list = []
 
     if(len(offrant.offer_to)) == 0:
-        bot.send_message(chat_id=update.message.chat_id,
-            text="Tu n'offres encore aucun cadeau, égoïste !")
+        context.bot.send_message(chat_id=update.message.chat_id,
+                         text="Tu n'offres encore aucun cadeau, égoïste !")
         return
 
     else:
@@ -106,7 +107,7 @@ def build_present_keyboard(bot, update):
 
         reply_keyboard = ReplyKeyboardMarkup(keyboard=menu, one_time_keyboard=True)
 
-        bot.send_message(chat_id=update.message.chat_id, text=text,
+        context.bot.send_message(chat_id=update.message.chat_id, text=text,
             reply_markup=reply_keyboard)
 
 
@@ -114,17 +115,17 @@ def build_present_keyboard(bot, update):
 # COMMANDES UTILISATEUR #
 #########################
 
-def hello(bot, update):
+def hello(update: Update, context: CallbackContext):
     """Petit Comique."""
-    bot.send_message(chat_id=update.message.chat_id, text=choice(citations))
+    context.bot.send_message(chat_id=update.message.chat_id, text=choice(flantier.citations))
 
 
-def register(bot, update):
+def register(update: Update, context: CallbackContext):
     """Permet de s'inscrire au tirage au sort."""
-    if(inscriptions):
+    if(flantier.inscriptions):
 
         # récupère l'id et ajoute le participant au fichier
-        with open(PARTICIPANTS, 'a') as file:
+        with open(configs.PARTICIPANTS, 'a') as file:
             file.write(str(update.message.from_user.id)
                        + ":"
                        + update.message.from_user.first_name
@@ -133,17 +134,17 @@ def register(bot, update):
         logger.info("Inscription de : " + update.message.from_user.first_name + " : "
             + str(update.message.from_user.id))
 
-        bot.send_message(chat_id=update.message.chat_id,
+        context.bot.send_message(chat_id=update.message.chat_id,
             text="Bravo {}, tu es bien enregistré pour le tirage au sort. :)"
             .format(update.message.from_user.first_name))
 
     else:
-        bot.send_message(chat_id=update.message.chat_id,
+        context.bot.send_message(chat_id=update.message.chat_id,
             text="Patience {}, les inscriptions n'ont pas encore commencées ou sont déjà terminées !"
             .format(update.message.from_user.first_name))
 
 
-def liste(bot, update):
+def liste(update: Update, context: CallbackContext):
     """Liste les participants inscrits."""
     users = ""
     try:
@@ -152,57 +153,57 @@ def liste(bot, update):
                 users += line
 
         if(len(users) != 0):
-            bot.send_message(chat_id=update.message.chat_id,
+            context.bot.send_message(chat_id=update.message.chat_id,
                 text="Les participants sont : \n" + users)
         else:
             raise FileNotFoundError
 
     except FileNotFoundError:
-        bot.send_message(chat_id=update.message.chat_id,
+        context.bot.send_message(chat_id=update.message.chat_id,
             text="Il n'y a encore aucun participant inscrit.")
 
 
-def wishes(bot, update):
+def wishes(update: Update, context: CallbackContext):
     """Affiche la liste de cadeaux d'une personne."""
     if(len(update.message.text.split(' ')) > 1):
         name = update.message.text.split(' ')[1]
 
         reply_del_kb = ReplyKeyboardRemove()
-        bot.send_message(chat_id=update.message.chat_id,
+        context.bot.send_message(chat_id=update.message.chat_id,
             text=find_wishes(update.message.from_user.id, name),
             reply_markup=reply_del_kb)
 
     else:
-        build_people_keyboard(bot, update)
+        build_people_keyboard(update, context)
 
 
-def comments(bot, update):
+def comments(update: Update, context: CallbackContext):
     """Affiche la liste de cadeaux et les commentaires associés d'une personne."""
     if(len(update.message.text.split(' ')) > 1):
         name = update.message.text.split(' ')[1]
 
         reply_del_kb = ReplyKeyboardRemove()
-        bot.send_message(chat_id=update.message.chat_id, 
+        context.bot.send_message(chat_id=update.message.chat_id, 
             text=find_wishes(update.message.from_user.id, name, with_comments=True),
             reply_markup=reply_del_kb)
 
     else:
-        build_people_keyboard(bot, update, comments=True)
+        build_people_keyboard(update, context, comments=True)
 
 
-def offer(bot, update):
+def offer(update: Update, context: CallbackContext):
     """Permet de sélectionner un cadeau à offrir"""
     # aucun argument fourni
     if(len(update.message.text.split(' ')) == 1):
-        build_people_keyboard(bot, update, offer_flag=True)
+        build_people_keyboard(update, context, offer_flag=True)
 
     # fourni que le nom
     elif(len(update.message.text.split(' ')) == 2):
         name = update.message.text.split(' ')[1]
         if any([qqun for qqun in participants if (qqun.name == name)]):
-            build_wish_keyboard(bot, update, name)
+            build_wish_keyboard(update, context, name)
         else:
-            bot.send_message(chat_id=update.message.chat_id,
+            context.bot.send_message(chat_id=update.message.chat_id,
                 text="Je ne trouve pas la personne dont tu parles...")
 
 
@@ -243,16 +244,16 @@ def offer(bot, update):
             text = "Je ne trouve pas la personne dont tu parles..."
 
         reply_del_kb = ReplyKeyboardRemove()
-        bot.send_message(chat_id=update.message.chat_id, text=text, reply_markup=reply_del_kb)
+        context.bot.send_message(chat_id=update.message.chat_id, text=text, reply_markup=reply_del_kb)
 
     # on comprend rien
     else:
         reply_del_kb = ReplyKeyboardRemove()
-        bot.send_message(chat_id=update.message.chat_id,
+        context.bot.send_message(chat_id=update.message.chat_id,
             text="Enfin! Parle Français: /offrir Prénom Numéro_Cadeau", reply_markup=reply_del_kb)
 
 
-def dont_offer(bot, update):
+def dont_offer(update: Update, context: CallbackContext):
     """Annule la réservation d'un cadeau à offrir.
 
     trouver tous les cadeaux qu'on offre
@@ -260,9 +261,9 @@ def dont_offer(bot, update):
     proposer de les annuler
     """
     if(len(update.message.text.split(' ')) != 3):
-        bot.send_message(chat_id=update.message.chat_id,
+        context.bot.send_message(chat_id=update.message.chat_id,
             text="Voici la liste des cadeaux que tu offres. Lequel veux-tu supprimer?")
-        build_present_keyboard(bot, update)
+        build_present_keyboard(update, context)
 
     else:
         reply_del_kb = ReplyKeyboardRemove()
@@ -277,16 +278,16 @@ def dont_offer(bot, update):
             del offrant.offer_to[offrande_index]
             participants[receiver_index].donor[cadeau_index] = None
 
-            bot.send_message(chat_id=update.message.chat_id,
+            context.bot.send_message(chat_id=update.message.chat_id,
                 text="Cadeau supprimé", reply_markup=reply_del_kb)
         else:
-            bot.send_message(chat_id=update.message.chat_id,
+            context.bot.send_message(chat_id=update.message.chat_id,
                 text="Impossible de trouver le cadeau spécifié...", reply_markup=reply_del_kb)
 
 
-def cancel(bot, update):
+def cancel(update: Update, context: CallbackContext):
     reply_del_kb = ReplyKeyboardRemove()
-    bot.send_message(chat_id=update.message.chat_id,
+    context.bot.send_message(chat_id=update.message.chat_id,
                      text="Opération annulée.", reply_markup=reply_del_kb)
 
 
@@ -295,7 +296,7 @@ def cancel(bot, update):
 ############################
 
 
-def is_admin(bot, chat_id, user_id: int) -> bool:
+def is_admin(update: Update, context: CallbackContext) -> bool:
     """check if the given telegram id is admin of the bot
     
     Args:
@@ -305,41 +306,42 @@ def is_admin(bot, chat_id, user_id: int) -> bool:
     Returns:
         bool: whether the telegram user is admin of the bot or not
     """
-    if user_id == administrateur.tg_id:
+    if update.message.from_user.id == configs.administrateur.tg_id:
         return True
     else:
-        bot.send_message(chat_id=update.message.chat_id,
-                         text="C'est {} l'administrateur, petit canaillou !"
-                         .format(administrateur.name))
+        context.bot.send_message(
+            chat_id=update.message.chat_id,
+            text=f"C'est {configs.administrateur.name} l'administrateur, petit canaillou !"
+        )
         return False
 
 
-def christmas(bot, update):
+def christmas(update: Update, context: CallbackContext):
     """Lance la campagne d'inscription."""
     global inscriptions
 
-    if is_admin(bot, update.message.chat_id, update.message.from_user.id):
+    if is_admin(update, context):
         inscriptions = True
-        bot.send_message(chat_id=update.message.chat_id,
+        context.bot.send_message(chat_id=update.message.chat_id,
                          text="Tu peux directement t'inscrire en envoyant /participer")
 
 
-def stop(bot, update):
+def stop(update: Update, context: CallbackContext):
     """Termine la campagne d'inscription."""
     global inscriptions
 
-    if is_admin(bot, update.message.chat_id, update.message.from_user.id):
+    if is_admin(update, context):
         inscriptions = False
-        bot.send_message(chat_id=update.message.chat_id,
+        context.bot.send_message(chat_id=update.message.chat_id,
                          text="Les inscriptions sont fermées, c'est bientôt l'heure des résultats ! ;)")
 
 
-def process(bot, update):
+def process(update: Update, context: CallbackContext):
     """Lance le tirage au sort et envoie les réponses en message privé."""
 
-    if is_admin(bot, update.message.chat_id, update.message.from_user.id):
+    if is_admin(update, context):
         if(inscriptions):
-            bot.send_message(chat_id=update.message.chat_id,
+            context.bot.send_message(chat_id=update.message.chat_id,
                              text="Les inscriptions ne sont pas encore terminées.")
         else:
             # tant que le tirage ne fonctionne pas on relance
@@ -348,38 +350,38 @@ def process(bot, update):
 
         # on envoie les résultats en message privé
         for qqun in participants:
-            bot.send_message(qqun.tg_id,
+            context.bot.send_message(qqun.tg_id,
                              text="Youpi tu offres à : {}\n"
                              .format(qqun.dest.name))
 
 
-def update(bot, update):
+def update_wishes_list(update: Update, context: CallbackContext):
     u"""Met à jour la liste des cadeaux."""
     if get_cadeaux():
         text = "liste des cadeaux inchangée\n"
     else:
         text = "liste des cadeaux mise à jour\n"
 
-    bot.send_message(chat_id=update.message.chat_id, text=text)
+    context.bot.send_message(chat_id=update.message.chat_id, text=text)
     logger.info(text)
 
 
-def backup(bot, update):
+def backup_state(update: Update, context: CallbackContext):
     """Sauvegarde l'état de flantier dans un fichier."""
     backup_cadeaux()
 
     text = "État de Flantier sauvegardé\n"
-    bot.send_message(chat_id=update.message.chat_id, text=text)
+    context.bot.send_message(chat_id=update.message.chat_id, text=text)
     logger.info(text)
 
 
-def restore(bot, update):
+def restore_state(bot, update):
     """Restaure l'état de flantier sauvegardé dans un fichier."""
     global participants
     participants = load_cadeaux()
 
     text = "État de Flantier restauré\n"
-    bot.send_message(chat_id=update.message.chat_id, text=text)
+    context.bot.send_message(chat_id=update.message.chat_id, text=text)
     logger.info(text)
 
 ############
@@ -389,12 +391,28 @@ def restore(bot, update):
 
 def init_christmas():
     # initialize participants and presents
-    global administrateur
-    administrateur = flantier.init_participants(flantier.participants)
+    flantier.init_participants(flantier.participants)
 
 
 def start(update: Update, context: CallbackContext):
     context.bot.send_message(chat_id=update.effective_chat.id, text=(u"C'est bientôt Noël! Je suis là pour vous aider à organiser tout ça Larmina mon p'tit. Je tire sort les cadeaux et vous nous faites une jolie table avec une bonne bûche pour le dessert."))
+
+def help(update: Update, context: CallbackContext):
+    help_text = """Voici les commandes disponibles:
+    /bonjour        je vous dirai bonjour à ma manière
+    /participer     s'inscrire pour le secret santa
+    /liste          donne la liste des participants
+    /cadeaux        donne la liste des voeux de cadeaux
+    /commentaires   donne les commentaires associés aux voeux
+    /offrir         reserver un cadeau à offrir (pour que personne d'autre ne l'offre)
+    /retirer        annuler la réservation
+    /annuler        annuler l'opération en cours
+    """
+    context.bot.send_message(chat_id=update.effective_chat.id, text=help_text)
+
+
+def unknown_command(update: Update, context: CallbackContext):
+    context.bot.send_message(chat_id=update.effective_chat.id, text="Sorry, I didn't understand that command.")
 
 
 def register_commands(dispatcher):
@@ -407,20 +425,24 @@ def register_commands(dispatcher):
     dispatcher.add_handler(CommandHandler('offrir', offer))
     dispatcher.add_handler(CommandHandler('retirer', dont_offer))
     dispatcher.add_handler(CommandHandler('annuler', cancel))
+    dispatcher.add_handler(CommandHandler('aide', help))
+    dispatcher.add_handler(CommandHandler('help', help))
 
     # admin commands
     dispatcher.add_handler(CommandHandler('start', start))
     dispatcher.add_handler(CommandHandler('noel', christmas))
     dispatcher.add_handler(CommandHandler('stop', stop))
     dispatcher.add_handler(CommandHandler('tirage', process))
-    dispatcher.add_handler(CommandHandler('update', update))
-    dispatcher.add_handler(CommandHandler('backup', backup))
-    dispatcher.add_handler(CommandHandler('restore', restore))
+    dispatcher.add_handler(CommandHandler('update', update_wishes_list))
+    dispatcher.add_handler(CommandHandler('backup', backup_state))
+    dispatcher.add_handler(CommandHandler('restore', restore_state))
 
+    # unkown commands
+    dispatcher.add_handler(MessageHandler(Filters.command, unknown_command))
 
-def error(bot, update, error):
-    """Bot error handler."""
-    logger.warning('Update "%s" caused error "%s"' % (update, error))
+# def error(bot, update, error):
+#     """Bot error handler."""
+#     logger.warning('Update "%s" caused error "%s"' % (update, error))
 
 
 def main():
@@ -431,8 +453,8 @@ def main():
     # answer in Telegram on different commands
     register_commands(dispatcher)
 
-    # log all errors
-    dispatcher.add_error_handler(error)
+    # # log all errors
+    # dispatcher.add_error_handler(error)
 
     init_christmas()
 
