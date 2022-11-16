@@ -70,27 +70,6 @@ def load_cadeaux():
     return participants
 
 
-def register_user(tg_id: int, name: str) -> bool:
-    u"""récupère l'id telegram et ajoute le participant au fichier.
-
-    Args:
-        tg_id (int): telegram id of the new user
-        name (str): Name of the user used to filter gifts column in Google Sheets
-
-    Returns:
-        bool: whether the user is registered or not
-    """
-    if inscriptions:
-        with open(configs.USERS_FILE, "a") as file:
-            file.write(
-                f"{tg_id}:{name}\n"
-            )
-        logger.info(
-            f"Inscription de : {name} : {tg_id}"
-        )
-    return inscriptions
-
-
 def find_wishes(tg_id, name, with_comments=False, table=False):
     """Trouve et retourne la liste de souhaits avec le nom de la personne."""
     matches = [qqun for qqun in participants if (qqun.name == name)]

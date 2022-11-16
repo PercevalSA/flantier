@@ -2,8 +2,12 @@
 """Herr Flantier der Geschenk Manager.
 """
 
-# import json
+import json
 import configs
+from typing import List
+import logging
+
+logger = logging.getLogger("flantier")
 
 class Personne:
     """classe représentant les personnes inscrites au secret santa.
@@ -30,29 +34,27 @@ class Personne:
         self.name = name
         self.impossible = []
         self.dest = None
-        self.wishes = [None] * configs.nb_cadeaux
-        self.comments = [None] * configs.nb_cadeaux
-        self.donor = [None] * configs.nb_cadeaux
-        self.offer_to = []
+        # self.wishes = [None] * configs.nb_cadeaux
+        # self.comments = [None] * configs.nb_cadeaux
+        # self.donor = [None] * configs.nb_cadeaux
+        # self.offer_to = []
 
+    # def toJSON(self):
+    #     return json.dumps(self, default=lambda o: o.__dict__, 
+    #         sort_keys=True, indent=4)
 
-def get_users_from_file(file: Path):
+def load_users():
+    logger.info("Restauration de l'état de Flantier")
     with open(configs.USERS_FILE, 'r') as file:
-        users = file.read()
+        data = json.load(file)
 
-    print(users)
+    print(data)
 
-def register_user_to_file(user: Personne, file: Path):
-
-def backup_cadeaux():
-    with open(configs.CADEAUX, "wb") as file:
-        pickle.dump(participants, file, protocol=pickle.HIGHEST_PROTOCOL)
-    logger.info("sauvegarde de l'état de Flantier")
+    return data
 
 
-def load_cadeaux():
-    with open(configs.CADEAUX, "rb") as file:
-        participants = pickle.load(file)
-
-    logger.info("restauration de l'état de Flantier")
-    return participants
+def save_users(users: List):
+    logger.info("Sauvegarde de l'état de Flantier")
+    data = json.dumps(users, indent=4)
+    with open(configs.USERS_FILE, "w") as file:
+        file.write(data)

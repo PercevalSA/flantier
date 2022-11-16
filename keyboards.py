@@ -5,7 +5,7 @@
 from telegram import Update, ReplyKeyboardMarkup, ReplyKeyboardRemove
 from telegram.ext import CallbackContext
 import logging
-import santa
+import roulette
 
 logger = logging.getLogger("flantier")
 
@@ -15,13 +15,14 @@ def build_people_keyboard(
     offer_flag=False,
     comments=False,
 ):
+    roulette = Roulette()
     u"""Créer le clavier avec les noms des participants."""
     if offer_flag:
-        button_list = ["/offrir " + qqun.name for qqun in santa.participants]
+        button_list = ["/offrir " + qqun.name for qqun in roulette.participants]
     elif comments:
-        button_list = ["/commentaires " + qqun.name for qqun in santa.participants]
+        button_list = ["/commentaires " + qqun.name for qqun in roulette.participants]
     else:
-        button_list = ["/cadeaux " + qqun.name for qqun in santa.participants]
+        button_list = ["/cadeaux " + qqun.name for qqun in roulette.participants]
 
     header_buttons = None
     footer_buttons = ["/annuler"]
@@ -47,7 +48,7 @@ def build_people_keyboard(
 
 def build_wish_keyboard(update: Update, context: CallbackContext, name):
     u"""Affiche le clavier des souhaits d'une personne."""
-    destinataire = next(qqun for qqun in santa.participants if qqun.name == name)
+    destinataire = next(qqun for qqun in roulette.participants if qqun.name == name)
 
     i = 1
     button_list = []
@@ -76,7 +77,7 @@ def build_wish_keyboard(update: Update, context: CallbackContext, name):
 def build_present_keyboard(update: Update, context: CallbackContext):
     """Affiche le clavier des cadeau que l'on souhaite offrir."""
     offrant = next(
-        qqun for qqun in santa.participants if qqun.tg_id == update.message.from_user.id
+        qqun for qqun in roulette.participants if qqun.tg_id == update.message.from_user.id
     )
 
     text = ""
@@ -93,9 +94,9 @@ def build_present_keyboard(update: Update, context: CallbackContext):
 
         for i in range(0, len(offrant.offer_to)):
             text += str(offrant.offer_to[i][0]) + " " + str(offrant.offer_to[i][1])
-            text += " [" + santa.participants[offrant.offer_to[i][0]].name + "] : "
+            text += " [" + roulette.participants[offrant.offer_to[i][0]].name + "] : "
             text += (
-                santa.participants[offrant.offer_to[i][0]].wishes[
+                roulette.participants[offrant.offer_to[i][0]].wishes[
                     offrant.offer_to[i][1]
                 ] + "\n"
             )

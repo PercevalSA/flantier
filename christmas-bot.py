@@ -17,6 +17,7 @@ import sys
 import santa
 import keyboards
 import users
+from roulette import Roulette
 
 # Enable logging
 logging.basicConfig(
@@ -31,8 +32,9 @@ logger = logging.getLogger("flantier")
 
 def register(update: Update, context: CallbackContext):
     """Permet de s'inscrire au tirage au sort."""
-    if santa.register_user(tg_id=update.message.from_user.id,
-                           name=update.message.from_user.first_name):
+    roulette = Roulette()
+    if roulette.register_user(tg_id=update.message.from_user.id,
+                              name=update.message.from_user.first_name):
         context.bot.send_message(
             chat_id=update.message.chat_id,
             text=f"Bravo {update.message.from_user.first_name}, tu es bien enregistré pour le tirage au sort. :)"
@@ -66,6 +68,11 @@ def liste(update: Update, context: CallbackContext):
             chat_id=update.message.chat_id,
             text="Il n'y a encore aucun participant inscrit.",
         )
+
+
+######################
+# COMMANDES AVANCEES #
+######################
 
 
 def wishes(update: Update, context: CallbackContext):
@@ -102,6 +109,8 @@ def comments(update: Update, context: CallbackContext):
 
 def offer(update: Update, context: CallbackContext):
     """Permet de sélectionner un cadeau à offrir."""
+
+    roulette = Roulette()
     # aucun argument fourni
     if len(update.message.text.split(" ")) == 1:
         keyboards.build_people_keyboard(update, context, offer_flag=True)
@@ -109,7 +118,7 @@ def offer(update: Update, context: CallbackContext):
     # fourni que le nom
     elif len(update.message.text.split(" ")) == 2:
         name = update.message.text.split(" ")[1]
-        if any([qqun for qqun in santa.participants if (qqun.name == name)]):
+        if any([qqun for qqun in roulette.participants if (qqun.name == name)]):
             keyboards.build_wish_keyboard(update, context, name)
         else:
             context.bot.send_message(
@@ -126,25 +135,25 @@ def offer(update: Update, context: CallbackContext):
         cadeau_index = int(update.message.text.split(" ")[2])
 
         # trouve le destinataire dans la liste des participants
-        if any(qqun.name == name for qqun in santa.participants):
+        if any(qqun.name == name for qqun in roulette.participants):
             wishes = santa.find_wishes(update.message.from_user.id, name, table=True)
 
             if len(wishes) > 0 and len(wishes) >= cadeau_index:
                 receiver_index = next(
                     (
                         i
-                        for i, qqun in enumerate(santa.participants)
+                        for i, qqun in enumerate(roulette.participants)
                         if qqun.name == name
                     ),
                     -1,
                 )
 
-                if santa.participants[receiver_index].donor[cadeau_index] is None:
+                if roulette.participants[receiver_index].donor[cadeau_index] is None:
                     text = (
                         "Tu offres désormais " + wishes[cadeau_index - 1] + " à " + name
                     )
                     # ajoute l'id de l'offrant dans la liste des souhaits du destinataire
-                    santa.participants[receiver_index].donor[
+                    roulette.participants[receiver_index].donor[
                         cadeau_index
                     ] = update.message.from_user.id
 
@@ -152,17 +161,17 @@ def offer(update: Update, context: CallbackContext):
                     donor_index = next(
                         (
                             i
-                            for i, qqun in enumerate(santa.participants)
+                            for i, qqun in enumerate(roulette.participants)
                             if qqun.tg_id == update.message.from_user.id
                         ),
                         -1,
                     )
-                    santa.participants[donor_index].offer_to.append(
+                    roulette.participants[donor_index].offer_to.append(
                         (receiver_index, cadeau_index)
                     )
 
                 elif (
-                    santa.participants[receiver_index].donor[cadeau_index]
+                    roulette.participants[receiver_index].donor[cadeau_index]
                     == update.message.from_user.id
                 ):
                     text = f"Tu offres déjà {wishes[cadeau_index - 1]} à {name}"
@@ -197,6 +206,8 @@ def dont_offer(update: Update, context: CallbackContext):
     implémenter la find wishes pour le offer to
     proposer de les annuler
     """
+    roulette = Roulette()
+
     if len(update.message.text.split(" ")) != 3:
         context.bot.send_message(
             chat_id=update.message.chat_id,
@@ -208,7 +219,7 @@ def dont_offer(update: Update, context: CallbackContext):
         reply_del_kb = ReplyKeyboardRemove()
         offrant = next(
             qqun
-            for qqun in santa.participants
+            for qqun in roulette.participants
             if qqun.tg_id == update.message.from_user.id
         )
         command = update.message.text.split(" ")
@@ -230,7 +241,7 @@ def dont_offer(update: Update, context: CallbackContext):
             )
 
             del offrant.offer_to[offrande_index]
-            santa.participants[receiver_index].donor[cadeau_index] = None
+            roulette.participants[receiver_index].donor[cadeau_index] = None
 
             context.bot.send_message(
                 chat_id=update.message.chat_id,
@@ -269,58 +280,55 @@ def is_admin(update: Update, context: CallbackContext) -> bool:
     Returns:
         bool: whether the telegram user is admin of the bot or not
     """
-    if update.message.from_user.id == configs.administrateur.tg_id:
+    if update.message.from_user.id == configs.admin:
         return True
     else:
         context.bot.send_message(
             chat_id=update.message.chat_id,
-            text=f"C'est {configs.administrateur.name} l'administrateur, petit canaillou !",
+            text=f"Petit canaillou! Tu n'es pas administrateur.",
         )
         return False
 
 
-def christmas(update: Update, context: CallbackContext):
+def open_registrations(update: Update, context: CallbackContext):
     """Lance la campagne d'inscription."""
-    global inscriptions
-
     if is_admin(update, context):
-        inscriptions = True
+        Roulette().inscriptions_open = True
         context.bot.send_message(
             chat_id=update.message.chat_id,
-            text="Tu peux directement t'inscrire en envoyant /participer",
+            text="🎉 Les inscriptions sont ouvertes 🎉\n🎅 Vous pouvez désormais vous inscrire en envoyant /participer",
         )
 
 
-def stop(update: Update, context: CallbackContext):
+def close_registrations(update: Update, context: CallbackContext):
     """Termine la campagne d'inscription."""
-    global inscriptions
-
     if is_admin(update, context):
-        inscriptions = False
+        Roulette().inscriptions_open = False
         context.bot.send_message(
             chat_id=update.message.chat_id,
-            text="Les inscriptions sont fermées, c'est bientôt l'heure des résultats ! ;)",
+            text="🚫 Les inscriptions sont fermées 🚫\n🎁 C'est bientôt l'heure des résultats",
         )
 
 
 def process(update: Update, context: CallbackContext):
     """Lance le tirage au sort et envoie les réponses en message privé."""
+    roulette = Roulette()
 
     if is_admin(update, context):
-        if inscriptions:
-            context.bot.send_message(
-                chat_id=update.message.chat_id,
-                text="Les inscriptions ne sont pas encore terminées.",
-            )
-        else:
+        if roulette.is_ready():
             # tant que le tirage ne fonctionne pas on relance
-            while santa.tirage() != 0:
+            while roulette.tirage() != 0:
                 continue
 
-        # on envoie les résultats en message privé
-        for qqun in santa.participants:
+            # on envoie les résultats en message privé
+            for qqun in roulette.participants:
+                context.bot.send_message(
+                    qqun.tg_id, text="🎅 Youpi tu offres à : {} 🎁\n".format(qqun.dest.name)
+                )
+        else:
             context.bot.send_message(
-                qqun.tg_id, text="Youpi tu offres à : {}\n".format(qqun.dest.name)
+                chat_id=update.message.chat_id,
+                text="⚠️ Les inscriptions ne sont pas encore terminées. ⚠️",
             )
 
 
@@ -346,7 +354,7 @@ def backup_state(update: Update, context: CallbackContext):
 
 def restore_state(bot, update):
     """Restaure l'état de flantier sauvegardé dans un fichier."""
-    santa.participants = santa.load_cadeaux()
+    Roulette().participants = santa.load_cadeaux()
 
     text = "État de Flantier restauré\n"
     context.bot.send_message(chat_id=update.message.chat_id, text=text)
@@ -360,7 +368,10 @@ def restore_state(bot, update):
 
 def init_christmas():
     # initialize participants and presents
-    santa.init_participants(santa.participants)
+    roulette = Roulette()
+    roulette.inscriptions_open = False
+    roulette.load_users()
+    # santa.init_participants(santa.participants)
 
 
 def start(update: Update, context: CallbackContext):
@@ -373,8 +384,6 @@ def start(update: Update, context: CallbackContext):
 
 
 def help(update: Update, context: CallbackContext):
-
-
     simple_help = """Voici les commandes disponibles:
     /bonjour - je vous dirai bonjour à ma manière
     /participer - s'inscrire pour le secret santa
@@ -383,7 +392,7 @@ def help(update: Update, context: CallbackContext):
     /help - affiche cette aide
     /aide - affiche cette aide
     """
-    
+
     extended_help = """
     /cadeaux - donne la liste des voeux de cadeaux
     /commentaires - donne les commentaires associés aux voeux
@@ -392,7 +401,10 @@ def help(update: Update, context: CallbackContext):
     /annuler - annule l'opération en cours
     """
 
-    if santa.mode == simple
+    if configs.extended_mode:
+        help_text = simple_help + extended_help
+    else:
+        help_text = simple_help
 
     context.bot.send_message(chat_id=update.effective_chat.id, 
                              text=help_text)
@@ -417,22 +429,27 @@ def register_commands(dispatcher):
     dispatcher.add_handler(CommandHandler("bonjour", hello))
     dispatcher.add_handler(CommandHandler("participer", register))
     dispatcher.add_handler(CommandHandler("liste", liste))
-    dispatcher.add_handler(CommandHandler("cadeaux", wishes))
-    dispatcher.add_handler(CommandHandler("commentaires", comments))
-    dispatcher.add_handler(CommandHandler("offrir", offer))
-    dispatcher.add_handler(CommandHandler("retirer", dont_offer))
-    dispatcher.add_handler(CommandHandler("annuler", cancel))
     dispatcher.add_handler(CommandHandler("aide", help))
     dispatcher.add_handler(CommandHandler("help", help))
 
+    if configs.extended_mode:
+        dispatcher.add_handler(CommandHandler("cadeaux", wishes))
+        dispatcher.add_handler(CommandHandler("commentaires", comments))
+        dispatcher.add_handler(CommandHandler("offrir", offer))
+        dispatcher.add_handler(CommandHandler("retirer", dont_offer))
+        dispatcher.add_handler(CommandHandler("annuler", cancel))
+
+
     # admin commands
     dispatcher.add_handler(CommandHandler("start", start))
-    dispatcher.add_handler(CommandHandler("noel", christmas))
-    dispatcher.add_handler(CommandHandler("stop", stop))
+    dispatcher.add_handler(CommandHandler("open", open_registrations))
+    dispatcher.add_handler(CommandHandler("close", close_registrations))
     dispatcher.add_handler(CommandHandler("tirage", process))
-    dispatcher.add_handler(CommandHandler("update", update_wishes_list))
-    dispatcher.add_handler(CommandHandler("backup", backup_state))
-    dispatcher.add_handler(CommandHandler("restore", restore_state))
+
+    if configs.extended_mode:
+        dispatcher.add_handler(CommandHandler("update", update_wishes_list))
+        dispatcher.add_handler(CommandHandler("backup", backup_state))
+        dispatcher.add_handler(CommandHandler("restore", restore_state))
 
     # unkown commands
     dispatcher.add_handler(MessageHandler(Filters.command, unknown_command))
