@@ -2,12 +2,45 @@
 
 """GESTION DES CLAVIERS."""
 
-from telegram import Update, ReplyKeyboardMarkup, ReplyKeyboardRemove
+from telegram import (
+    InlineKeyboardButton,
+    InlineKeyboardMarkup,
+    ReplyKeyboardMarkup,
+    ReplyKeyboardRemove,
+    Update,
+)
 from telegram.ext import CallbackContext
 import logging
 import roulette
 
 logger = logging.getLogger("flantier")
+
+
+def inline_kb(update: Update, context: CallbackContext) -> None:
+    """Sends a message with three inline buttons attached."""
+    keyboard = [
+        [
+            InlineKeyboardButton("Option 1", callback_data="1"),
+            InlineKeyboardButton("Option 2", callback_data="2"),
+        ],
+        [InlineKeyboardButton("Option 3", callback_data="3")],
+    ]
+
+    reply_markup = InlineKeyboardMarkup(keyboard)
+
+    update.message.reply_text("Please choose:", reply_markup=reply_markup)
+
+
+def button(update: Update, context: CallbackContext) -> None:
+    """Parses the CallbackQuery and updates the message text."""
+    query = update.callback_query
+
+    # CallbackQueries need to be answered, even if no notification to the user is needed
+    # Some clients may have trouble otherwise. See https://core.telegram.org/bots/api#callbackquery
+    query.answer()
+
+    query.edit_message_text(text=f"Selected option: {query.data}")
+
 
 # to do inline
 def build_exclude_keyboard(
@@ -15,14 +48,14 @@ def build_exclude_keyboard(
     context: CallbackContext,
     user_list: list,
 ):
-    u"""Créer le clavier avec les noms des participants."""
-    button_list = [user['name'] for user in user_list]
+    """Créer le clavier avec les noms des participants."""
+    button_list = [user["name"] for user in user_list]
 
     header_buttons = None
     footer_buttons = ["/annuler"]
     n_cols = 2
 
-    menu = [button_list[i: i + n_cols] for i in range(0, len(button_list), n_cols)]
+    menu = [button_list[i : i + n_cols] for i in range(0, len(button_list), n_cols)]
     if header_buttons:
         menu.insert(0, header_buttons)
     if footer_buttons:
@@ -34,6 +67,7 @@ def build_exclude_keyboard(
         chat_id=update.message.chat_id, text=text, reply_markup=reply_keyboard
     )
 
+
 def build_people_keyboard(
     update: Update,
     context: CallbackContext,
@@ -41,7 +75,7 @@ def build_people_keyboard(
     comments=False,
 ):
     roulette = Roulette()
-    u"""Créer le clavier avec les noms des participants."""
+    """Créer le clavier avec les noms des participants."""
     if offer_flag:
         button_list = ["/offrir " + qqun.name for qqun in roulette.participants]
     elif comments:
@@ -53,7 +87,7 @@ def build_people_keyboard(
     footer_buttons = ["/annuler"]
     n_cols = 2
 
-    menu = [button_list[i: i + n_cols] for i in range(0, len(button_list), n_cols)]
+    menu = [button_list[i : i + n_cols] for i in range(0, len(button_list), n_cols)]
     if header_buttons:
         menu.insert(0, header_buttons)
     if footer_buttons:
@@ -72,7 +106,7 @@ def build_people_keyboard(
 
 
 def build_wish_keyboard(update: Update, context: CallbackContext, name):
-    u"""Affiche le clavier des souhaits d'une personne."""
+    """Affiche le clavier des souhaits d'une personne."""
     destinataire = next(qqun for qqun in roulette.participants if qqun.name == name)
 
     i = 1
@@ -102,7 +136,9 @@ def build_wish_keyboard(update: Update, context: CallbackContext, name):
 def build_present_keyboard(update: Update, context: CallbackContext):
     """Affiche le clavier des cadeau que l'on souhaite offrir."""
     offrant = next(
-        qqun for qqun in roulette.participants if qqun.tg_id == update.message.from_user.id
+        qqun
+        for qqun in roulette.participants
+        if qqun.tg_id == update.message.from_user.id
     )
 
     text = ""
@@ -123,7 +159,8 @@ def build_present_keyboard(update: Update, context: CallbackContext):
             text += (
                 roulette.participants[offrant.offer_to[i][0]].wishes[
                     offrant.offer_to[i][1]
-                ] + "\n"
+                ]
+                + "\n"
             )
             button_list.append(
                 f"/retirer {str(offrant.offer_to[i][0])} {str(offrant.offer_to[i][1])}"
@@ -142,4 +179,5 @@ def build_present_keyboard(update: Update, context: CallbackContext):
         reply_keyboard = ReplyKeyboardMarkup(keyboard=menu, one_time_keyboard=True)
 
         context.bot.send_message(
-            chat_id=update.message.chat_id, text=text, reply_markup=reply_keyboard)
+            chat_id=update.message.chat_id, text=text, reply_markup=reply_keyboard
+        )
