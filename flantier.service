@@ -7,10 +7,11 @@ Type=simple
 
 User=flantier
 Group=flantier
-
+WorkingDirectory=/srv/flantier
 ExecStart=/usr/bin/python3 /srv/flantier/christmas-bot.py
 
 Restart=on-failure
+RestartSec=30s
 
 [Install]
 WantedBy=multi-user.target
