@@ -24,7 +24,14 @@ class Roulette:
         return Roulette.__instance
 
 
-    def register_user(self, tg_id: int, name: str) -> int:
+    def _does_participate(self, tg_id: int):
+        for id,user in enumerate(self.participants):
+            if user['tg_id'] == tg_id:
+                return id,user
+        return None, None
+
+
+    def add_user(self, tg_id: int, name: str) -> int:
         """récupère l'id telegram et ajoute le participant au fichier.
 
         Args:
@@ -40,15 +47,28 @@ class Roulette:
         if not self.inscriptions_open:
             return -1
 
-        for person in self.participants:
-            if tg_id == person['tg_id']:
-                logger.info(f"{name} est déjà enregistré: {tg_id}")
-                return -2
+        id, user = self._does_participate(tg_id)
+        if id:
+            logger.info(f"{name} est déjà enregistré: {tg_id}")
+            return -2
 
         logger.info(f"Inscription de {name}: {tg_id}")
         self.participants.append(users.person(tg_id, name))
         users.save_users(self.participants)
         return 0
+
+
+    def remove_user(self, tg_id: int) -> bool:
+        if self.inscriptions_open:
+            id, user = self._does_participate(tg_id)
+            try:
+                self.participants.pop(id)
+                users.save_users(self.participants)
+                return True
+
+            except TypeError:
+                pass
+        return False
 
 
     def load_users(self):
@@ -62,19 +82,20 @@ class Roulette:
         return users
 
 
-    def init_participants(self, participants: List[dict]):
-        """Initialise la liste des participants avec leur impossibilités et leurs cadeaux."""
-        logger.info("Initialisation des participant.e.s\n")
+    def search_user(self, name: str):
+        for user in participants:
+            if user['name'] == name:
+                return user
+        return None
 
-        # TODO do interactive selection for administator
-        # on rajoute les tableaux des impossibilités
-        user1['exclude'] = [user2['tg_id']]
-        user2['exclude'] = [user1['tg_id']]
-        user3['exclude'] = []
 
-        # logger.info("init cadeaux\n")
-        # get_cadeaux()
-
+    def exclude(self, tg_id: int, exclude: int):
+        for user in self.participants:
+            if user['tg_id'] == user:
+                user['exclude'].append(exclude)
+                return True
+                users.save_users(self.participants)
+        return False
 
     def is_ready(self):
         return bool(len(self.participants)) and not self.inscriptions_open

@@ -33,8 +33,8 @@ logger = logging.getLogger("flantier")
 def register(update: Update, context: CallbackContext):
     """Permet de s'inscrire au tirage au sort."""
     roulette = Roulette()
-    not_registered = roulette.register_user(tg_id=update.message.from_user.id,
-                                            name=update.message.from_user.first_name)
+    not_registered = roulette.add_user(tg_id=update.message.from_user.id,
+                                       name=update.message.from_user.first_name)
     if not not_registered:
         context.bot.send_message(
             chat_id=update.message.chat_id,
@@ -53,22 +53,29 @@ def register(update: Update, context: CallbackContext):
             text=f"{update.message.from_user.first_name}, petit coquinou! Tu t'es déjà inscrit.e. Si tu veux recevoir un deuxième cadeau, tu peux te faire un auto-cadeau 🤷🔄🎁"
         )
 
-def liste(update: Update, context: CallbackContext):
+def unregister(update: Update, context: CallbackContext):
+    u"""Permet de se désinscrire du tirage au sort."""
+    roulette = Roulette()
+
+    if roulette.remove_user(update.message.from_user.id):
+        text = f"🗑 {update.message.from_user.first_name} a bien été retiré.e du tirage au sort."
+    else:
+        text = f"🤷 {update.message.from_user.first_name} n'a jamais été inscrit.e au tirage au sort..."
+
+    context.bot.send_message(chat_id=update.message.chat_id, text=text)
+
+
+def list_users(update: Update, context: CallbackContext):
     """Liste les participants inscrits."""
     roulette = Roulette()
     users = roulette.list_users()
 
     if len(users):
-        context.bot.send_message(
-            chat_id=update.message.chat_id,
-            text="🙋 Les participant.e.s sont: \n" + users,
-        )
-
+        text = "🙋 Les participant.e.s sont: \n" + users
     else:
-        context.bot.send_message(
-            chat_id=update.message.chat_id,
-            text="😢 Aucun.e participant.e n'est encore inscrit.e.",
-        )
+        text = "😢 Aucun.e participant.e n'est encore inscrit.e.",
+
+    context.bot.send_message(chat_id=update.message.chat_id, text=text)
 
 
 ######################
@@ -309,6 +316,24 @@ def close_registrations(update: Update, context: CallbackContext):
             text="🙅 Les inscriptions sont fermées 🙅\n🎁 C'est bientôt l'heure des résultats",
         )
 
+def add_exclusion(update: Update, context: CallbackContext):
+    # provide names supplier and forbidden recipient
+    # else display people keyboard
+    roulette = Roulette()
+
+    keyboards.build_exclude_keyboard(update, context, roulette.participants)
+    supplier = roulette.search_user("TUTU")
+
+    context.bot.send_message(chat_id=update.message.chat_id,
+                             text="Qui ne doit pas offrir à qui? Selectionne la personne a qui iel ne peut pas offrir:",
+                             )
+    forbidden_recipient = 0
+
+    if roulette.exclude(supplier, forbidden_recipient):
+        context.bot.send_message(chat_id=update.message.chat_id, text=f"c'est bon")
+    else:
+        context.bot.send_message(chat_id=update.message.chat_id, text=f"impossibru")
+
 
 def process(update: Update, context: CallbackContext):
     """Lance le tirage au sort et envoie les réponses en message privé."""
@@ -373,11 +398,9 @@ def restore_state(bot, update):
 
 
 def init_christmas():
-    # initialize participants and presents
     roulette = Roulette()
     roulette.inscriptions_open = False
     roulette.load_users()
-    # santa.init_participants(santa.participants)
 
 
 def start(update: Update, context: CallbackContext):
@@ -392,12 +415,14 @@ def start(update: Update, context: CallbackContext):
 
 def help(update: Update, context: CallbackContext):
     simple_help = """Voici les commandes disponibles:
+/aide - affiche cette aide
 /bonjour - je vous dirai bonjour à ma manière
 /participer - s'inscrire pour le secret santa
+/retirer - se désinscrire du secret santa
 /liste - donne la liste des participants
 
-/help - affiche cette aide
-/aide - affiche cette aide
+Les commandes aussi sont disponibles en anglais:
+/help, /hello, /register, /remove, /list
     """
 
     extended_help = """
@@ -438,8 +463,10 @@ def register_commands(dispatcher):
     dispatcher.add_handler(CommandHandler("hello", hello))
     dispatcher.add_handler(CommandHandler("participer", register))
     dispatcher.add_handler(CommandHandler("register", register))
-    dispatcher.add_handler(CommandHandler("liste", liste))
-    dispatcher.add_handler(CommandHandler("list", liste))
+    dispatcher.add_handler(CommandHandler("retirer", unregister))
+    dispatcher.add_handler(CommandHandler("remove", unregister))
+    dispatcher.add_handler(CommandHandler("liste", list_users))
+    dispatcher.add_handler(CommandHandler("list", list_users))
     dispatcher.add_handler(CommandHandler("aide", help))
     dispatcher.add_handler(CommandHandler("help", help))
 
@@ -456,6 +483,7 @@ def register_commands(dispatcher):
     dispatcher.add_handler(CommandHandler("open", open_registrations))
     dispatcher.add_handler(CommandHandler("close", close_registrations))
     dispatcher.add_handler(CommandHandler("tirage", process))
+    dispatcher.add_handler(CommandHandler("exclude", add_exclusion))
 
     if configs.extended_mode:
         dispatcher.add_handler(CommandHandler("update", update_wishes_list))
