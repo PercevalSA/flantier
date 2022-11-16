@@ -80,9 +80,9 @@ class Roulette:
         return bool(len(self.participants)) and not self.inscriptions_open
 
 
-    def tirage(self):
+    def tirage(self) -> bool:
         """Algorithme de tirage au sort, complète automatique les champs 'dest'."""
-        imp_total = []
+        drawn_users = []
 
         for qqun in self.participants:
             qqun['dest'] = 0
@@ -95,23 +95,23 @@ class Roulette:
             # determine la liste des possibles
             possibles = []
             for possibilite in self.participants:
-                if possibilite in imp_total or possibilite in quelquun['exclude']:
+                if possibilite['tg_id'] in drawn_users or possibilite['tg_id'] in quelquun['exclude'] or possibilite['tg_id'] == quelquun['tg_id']:
                     continue
                 else:
                     possibles.append(possibilite)
 
             # s'il n'y a pas de solution on redémarre
             if len(possibles) == 0:
-                logger.info("\nOn recommence !!!\n")
-                return -1
+                logger.info("Pas de solution, on recommence le tirage.")
+                return False
 
-            # selectionne qqun
-            quelquun['dest'] = choice(possibles)
-            # l'ajoute aux tirés"
-            imp_total.append(quelquun['dest'])
-            # passe au suivant
+            dest = choice(possibles)
+            quelquun['dest'] = dest['tg_id']
+            print(f"{quelquun['name']} offre à {dest['name']}")
+            drawn_users.append(quelquun['dest'])
 
-        # backup_tirage()
-        logger.info("\nC'est fini !!!\n")
+        print(self.participants)
+        users.save_users(self.participants)
+        logger.info("Tirage terminé, les résulats sont tombés.")
 
-        return 0
+        return True

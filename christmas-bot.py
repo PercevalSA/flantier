@@ -220,7 +220,7 @@ def dont_offer(update: Update, context: CallbackContext):
         offrant = next(
             qqun
             for qqun in roulette.participants
-            if qqun.tg_id == update.message.from_user.id
+            if qqun['tg_id'] == update.message.from_user.id
         )
         command = update.message.text.split(" ")
         receiver_index = int(command[1])
@@ -317,13 +317,19 @@ def process(update: Update, context: CallbackContext):
     if is_admin(update, context):
         if roulette.is_ready():
             # tant que le tirage ne fonctionne pas on relance
-            while roulette.tirage() != 0:
+            while not roulette.tirage():
                 continue
 
             # on envoie les résultats en message privé
             for qqun in roulette.participants:
+                # search for dest's name
+                for i in roulette.participants:
+                    if i['tg_id'] == qqun['dest']:
+                        name = i['name']
+                        break
+
                 context.bot.send_message(
-                    qqun.tg_id, text="🎅 Youpi tu offres à : {} 🎁\n".format(qqun.dest.name)
+                    qqun['tg_id'], text="🎅 Youpi tu offres à : {} 🎁\n".format(name)
                 )
         else:
             context.bot.send_message(
