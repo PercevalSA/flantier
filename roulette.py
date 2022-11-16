@@ -13,7 +13,7 @@ logger = logging.getLogger("flantier")
 
 class Roulette:
     inscriptions_open: bool
-    participants: List
+    participants: List[dict]
 
     # singleton
     __instance = None
@@ -24,7 +24,7 @@ class Roulette:
         return Roulette.__instance
 
 
-    def register_user(self, tg_id: int, name: str) -> bool:
+    def register_user(self, tg_id: int, name: str) -> int:
         """récupère l'id telegram et ajoute le participant au fichier.
 
         Args:
@@ -32,51 +32,48 @@ class Roulette:
             name (str): Name of the user used to filter gifts column in Google Sheets
 
         Returns:
-            bool: whether the user is registered or not
+            int:
+                0 : user is correclty registered
+                -1: inscription are not open yet
+                -2: user is already registered
         """
         if not self.inscriptions_open:
-            return False
+            return -1
 
         for person in self.participants:
-            if tg_id == person.tg_id:
-                return False
+            if tg_id == person['tg_id']:
+                logger.info(f"{name} est déjà enregistré: {tg_id}")
+                return -2
 
         logger.info(f"Inscription de {name}: {tg_id}")
-        self.participants.append(json.dumps(users.Personne(tg_id, name).__dict__))
+        self.participants.append(users.person(tg_id, name))
         users.save_users(self.participants)
-        return True
+        return 0
 
 
     def load_users(self):
         self.participants = users.load_users()
 
 
-    def init_participants(self, participants):
-        """Initialise la liste des participants avec leur impossibilités et leurs cadeaux.
+    def list_users(self) -> str:
+        users = ""
+        for user in self.participants:
+            users += f"{user['name']}\n"
+        return users
 
-        retourne l'administrateur
-        """
-        logger.info("init participants\n")
 
-        # TODO : automatiser à partir d'un fichier de participants
-        # liste des personnes
-        user1 = Personne(00000000, "User1")
-        user2 = Personne(00000000, "User2")
-        user3 = Personne(00000000, "User3")
+    def init_participants(self, participants: List[dict]):
+        """Initialise la liste des participants avec leur impossibilités et leurs cadeaux."""
+        logger.info("Initialisation des participant.e.s\n")
 
+        # TODO do interactive selection for administator
         # on rajoute les tableaux des impossibilités
-        user1.impossible = [user2]
-        user2.impossible = [user1]
-        user3.impossible = []
+        user1['exclude'] = [user2['tg_id']]
+        user2['exclude'] = [user1['tg_id']]
+        user3['exclude'] = []
 
-        logger.info("setup list\n")
-        participants.extend([user1, user2, user3])
-
-        logger.info("init cadeaux\n")
-        get_cadeaux()
-
-        logger.info("setup administrator\n")
-        return configs.administrateur
+        # logger.info("init cadeaux\n")
+        # get_cadeaux()
 
 
     def is_ready(self):
@@ -88,7 +85,7 @@ class Roulette:
         imp_total = []
 
         for qqun in self.participants:
-            qqun.dest = 0
+            qqun['dest'] = 0
 
         logger.info("\nC'est parti !!!\n")
 
@@ -98,7 +95,7 @@ class Roulette:
             # determine la liste des possibles
             possibles = []
             for possibilite in self.participants:
-                if possibilite in imp_total or possibilite in quelquun.impossible:
+                if possibilite in imp_total or possibilite in quelquun['exclude']:
                     continue
                 else:
                     possibles.append(possibilite)
@@ -109,9 +106,9 @@ class Roulette:
                 return -1
 
             # selectionne qqun
-            quelquun.dest = choice(possibles)
+            quelquun['dest'] = choice(possibles)
             # l'ajoute aux tirés"
-            imp_total.append(quelquun.dest)
+            imp_total.append(quelquun['dest'])
             # passe au suivant
 
         # backup_tirage()

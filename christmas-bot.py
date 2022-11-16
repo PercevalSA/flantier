@@ -33,40 +33,41 @@ logger = logging.getLogger("flantier")
 def register(update: Update, context: CallbackContext):
     """Permet de s'inscrire au tirage au sort."""
     roulette = Roulette()
-    if roulette.register_user(tg_id=update.message.from_user.id,
-                              name=update.message.from_user.first_name):
+    not_registered = roulette.register_user(tg_id=update.message.from_user.id,
+                                            name=update.message.from_user.first_name)
+    if not not_registered:
         context.bot.send_message(
             chat_id=update.message.chat_id,
-            text=f"Bravo {update.message.from_user.first_name}, tu es bien enregistré pour le tirage au sort. :)"
+            text=f"🎉 Bravo {update.message.from_user.first_name} 🎉\nTu es bien enregistré.e pour le tirage au sort."
+        )
+
+    elif not_registered == -1:
+        context.bot.send_message(
+            chat_id=update.message.chat_id,
+            text=f"🦋 Patience {update.message.from_user.first_name},\n🙅 les inscriptions n'ont pas encore commencées ou sont déjà terminées!"
+        )
+
+    elif not_registered == -2:
+        context.bot.send_message(
+            chat_id=update.message.chat_id,
+            text=f"{update.message.from_user.first_name}, petit coquinou! Tu t'es déjà inscrit.e. Si tu veux recevoir un deuxième cadeau, tu peux te faire un auto-cadeau 🤷🔄🎁"
+        )
+
+def liste(update: Update, context: CallbackContext):
+    """Liste les participants inscrits."""
+    roulette = Roulette()
+    users = roulette.list_users()
+
+    if len(users):
+        context.bot.send_message(
+            chat_id=update.message.chat_id,
+            text="🙋 Les participant.e.s sont: \n" + users,
         )
 
     else:
         context.bot.send_message(
             chat_id=update.message.chat_id,
-            text=f"Patience {update.message.from_user.first_name}, les inscriptions n'ont pas encore commencées ou sont déjà terminées !"
-        )
-
-
-def liste(update: Update, context: CallbackContext):
-    """Liste les participants inscrits."""
-    users = ""
-    try:
-        with open(configs.USERS_FILE, "r") as file:
-            for line in file:
-                users += line
-
-        if len(users) != 0:
-            context.bot.send_message(
-                chat_id=update.message.chat_id,
-                text="Les participants sont : \n" + users,
-            )
-        else:
-            raise FileNotFoundError
-
-    except FileNotFoundError:
-        context.bot.send_message(
-            chat_id=update.message.chat_id,
-            text="Il n'y a encore aucun participant inscrit.",
+            text="😢 Aucun.e participant.e n'est encore inscrit.e.",
         )
 
 
@@ -171,8 +172,7 @@ def offer(update: Update, context: CallbackContext):
                     )
 
                 elif (
-                    roulette.participants[receiver_index].donor[cadeau_index]
-                    == update.message.from_user.id
+                    roulette.participants[receiver_index].donor[cadeau_index] == update.message.from_user.id
                 ):
                     text = f"Tu offres déjà {wishes[cadeau_index - 1]} à {name}"
 
@@ -285,7 +285,7 @@ def is_admin(update: Update, context: CallbackContext) -> bool:
     else:
         context.bot.send_message(
             chat_id=update.message.chat_id,
-            text=f"Petit canaillou! Tu n'es pas administrateur.",
+            text=f"🙅 Petit.e canaillou! Tu ne possèdes pas ce pouvoir.",
         )
         return False
 
@@ -306,7 +306,7 @@ def close_registrations(update: Update, context: CallbackContext):
         Roulette().inscriptions_open = False
         context.bot.send_message(
             chat_id=update.message.chat_id,
-            text="🚫 Les inscriptions sont fermées 🚫\n🎁 C'est bientôt l'heure des résultats",
+            text="🙅 Les inscriptions sont fermées 🙅\n🎁 C'est bientôt l'heure des résultats",
         )
 
 
@@ -378,27 +378,29 @@ def start(update: Update, context: CallbackContext):
     context.bot.send_message(
         chat_id=update.effective_chat.id,
         text=(
-            "C'est bientôt Noël! Je suis là pour vous aider à organiser tout ça Larmina mon p'tit. Je tire sort les cadeaux et vous nous faites une jolie table avec une bonne bûche pour le dessert."
+            "C'est bientôt Noël! Je suis là pour vous aider à organiser tout ça Larmina mon p'tit. Je tire au sort les cadeaux et vous nous faites une jolie table avec une bonne bûche pour le dessert."
         ),
     )
+    help(update, CallbackContext)
 
 
 def help(update: Update, context: CallbackContext):
     simple_help = """Voici les commandes disponibles:
-    /bonjour - je vous dirai bonjour à ma manière
-    /participer - s'inscrire pour le secret santa
-    /liste - donne la liste des participants
+/bonjour - je vous dirai bonjour à ma manière
+/participer - s'inscrire pour le secret santa
+/liste - donne la liste des participants
 
-    /help - affiche cette aide
-    /aide - affiche cette aide
+/help - affiche cette aide
+/aide - affiche cette aide
     """
 
     extended_help = """
-    /cadeaux - donne la liste des voeux de cadeaux
-    /commentaires - donne les commentaires associés aux voeux
-    /offrir - reserve un cadeau à offrir (pour que personne d'autre ne l'offre)
-    /retirer - annule la réservation
-    /annuler - annule l'opération en cours
+
+/cadeaux - donne la liste des voeux de cadeaux
+/commentaires - donne les commentaires associés aux voeux
+/offrir - reserve un cadeau à offrir (pour que personne d'autre ne l'offre)
+/retirer - annule la réservation
+/annuler - annule l'opération en cours
     """
 
     if configs.extended_mode:
@@ -427,8 +429,11 @@ def unknown_command(update: Update, context: CallbackContext):
 def register_commands(dispatcher):
     # users commands
     dispatcher.add_handler(CommandHandler("bonjour", hello))
+    dispatcher.add_handler(CommandHandler("hello", hello))
     dispatcher.add_handler(CommandHandler("participer", register))
+    dispatcher.add_handler(CommandHandler("register", register))
     dispatcher.add_handler(CommandHandler("liste", liste))
+    dispatcher.add_handler(CommandHandler("list", liste))
     dispatcher.add_handler(CommandHandler("aide", help))
     dispatcher.add_handler(CommandHandler("help", help))
 

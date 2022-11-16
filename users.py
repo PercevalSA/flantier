@@ -9,46 +9,49 @@ import logging
 
 logger = logging.getLogger("flantier")
 
-class Personne:
-    """classe représentant les personnes inscrites au secret santa.
+"""
+TODO
+Attributes:
+    comments (str): commentaires qui viennent du google doc
+    donor (TYPE): liste des personnes qui offrent les cadeaux correspondant
+    offer_to (List): liste de [personne, cadeau] que la personne a décidé d'offrir
+    wishes (List[str]): cadeaux qui viennent du google doc
 
-    Attributes:
-        comments (TYPE): commentaires qui viennent du google doc
-        dest (TYPE): personne à qui offrir
-        donor (TYPE): liste des personnes qui offrent les cadeaux correspondant
-        impossible (list): liste des personnes à qui la personne ne peut pas offrir
-        name (TYPE): nom de la personne utiliser pour trouver la colonne dans google doc
-        offer_to (list): liste de [personne, cadeau] que la personne a décidé d'offrir
-        tg_id (TYPE): telegram id de la personne
-        wishes (TYPE): cadeaux qui viennent du google doc
+    # self.wishes = [None] * configs.nb_cadeaux
+    # self.comments = [None] * configs.nb_cadeaux
+    # self.donor = [None] * configs.nb_cadeaux
+    # self.offer_to = []
+"""
+
+def person(tg_id: int, name: str, exclude: List = [], dest: int = None):
+    """Generates a dict representing a person registered for secret santa.
+
+    Args:
+        tg_id (int): telegram id of the new user
+        name (str): Name of the user used to filter gifts column in Google Sheets
+        exclude (int): liste des personnes à qui la personne ne peut pas offrir
+        dest (int): personne à qui offrir
+
+    Returns:
+        dict: the person item
     """
+    person = {
+        'tg_id': tg_id,
+        'name': name,
+        'exclude': exclude,
+        'dest': dest,
+    }
+    return person
 
-    def __init__(self, tg_id: int, name: str):
-        """Personne class init function.
-
-        Args:
-            tg_id (int): telegram id of the new user
-            name (str): Name of the user used to filter gifts column in Google Sheets
-        """
-        self.tg_id = tg_id
-        self.name = name
-        self.impossible = []
-        self.dest = None
-        # self.wishes = [None] * configs.nb_cadeaux
-        # self.comments = [None] * configs.nb_cadeaux
-        # self.donor = [None] * configs.nb_cadeaux
-        # self.offer_to = []
-
-    # def toJSON(self):
-    #     return json.dumps(self, default=lambda o: o.__dict__, 
-    #         sort_keys=True, indent=4)
 
 def load_users():
     logger.info("Restauration de l'état de Flantier")
-    with open(configs.USERS_FILE, 'r') as file:
-        data = json.load(file)
 
-    print(data)
+    try:
+        with open(configs.USERS_FILE, "r") as file:
+            data = json.load(file)
+    except FileNotFoundError:
+        data = []
 
     return data
 
