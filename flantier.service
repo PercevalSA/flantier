@@ -1,0 +1,16 @@
+[Unit]
+Description=Flantier der Geschenk Manager
+After=network-online.target
+
+[Service]
+Type=simple
+
+User=flantier
+Group=flantier
+
+ExecStart=/usr/bin/python3 /srv/flantier/christmas-bot.py
+
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target
