@@ -14,7 +14,7 @@ Optionnal: set admin id in `configs.py` by using the `/register` command while t
 ## installation
 
 1. clone repo
-2. install dependencies: `python3 -m pip install python-telegram-bot google-api-python-client==2.65.0`
+2. install dependencies: `sudo python3 -m pip install python-telegram-bot google-api-python-client==2.65.0`
 3. edit configurations to add you bot key and admin id (c.f. quick start): `vim flantier/configs.json`
 4. create new user: `sudo adduser --no-create-home --shell /bin/noshell --disabled-login flantier`
 5. install file in the right locations `sudo mv flantier/flantier.service /etc/systemd/sytem/ && sudo mv flantier /srv/`

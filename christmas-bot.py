@@ -387,7 +387,7 @@ def start(update: Update, context: CallbackContext):
             "C'est bientôt Noël! Je suis là pour vous aider à organiser tout ça Larmina mon p'tit. Je tire au sort les cadeaux et vous nous faites une jolie table avec une bonne bûche pour le dessert."
         ),
     )
-    help(update, CallbackContext)
+    help(update, context)
 
 
 def help(update: Update, context: CallbackContext):
