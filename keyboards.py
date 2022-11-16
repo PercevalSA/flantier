@@ -9,6 +9,31 @@ import roulette
 
 logger = logging.getLogger("flantier")
 
+# to do inline
+def build_exclude_keyboard(
+    update: Update,
+    context: CallbackContext,
+    user_list: list,
+):
+    u"""Créer le clavier avec les noms des participants."""
+    button_list = [user['name'] for user in user_list]
+
+    header_buttons = None
+    footer_buttons = ["/annuler"]
+    n_cols = 2
+
+    menu = [button_list[i: i + n_cols] for i in range(0, len(button_list), n_cols)]
+    if header_buttons:
+        menu.insert(0, header_buttons)
+    if footer_buttons:
+        menu.append(footer_buttons)
+
+    reply_keyboard = ReplyKeyboardMarkup(keyboard=menu, one_time_keyboard=True)
+    text = "🙅 Qui ne doit pas offrir à qui? 🙅\nSelectionne la personne qui n'a pas le droit d'offrir à quelqu'un."
+    context.bot.send_message(
+        chat_id=update.message.chat_id, text=text, reply_markup=reply_keyboard
+    )
+
 def build_people_keyboard(
     update: Update,
     context: CallbackContext,
