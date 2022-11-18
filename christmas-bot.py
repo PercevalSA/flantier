@@ -502,6 +502,10 @@ def register_commands(dispatcher):
         dispatcher.add_handler(CommandHandler("backup", backup_state))
         dispatcher.add_handler(CommandHandler("restore", restore_state))
 
+    # inline kb
+    dispatcher.add_handler(CommandHandler("plop", keyboards.inline_kb))
+    dispatcher.add_handler(CallbackQueryHandler(keyboards.button))
+
     # unkown commands
     dispatcher.add_handler(MessageHandler(Filters.command, unknown_command))
 

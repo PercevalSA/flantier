@@ -11,24 +11,22 @@ from telegram import (
 )
 from telegram.ext import CallbackContext
 import logging
-import roulette
+from roulette import Roulette
 
 logger = logging.getLogger("flantier")
 
 
 def inline_kb(update: Update, context: CallbackContext) -> None:
     """Sends a message with three inline buttons attached."""
-    keyboard = [
-        [
-            InlineKeyboardButton("Option 1", callback_data="1"),
-            InlineKeyboardButton("Option 2", callback_data="2"),
-        ],
-        [InlineKeyboardButton("Option 3", callback_data="3")],
-    ]
+    roulette = Roulette()
+    keyboard = [[
+        InlineKeyboardButton(user["name"], callback_data=str(user["tg_id"]))
+        for user in roulette.participants
+    ]]
 
+    # keyboard = [[InlineKeyboardButton('plop', callback_data='toto')]]
     reply_markup = InlineKeyboardMarkup(keyboard)
-
-    update.message.reply_text("Please choose:", reply_markup=reply_markup)
+    update.message.reply_text("C'est qui qui?", reply_markup=reply_markup)
 
 
 def button(update: Update, context: CallbackContext) -> None:
@@ -39,7 +37,7 @@ def button(update: Update, context: CallbackContext) -> None:
     # Some clients may have trouble otherwise. See https://core.telegram.org/bots/api#callbackquery
     query.answer()
 
-    query.edit_message_text(text=f"Selected option: {query.data}")
+    query.edit_message_text(text=f"Tu as selectionné le user id: {query.data}")
 
 
 # to do inline
