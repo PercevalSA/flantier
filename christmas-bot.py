@@ -34,28 +34,30 @@ logger = logging.getLogger("flantier")
 def register(update: Update, context: CallbackContext):
     """Permet de s'inscrire au tirage au sort."""
     roulette = Roulette()
-    not_registered = roulette.add_user(tg_id=update.message.from_user.id,
-                                       name=update.message.from_user.first_name)
+    not_registered = roulette.add_user(
+        tg_id=update.message.from_user.id, name=update.message.from_user.first_name
+    )
     if not not_registered:
         context.bot.send_message(
             chat_id=update.message.chat_id,
-            text=f"🎉 Bravo {update.message.from_user.first_name} 🎉\nTu es bien enregistré.e pour le tirage au sort."
+            text=f"🎉 Bravo {update.message.from_user.first_name} 🎉\nTu es bien enregistré.e pour le tirage au sort.",
         )
 
     elif not_registered == -1:
         context.bot.send_message(
             chat_id=update.message.chat_id,
-            text=f"🦋 Patience {update.message.from_user.first_name},\n🙅 les inscriptions n'ont pas encore commencées ou sont déjà terminées!"
+            text=f"🦋 Patience {update.message.from_user.first_name},\n🙅 les inscriptions n'ont pas encore commencées ou sont déjà terminées!",
         )
 
     elif not_registered == -2:
         context.bot.send_message(
             chat_id=update.message.chat_id,
-            text=f"{update.message.from_user.first_name}, petit coquinou! Tu t'es déjà inscrit.e. Si tu veux recevoir un deuxième cadeau, tu peux te faire un auto-cadeau 🤷🔄🎁"
+            text=f"{update.message.from_user.first_name}, petit coquinou! Tu t'es déjà inscrit.e. Si tu veux recevoir un deuxième cadeau, tu peux te faire un auto-cadeau 🤷🔄🎁",
         )
 
+
 def unregister(update: Update, context: CallbackContext):
-    u"""Permet de se désinscrire du tirage au sort."""
+    """Permet de se désinscrire du tirage au sort."""
     roulette = Roulette()
 
     if roulette.remove_user(update.message.from_user.id):
@@ -74,9 +76,17 @@ def list_users(update: Update, context: CallbackContext):
     if len(users):
         text = "🙋 Les participant.e.s sont: \n" + users
     else:
-        text = "😢 Aucun.e participant.e n'est encore inscrit.e.",
+        text = ("😢 Aucun.e participant.e n'est encore inscrit.e.",)
 
     context.bot.send_message(chat_id=update.message.chat_id, text=text)
+
+
+def get_result(update: Update, context: CallbackContext):
+    roulette = Roulette()
+    supplier = roulette.get_user(update.message.from_user.id)
+    receiver = roulette.get_user(supplier["dest"])
+
+    context.bot.send_message(chat_id=update.message.from_user.id, text=f"🎅 Youpi tu offres à : {receiver['name']} 🎁\n")
 
 
 ######################
@@ -108,7 +118,9 @@ def comments(update: Update, context: CallbackContext):
         reply_del_kb = ReplyKeyboardRemove()
         context.bot.send_message(
             chat_id=update.message.chat_id,
-            text=santa.find_wishes(update.message.from_user.id, name, with_comments=True),
+            text=santa.find_wishes(
+                update.message.from_user.id, name, with_comments=True
+            ),
             reply_markup=reply_del_kb,
         )
 
@@ -180,7 +192,8 @@ def offer(update: Update, context: CallbackContext):
                     )
 
                 elif (
-                    roulette.participants[receiver_index].donor[cadeau_index] == update.message.from_user.id
+                    roulette.participants[receiver_index].donor[cadeau_index]
+                    == update.message.from_user.id
                 ):
                     text = f"Tu offres déjà {wishes[cadeau_index - 1]} à {name}"
 
@@ -228,7 +241,7 @@ def dont_offer(update: Update, context: CallbackContext):
         offrant = next(
             qqun
             for qqun in roulette.participants
-            if qqun['tg_id'] == update.message.from_user.id
+            if qqun["tg_id"] == update.message.from_user.id
         )
         command = update.message.text.split(" ")
         receiver_index = int(command[1])
@@ -317,6 +330,7 @@ def close_registrations(update: Update, context: CallbackContext):
             text="🙅 Les inscriptions sont fermées 🙅\n🎁 C'est bientôt l'heure des résultats",
         )
 
+
 def add_exclusion(update: Update, context: CallbackContext):
     # provide names supplier and forbidden recipient
     # else display people keyboard
@@ -325,9 +339,10 @@ def add_exclusion(update: Update, context: CallbackContext):
     keyboards.build_exclude_keyboard(update, context, roulette.participants)
     supplier = roulette.search_user("TUTU")
 
-    context.bot.send_message(chat_id=update.message.chat_id,
-                             text="Qui ne doit pas offrir à qui? Selectionne la personne a qui iel ne peut pas offrir:",
-                             )
+    context.bot.send_message(
+        chat_id=update.message.chat_id,
+        text="Qui ne doit pas offrir à qui? Selectionne la personne a qui iel ne peut pas offrir:",
+    )
     forbidden_recipient = 0
 
     if roulette.exclude(supplier, forbidden_recipient):
@@ -347,15 +362,10 @@ def process(update: Update, context: CallbackContext):
                 continue
 
             # on envoie les résultats en message privé
-            for qqun in roulette.participants:
-                # search for dest's name
-                for i in roulette.participants:
-                    if i['tg_id'] == qqun['dest']:
-                        name = i['name']
-                        break
-
+            for user in roulette.participants:
+                receiver = roulette.get_user(user["dest"])
                 context.bot.send_message(
-                    qqun['tg_id'], text="🎅 Youpi tu offres à : {} 🎁\n".format(name)
+                    user["tg_id"], text=f"🎅 Youpi tu offres à : {receiver['name']} 🎁\n"
                 )
         else:
             context.bot.send_message(
@@ -421,9 +431,10 @@ def help(update: Update, context: CallbackContext):
 /participer - s'inscrire pour le secret santa
 /retirer - se désinscrire du secret santa
 /liste - donne la liste des participants
+/resultat - donne le résultat tu tirage au sort en dm
 
 Les commandes aussi sont disponibles en anglais:
-/help, /hello, /register, /remove, /list
+/help, /hello, /register, /remove, /list, /result
     """
 
     extended_help = """
@@ -440,8 +451,7 @@ Les commandes aussi sont disponibles en anglais:
     else:
         help_text = simple_help
 
-    context.bot.send_message(chat_id=update.effective_chat.id, 
-                             text=help_text)
+    context.bot.send_message(chat_id=update.effective_chat.id, text=help_text)
 
 
 def hello(update: Update, context: CallbackContext):
@@ -468,6 +478,8 @@ def register_commands(dispatcher):
     dispatcher.add_handler(CommandHandler("remove", unregister))
     dispatcher.add_handler(CommandHandler("liste", list_users))
     dispatcher.add_handler(CommandHandler("list", list_users))
+    dispatcher.add_handler(CommandHandler("resultat", get_result))
+    dispatcher.add_handler(CommandHandler("result", get_result))
     dispatcher.add_handler(CommandHandler("aide", help))
     dispatcher.add_handler(CommandHandler("help", help))
 
@@ -477,7 +489,6 @@ def register_commands(dispatcher):
         dispatcher.add_handler(CommandHandler("offrir", offer))
         dispatcher.add_handler(CommandHandler("retirer", dont_offer))
         dispatcher.add_handler(CommandHandler("annuler", cancel))
-
 
     # admin commands
     dispatcher.add_handler(CommandHandler("start", start))
@@ -490,12 +501,6 @@ def register_commands(dispatcher):
         dispatcher.add_handler(CommandHandler("update", update_wishes_list))
         dispatcher.add_handler(CommandHandler("backup", backup_state))
         dispatcher.add_handler(CommandHandler("restore", restore_state))
-
-
-    # inline kb
-    dispatcher.add_handler(CommandHandler('plop', keyboards.inline_kb))
-    dispatcher.add_handler(CallbackQueryHandler(keyboards.button))
-
 
     # unkown commands
     dispatcher.add_handler(MessageHandler(Filters.command, unknown_command))

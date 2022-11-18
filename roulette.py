@@ -82,6 +82,12 @@ class Roulette:
         return users
 
 
+    def get_user(self, tg_id: int) -> dict:
+        for user in self.participants:
+            if user['tg_id'] == tg_id:
+                return user
+        return False
+
     def search_user(self, name: str):
         for user in participants:
             if user['name'] == name:

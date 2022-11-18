@@ -20,3 +20,11 @@ Optionnal: set admin id in `configs.py` by using the `/register` command while t
 5. install file in the right locations `sudo mv flantier/flantier.service /etc/systemd/sytem/ && sudo mv flantier /srv/`
 6. fix rights `sudo chown -R flantier:flantier /srv/flantier && sudo chown root:root /etc/systemd/system/flantier.service`
 7. launch service `sudo systemctl daemon-reload && sudo systemctl enable flantier && sudo systemctl start flantier`
+
+
+## TODO
+
+add audio from :
+ - https://zonesons.com/repliques-cultes-de-films-d-espionnage/phrases-cultes-de-oss-117-rio-ne-repond-plus/page-96#cu
+ - https://zonesons.com/repliques-cultes-de-films-d-espionnage/phrases-cultes-de-oss-117-le-caire-nid-d-espions/
+ 
