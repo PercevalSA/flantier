@@ -2,7 +2,7 @@
 """Herr Flantier der Geschenk Manager."""
 
 from random import choice
-from telegram import Update, ReplyKeyboardMarkup, ReplyKeyboardRemove
+from telegram import Update, ChatAction, InputMediaAudio, ReplyKeyboardMarkup, ReplyKeyboardRemove
 from telegram.ext import (
     Filters,
     Updater,
@@ -11,6 +11,7 @@ from telegram.ext import (
     CommandHandler,
     MessageHandler,
 )
+import os
 import configs
 import flantier
 import logging
@@ -18,6 +19,7 @@ import sys
 import santa
 import keyboards
 import users
+from pathlib import Path
 from roulette import Roulette
 
 # Enable logging
@@ -385,24 +387,6 @@ def update_wishes_list(update: Update, context: CallbackContext):
     logger.info(text)
 
 
-def backup_state(update: Update, context: CallbackContext):
-    """Sauvegarde l'état de flantier dans un fichier."""
-    santa.backup_cadeaux()
-
-    text = "État de Flantier sauvegardé\n"
-    context.bot.send_message(chat_id=update.message.chat_id, text=text)
-    logger.info(text)
-
-
-def restore_state(bot, update):
-    """Restaure l'état de flantier sauvegardé dans un fichier."""
-    Roulette().participants = santa.load_cadeaux()
-
-    text = "État de Flantier restauré\n"
-    context.bot.send_message(chat_id=update.message.chat_id, text=text)
-    logger.info(text)
-
-
 ############
 # BOT CODE #
 ############
@@ -427,11 +411,14 @@ def start(update: Update, context: CallbackContext):
 def help(update: Update, context: CallbackContext):
     simple_help = """Voici les commandes disponibles:
 /aide - affiche cette aide
-/bonjour - je vous dirai bonjour à ma manière
 /participer - s'inscrire pour le secret santa
 /retirer - se désinscrire du secret santa
 /liste - donne la liste des participants
 /resultat - donne le résultat tu tirage au sort en dm
+
+/bonjour - je vous dirai bonjour à ma manière
+/larmina - le caire nid d'espion
+/dolores - rio ne répond plus
 
 Les commandes aussi sont disponibles en anglais:
 /help, /hello, /register, /remove, /list, /result
@@ -461,6 +448,25 @@ def hello(update: Update, context: CallbackContext):
     )
 
 
+def send_audio_quote(chat_id: int, context: CallbackContext, folder: Path):
+    audio_files = os.listdir(folder)
+    audio = folder / Path(choice(audio_files))
+
+    context.bot.send_chat_action(chat_id=chat_id, action=ChatAction.RECORD_AUDIO)
+    context.bot.send_audio(chat_id=chat_id, audio=open(audio, 'rb'), disable_notification=True)
+
+
+def quote_oss1(update: Update, context: CallbackContext):
+    """Petit Comique."""
+    send_audio_quote(update.message.chat_id, context, Path("audio/oss1"))
+
+
+def quote_oss2(update: Update, context: CallbackContext):
+    """Petit Comique."""
+    send_audio_quote(update.message.chat_id, context, Path("audio/oss2"))
+
+
+
 def unknown_command(update: Update, context: CallbackContext):
     context.bot.send_message(
         chat_id=update.effective_chat.id,
@@ -472,6 +478,8 @@ def register_commands(dispatcher):
     # users commands
     dispatcher.add_handler(CommandHandler("bonjour", hello))
     dispatcher.add_handler(CommandHandler("hello", hello))
+    dispatcher.add_handler(CommandHandler("larmina", quote_oss1))
+    dispatcher.add_handler(CommandHandler("dolores", quote_oss2))
     dispatcher.add_handler(CommandHandler("participer", register))
     dispatcher.add_handler(CommandHandler("register", register))
     dispatcher.add_handler(CommandHandler("retirer", unregister))
@@ -499,8 +507,6 @@ def register_commands(dispatcher):
 
     if configs.extended_mode:
         dispatcher.add_handler(CommandHandler("update", update_wishes_list))
-        dispatcher.add_handler(CommandHandler("backup", backup_state))
-        dispatcher.add_handler(CommandHandler("restore", restore_state))
 
     # inline kb
     dispatcher.add_handler(CommandHandler("plop", keyboards.inline_kb))
