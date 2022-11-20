@@ -509,7 +509,7 @@ def register_commands(dispatcher):
         dispatcher.add_handler(CommandHandler("update", update_wishes_list))
 
     # inline kb
-    dispatcher.add_handler(CommandHandler("plop", keyboards.inline_kb))
+    dispatcher.add_handler(CommandHandler("contraintes", keyboards.inline_kb))
     dispatcher.add_handler(CallbackQueryHandler(keyboards.button))
 
     # unkown commands

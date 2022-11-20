@@ -19,14 +19,10 @@ logger = logging.getLogger("flantier")
 def inline_kb(update: Update, context: CallbackContext) -> None:
     """Sends a message with three inline buttons attached."""
     roulette = Roulette()
-    keyboard = [[
-        InlineKeyboardButton(user["name"], callback_data=str(user["tg_id"]))
-        for user in roulette.participants
-    ]]
+    keyboard = [[InlineKeyboardButton(user["name"], callback_data=str(user["tg_id"]))] for user in roulette.participants]
 
-    # keyboard = [[InlineKeyboardButton('plop', callback_data='toto')]]
     reply_markup = InlineKeyboardMarkup(keyboard)
-    update.message.reply_text("C'est qui qui?", reply_markup=reply_markup)
+    update.message.reply_text("Qui ne peut pas offrir à qui?", reply_markup=reply_markup)
 
 
 def button(update: Update, context: CallbackContext) -> None:
@@ -37,7 +33,20 @@ def button(update: Update, context: CallbackContext) -> None:
     # Some clients may have trouble otherwise. See https://core.telegram.org/bots/api#callbackquery
     query.answer()
 
-    query.edit_message_text(text=f"Tu as selectionné le user id: {query.data}")
+    roulette = Roulette()
+    print('roulette')
+    print(query.data)
+    user = roulette.get_user(int(query.data))
+    print(user)
+    excludes = ""
+    if len(user['exclude']) == 0:
+        text = f"{user['name']} peut offrir à tout le monde"
+    else:
+        for u in user['exclude']:
+            print(u)
+            excludes = excludes + roulette.get_user(u)['name'] + ", "
+        text = f"{user['name']} ne peut pas offrir à {excludes}"
+    query.edit_message_text(text=text)
 
 
 # to do inline
