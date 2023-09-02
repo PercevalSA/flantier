@@ -1,6 +1,9 @@
 # local
 users.json
 .DS_Store
+audio/**/*.mp3
+audio/**/*.txt
+configs.py
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
