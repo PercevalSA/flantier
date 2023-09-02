@@ -23,6 +23,7 @@ Attributes:
     # self.offer_to = []
 """
 
+
 def person(tg_id: int, name: str, exclude: List = [], dest: int = None):
     """Generates a dict representing a person registered for secret santa.
 
@@ -36,10 +37,10 @@ def person(tg_id: int, name: str, exclude: List = [], dest: int = None):
         dict: the person item
     """
     person = {
-        'tg_id': tg_id,
-        'name': name,
-        'exclude': exclude,
-        'dest': dest,
+        "tg_id": tg_id,
+        "name": name,
+        "exclude": exclude,
+        "dest": dest,
     }
     return person
 

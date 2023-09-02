@@ -2,7 +2,11 @@
 """Herr Flantier der Geschenk Manager."""
 
 from random import choice
-from telegram import Update, ChatAction, InputMediaAudio, ReplyKeyboardMarkup, ReplyKeyboardRemove
+from telegram import (
+    Update,
+    ChatAction,
+    ReplyKeyboardRemove,
+)
 from telegram.ext import (
     Filters,
     Updater,
@@ -15,10 +19,8 @@ import os
 import configs
 import flantier
 import logging
-import sys
 import santa
 import keyboards
-import users
 from pathlib import Path
 from roulette import Roulette
 
@@ -88,7 +90,10 @@ def get_result(update: Update, context: CallbackContext):
     supplier = roulette.get_user(update.message.from_user.id)
     receiver = roulette.get_user(supplier["dest"])
 
-    context.bot.send_message(chat_id=update.message.from_user.id, text=f"🎅 Youpi tu offres à : {receiver['name']} 🎁\n")
+    context.bot.send_message(
+        chat_id=update.message.from_user.id,
+        text=f"🎅 Youpi tu offres à : {receiver['name']} 🎁\n",
+    )
 
 
 ######################
@@ -151,7 +156,6 @@ def offer(update: Update, context: CallbackContext):
 
     # fourni le nom et le numéro
     elif len(update.message.text.split(" ")) == 3:
-
         # doit vérifier que la personne existe
         # doit vérifier que le cadeau existe et est disponible
         name = update.message.text.split(" ")[1]
@@ -453,7 +457,9 @@ def send_audio_quote(chat_id: int, context: CallbackContext, folder: Path):
     audio = folder / Path(choice(audio_files))
 
     context.bot.send_chat_action(chat_id=chat_id, action=ChatAction.RECORD_AUDIO)
-    context.bot.send_audio(chat_id=chat_id, audio=open(audio, 'rb'), disable_notification=True)
+    context.bot.send_audio(
+        chat_id=chat_id, audio=open(audio, "rb"), disable_notification=True
+    )
 
 
 def quote_oss1(update: Update, context: CallbackContext):
@@ -464,7 +470,6 @@ def quote_oss1(update: Update, context: CallbackContext):
 def quote_oss2(update: Update, context: CallbackContext):
     """Petit Comique."""
     send_audio_quote(update.message.chat_id, context, Path("audio/oss2"))
-
 
 
 def unknown_command(update: Update, context: CallbackContext):

@@ -23,13 +23,11 @@ class Roulette:
             Roulette.__instance = super(Roulette, cls).__new__(cls, *args, **kwargs)
         return Roulette.__instance
 
-
     def _does_participate(self, tg_id: int):
-        for id,user in enumerate(self.participants):
-            if user['tg_id'] == tg_id:
-                return id,user
+        for id, user in enumerate(self.participants):
+            if user["tg_id"] == tg_id:
+                return id, user
         return None, None
-
 
     def add_user(self, tg_id: int, name: str) -> int:
         """récupère l'id telegram et ajoute le participant au fichier.
@@ -57,7 +55,6 @@ class Roulette:
         users.save_users(self.participants)
         return 0
 
-
     def remove_user(self, tg_id: int) -> bool:
         if self.inscriptions_open:
             id, user = self._does_participate(tg_id)
@@ -70,10 +67,8 @@ class Roulette:
                 pass
         return False
 
-
     def load_users(self):
         self.participants = users.load_users()
-
 
     def list_users(self) -> str:
         users = ""
@@ -81,24 +76,22 @@ class Roulette:
             users += f"{user['name']}\n"
         return users
 
-
     def get_user(self, tg_id: int) -> dict:
         for user in self.participants:
-            if user['tg_id'] == tg_id:
+            if user["tg_id"] == tg_id:
                 return user
         return False
 
     def search_user(self, name: str):
         for user in participants:
-            if user['name'] == name:
+            if user["name"] == name:
                 return user
         return None
 
-
     def exclude(self, tg_id: int, exclude: int):
         for user in self.participants:
-            if user['tg_id'] == user:
-                user['exclude'].append(exclude)
+            if user["tg_id"] == user:
+                user["exclude"].append(exclude)
                 return True
                 users.save_users(self.participants)
         return False
@@ -106,23 +99,25 @@ class Roulette:
     def is_ready(self):
         return bool(len(self.participants)) and not self.inscriptions_open
 
-
     def tirage(self) -> bool:
         """Algorithme de tirage au sort, complète automatique les champs 'dest'."""
         drawn_users = []
 
         for qqun in self.participants:
-            qqun['dest'] = 0
+            qqun["dest"] = 0
 
         logger.info("\nC'est parti !!!\n")
 
         # attribution
         for quelquun in self.participants:
-
             # determine la liste des possibles
             possibles = []
             for possibilite in self.participants:
-                if possibilite['tg_id'] in drawn_users or possibilite['tg_id'] in quelquun['exclude'] or possibilite['tg_id'] == quelquun['tg_id']:
+                if (
+                    possibilite["tg_id"] in drawn_users
+                    or possibilite["tg_id"] in quelquun["exclude"]
+                    or possibilite["tg_id"] == quelquun["tg_id"]
+                ):
                     continue
                 else:
                     possibles.append(possibilite)
@@ -133,9 +128,9 @@ class Roulette:
                 return False
 
             dest = choice(possibles)
-            quelquun['dest'] = dest['tg_id']
+            quelquun["dest"] = dest["tg_id"]
             print(f"{quelquun['name']} offre à {dest['name']}")
-            drawn_users.append(quelquun['dest'])
+            drawn_users.append(quelquun["dest"])
 
         print(self.participants)
         users.save_users(self.participants)

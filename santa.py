@@ -12,7 +12,6 @@ logger = logging.getLogger("flantier")
 
 
 def get_cadeaux():
-
     service = build("sheets", "v4", credentials=None, developerKey=configs.API_key)
     request = (
         service.spreadsheets()
@@ -90,7 +89,6 @@ def find_wishes(tg_id, name, with_comments=False, table=False):
         souhaits = ""
         i = 1
         while matches[0].wishes[i] is not None:
-
             souhaits += str(i) + " : " + matches[0].wishes[i] + "\n"
 
             if with_comments and matches[0].comments[i] is not None:

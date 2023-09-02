@@ -6,7 +6,6 @@ from telegram import (
     InlineKeyboardButton,
     InlineKeyboardMarkup,
     ReplyKeyboardMarkup,
-    ReplyKeyboardRemove,
     Update,
 )
 from telegram.ext import CallbackContext
@@ -19,10 +18,15 @@ logger = logging.getLogger("flantier")
 def inline_kb(update: Update, context: CallbackContext) -> None:
     """Sends a message with three inline buttons attached."""
     roulette = Roulette()
-    keyboard = [[InlineKeyboardButton(user["name"], callback_data=str(user["tg_id"]))] for user in roulette.participants]
+    keyboard = [
+        [InlineKeyboardButton(user["name"], callback_data=str(user["tg_id"]))]
+        for user in roulette.participants
+    ]
 
     reply_markup = InlineKeyboardMarkup(keyboard)
-    update.message.reply_text("Qui ne peut pas offrir à qui?", reply_markup=reply_markup)
+    update.message.reply_text(
+        "Qui ne peut pas offrir à qui?", reply_markup=reply_markup
+    )
 
 
 def button(update: Update, context: CallbackContext) -> None:
@@ -34,17 +38,17 @@ def button(update: Update, context: CallbackContext) -> None:
     query.answer()
 
     roulette = Roulette()
-    print('roulette')
+    print("roulette")
     print(query.data)
     user = roulette.get_user(int(query.data))
     print(user)
     excludes = ""
-    if len(user['exclude']) == 0:
+    if len(user["exclude"]) == 0:
         text = f"{user['name']} peut offrir à tout le monde"
     else:
-        for u in user['exclude']:
+        for u in user["exclude"]:
             print(u)
-            excludes = excludes + roulette.get_user(u)['name'] + ", "
+            excludes = excludes + roulette.get_user(u)["name"] + ", "
         text = f"{user['name']} ne peut pas offrir à {excludes}"
     query.edit_message_text(text=text)
 
@@ -159,7 +163,6 @@ def build_present_keyboard(update: Update, context: CallbackContext):
         return
 
     else:
-
         for i in range(0, len(offrant.offer_to)):
             text += str(offrant.offer_to[i][0]) + " " + str(offrant.offer_to[i][1])
             text += " [" + roulette.participants[offrant.offer_to[i][0]].name + "] : "
