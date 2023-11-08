@@ -3,9 +3,10 @@
 """
 
 import json
-import configs
-from typing import List
 import logging
+from typing import List
+
+import configs
 
 logger = logging.getLogger("flantier")
 

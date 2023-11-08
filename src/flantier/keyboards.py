@@ -2,6 +2,9 @@
 
 """GESTION DES CLAVIERS."""
 
+import logging
+
+from roulette import Roulette
 from telegram import (
     InlineKeyboardButton,
     InlineKeyboardMarkup,
@@ -9,8 +12,6 @@ from telegram import (
     Update,
 )
 from telegram.ext import CallbackContext
-import logging
-from roulette import Roulette
 
 logger = logging.getLogger("flantier")
 

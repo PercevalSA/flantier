@@ -1,28 +1,30 @@
 #!/usr/bin/python3
 """Herr Flantier der Geschenk Manager."""
 
+import logging
+import os
+from pathlib import Path
 from random import choice
+
+import configs
+import keyboards
+import santa
+from roulette import Roulette
 from telegram import (
-    Update,
     ChatAction,
     ReplyKeyboardRemove,
+    Update,
 )
 from telegram.ext import (
-    Filters,
-    Updater,
     CallbackContext,
     CallbackQueryHandler,
     CommandHandler,
+    Filters,
     MessageHandler,
+    Updater,
 )
-import os
-import configs
+
 import flantier
-import logging
-import santa
-import keyboards
-from pathlib import Path
-from roulette import Roulette
 
 # Enable logging
 logging.basicConfig(
@@ -312,7 +314,7 @@ def is_admin(update: Update, context: CallbackContext) -> bool:
     else:
         context.bot.send_message(
             chat_id=update.message.chat_id,
-            text=f"🙅 Petit.e canaillou! Tu ne possèdes pas ce pouvoir.",
+            text="🙅 Petit.e canaillou! Tu ne possèdes pas ce pouvoir.",
         )
         return False
 
@@ -352,9 +354,9 @@ def add_exclusion(update: Update, context: CallbackContext):
     forbidden_recipient = 0
 
     if roulette.exclude(supplier, forbidden_recipient):
-        context.bot.send_message(chat_id=update.message.chat_id, text=f"c'est bon")
+        context.bot.send_message(chat_id=update.message.chat_id, text="c'est bon")
     else:
-        context.bot.send_message(chat_id=update.message.chat_id, text=f"impossibru")
+        context.bot.send_message(chat_id=update.message.chat_id, text="impossibru")
 
 
 def process(update: Update, context: CallbackContext):

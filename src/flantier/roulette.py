@@ -1,12 +1,11 @@
 #!/usr/bin/python3
 """Herr Flantier der Geschenk Manager."""
 
-import users
-from random import choice
 import logging
-import configs
+from random import choice
 from typing import List
-import json
+
+import users
 
 logger = logging.getLogger("flantier")
 

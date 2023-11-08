@@ -1,10 +1,11 @@
 #!/usr/bin/python3
 """Herr Flantier der Geschenk Manager."""
 
-import configs
-from apiclient.discovery import build
 import logging
 import pickle
+
+import configs
+from apiclient.discovery import build
 
 logger = logging.getLogger("flantier")
 
