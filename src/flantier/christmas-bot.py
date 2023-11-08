@@ -371,7 +371,8 @@ def process(update: Update, context: CallbackContext):
             for user in roulette.participants:
                 receiver = roulette.get_user(user["dest"])
                 context.bot.send_message(
-                    user["tg_id"], text=f"🎅 Youpi tu offres à : {receiver['name']} 🎁\n"
+                    user["tg_id"],
+                    text=f"🎅 Youpi tu offres à : {receiver['name']} 🎁\n",
                 )
         else:
             context.bot.send_message(

@@ -1,0 +1,38 @@
+[project]
+name = "flantier"
+description = "Flantier der Geschenk Manager"
+version = "0.23.0"
+authors = [{ name = "Perceval Arenou", email = "perceval.arenou@gmail.com" }]
+readme = "README.md"
+requires-python = ">=3.7"
+
+dependencies = [
+    "python-telegram-bot==v13.15",
+    "google-api-python-client==2.65.0",
+]
+
+[project.urls]
+"Homepage" = "https://github.com/PercevalSA/flantier"
+
+[project.optional-dependencies]
+dev = ["roff"]
+test = []
+
+# The following would provide a command line executable called `sample`
+# which executes the function `main` from this package when invoked.
+[project.scripts] # Optional
+flantier = "flantier:main"
+
+# This is configuration specific to the `setuptools` build backend.
+# If you are using a different build backend, you will need to change this.
+[tool.setuptools]
+package-data = { "flantier" = ["*.sample"] }
+
+[build-system]
+# These are the assumed default build requirements from pip:
+# https://pip.pypa.io/en/stable/reference/pip/#pep-517-and-518-support
+requires = ["setuptools>=43.0.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+#build-backend = "flit_core.buildapi"
+#requires = ["flit_core >=3.2,<4"]
