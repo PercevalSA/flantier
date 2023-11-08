@@ -7,8 +7,8 @@ readme = "README.md"
 requires-python = ">=3.7"
 
 dependencies = [
-    "python-telegram-bot==v13.15",
-    "google-api-python-client==2.65.0",
+    "python-telegram-bot==v20.6",
+    "google-api-python-client==2.107.0",
 ]
 
 [project.urls]
