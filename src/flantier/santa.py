@@ -1,13 +1,12 @@
 #!/usr/bin/python3
 """
-Manage wishes and gifts from google sheets. 
+Manage wishes and gifts from google sheets.
 Stores every wishes and who is offering what.
 """
 
 import logging
 import pickle
 
-from settings import Settings
 from apiclient.discovery import build
 
 logger = logging.getLogger("flantier")

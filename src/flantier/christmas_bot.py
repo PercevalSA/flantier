@@ -4,10 +4,16 @@
 import logging
 
 import keyboards
-from commands_admin import *
-from commands_flantier import *
-from commands_gift import *
-from commands_user import *
+from commands_admin import (
+    add_spouse,
+    close_registrations,
+    open_registrations,
+    process,
+    update_wishes_list,
+)
+from commands_flantier import hello, quote_oss1, quote_oss2
+from commands_gift import comments, dont_offer, offer, wishes
+from commands_user import get_result, list_users, register, unregister
 from roulette import Roulette
 from settings import Settings
 from telegram import (
@@ -105,7 +111,10 @@ Commandes administrateur:
     else:
         help_text = simple_help + admin_help
 
-    context.bot.send_message(chat_id=update.effective_chat.id, text=help_text)  # type: ignore
+    context.bot.send_message(
+        chat_id=update.effective_chat.id,  # type: ignore
+        text=help_text,
+    )
 
 
 def unknown_command(update: Update, context: CallbackContext):
