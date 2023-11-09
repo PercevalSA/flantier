@@ -1,6 +1,6 @@
 #!/usr/bin/python3
 
-"""Herr Flantier der Geschenk Manager Configurations."""
+"""Settings"""
 
 # Telegram bot token
 TOKEN = ''

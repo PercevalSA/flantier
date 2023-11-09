@@ -15,8 +15,8 @@ dependencies = [
 "Homepage" = "https://github.com/PercevalSA/flantier"
 
 [project.optional-dependencies]
-dev = ["black", "isort", "pylint", "ruff"]
-# test = [""]
+# dev = [""]
+test = ["black", "isort", "mypy", "pylint", "ruff"]
 
 # The following would provide a command line executable called `sample`
 # which executes the function `main` from this package when invoked.
@@ -26,7 +26,7 @@ flantier = "flantier:main"
 # This is configuration specific to the `setuptools` build backend.
 # If you are using a different build backend, you will need to change this.
 [tool.setuptools]
-package-data = { "flantier" = ["*.sample"] }
+package-data = { "flantier" = ["settings_sample.toml"] }
 
 [build-system]
 # These are the assumed default build requirements from pip:

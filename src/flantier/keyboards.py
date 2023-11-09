@@ -1,6 +1,6 @@
 #!/usr/bin/python3
 
-"""GESTION DES CLAVIERS."""
+"""gestion des claviers interractifs dans telegram"""
 
 import logging
 

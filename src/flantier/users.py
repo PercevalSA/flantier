@@ -1,12 +1,10 @@
 #!/usr/bin/python3
-"""Herr Flantier der Geschenk Manager.
+"""Gère les utilisateurs stockés dans le fichier de configuration users.json
 """
 
 import json
 import logging
 from typing import List
-
-import configs
 
 logger = logging.getLogger("flantier")
 
@@ -46,7 +44,6 @@ def person(
     return {
         "tg_id": tg_id,
         "name": name,
-        "exclude": exclude,
         "spouse": spouse,
         "giftee": giftee,
         "last_giftee": last_giftee,

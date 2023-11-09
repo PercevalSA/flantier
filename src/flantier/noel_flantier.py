@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-"""Herr Flantier der Geschenk Manager."""
+"""All written quotes from OSS117"""
 
 quotes = [
     (
