@@ -25,14 +25,20 @@ Attributes:
 """
 
 
-def person(tg_id: int, name: str, exclude: List = None, dest: int = None):
+def person(
+    tg_id: int,
+    name: str,
+    spouse: int = None,
+    giftee: int = None,
+    last_giftee: int = None,
+):
     """Generates a dict representing a person registered for secret santa.
 
     Args:
         tg_id (int): telegram id of the new user
         name (str): Name of the user used to filter gifts column in Google Sheets
         exclude (List): liste des personnes à qui la personne ne peut pas offrir
-        dest (int): personne à qui offrir
+        giftee (int): personne à qui offrir
 
     Returns:
         dict: the person item
@@ -41,7 +47,9 @@ def person(tg_id: int, name: str, exclude: List = None, dest: int = None):
         "tg_id": tg_id,
         "name": name,
         "exclude": exclude,
-        "dest": dest,
+        "spouse": spouse,
+        "giftee": giftee,
+        "last_giftee": last_giftee,
     }
 
 

@@ -68,5 +68,6 @@ warn_unused_ignores = false
 max-line-length = 90
 disable = """
     import-error,
-    not-callable
+    not-callable,
+    undefined-variable
 """

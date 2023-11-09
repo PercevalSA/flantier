@@ -109,11 +109,11 @@ class Roulette:
         return bool(len(self.participants)) and not self.inscriptions_open
 
     def tirage(self) -> bool:
-        """Algorithme de tirage au sort, complète automatique les champs 'dest'."""
+        """Algorithme de tirage au sort, complète automatique les champs 'giftee'."""
         drawn_users = []
 
         for qqun in self.participants:
-            qqun["dest"] = 0
+            qqun["giftee"] = 0
 
         logger.info("\nC'est parti !!!\n")
 
@@ -135,10 +135,10 @@ class Roulette:
                 logger.info("Pas de solution, on recommence le tirage.")
                 return False
 
-            dest = choice(possibles)
-            quelquun["dest"] = dest["tg_id"]
-            print(f"{quelquun['name']} offre à {dest['name']}")
-            drawn_users.append(quelquun["dest"])
+            giftee = choice(possibles)
+            quelquun["giftee"] = giftee["tg_id"]
+            print(f"{quelquun['name']} offre à {giftee['name']}")
+            drawn_users.append(quelquun["giftee"])
 
         print(self.participants)
         users.save_users(self.participants)

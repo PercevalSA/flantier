@@ -122,11 +122,11 @@ def build_people_keyboard(
 
 def build_wish_keyboard(update: Update, context: CallbackContext, name):
     """Affiche le clavier des souhaits d'une personne."""
-    destinataire = next(qqun for qqun in roulette.participants if qqun.name == name)
+    giftee = next(qqun for qqun in roulette.participants if qqun.name == name)
 
     i = 1
     button_list = []
-    while destinataire.wishes[i] is not None:
+    while giftee.wishes[i] is not None:
         button_list.append("/offrir " + name + " " + str(i))
         i += 1
 

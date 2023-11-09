@@ -115,7 +115,7 @@ def list_users(update: Update, context: CallbackContext):
 def get_result(update: Update, context: CallbackContext):
     roulette = Roulette()
     supplier = roulette.get_user(update.message.from_user.id)
-    receiver = roulette.get_user(supplier["dest"])
+    receiver = roulette.get_user(supplier["giftee"])
 
     context.bot.send_message(
         chat_id=update.message.from_user.id,
@@ -173,7 +173,7 @@ def offer(update: Update, context: CallbackContext):
     # fourni que le nom
     elif len(update.message.text.split(" ")) == 2:
         name = update.message.text.split(" ")[1]
-        if any([qqun for qqun in roulette.participants if (qqun.name == name)]):
+        if any(qqun.name == name for qqun in roulette.participants):
             keyboards.build_wish_keyboard(update, context, name)
         else:
             context.bot.send_message(
@@ -211,7 +211,8 @@ def offer(update: Update, context: CallbackContext):
                         cadeau_index
                     ] = update.message.from_user.id
 
-                    # ajoute la place du destinataire et du cadeau dans la liste offer_to de l'offrant
+                    # ajoute la place du destinataire et du cadeau
+                    # dans la liste offer_to de l'offrant
                     donor_index = next(
                         (
                             i
@@ -373,9 +374,10 @@ def close_registrations(update: Update, context: CallbackContext):
         )
 
 
-def add_exclusion(update: Update, context: CallbackContext):
-    # provide names supplier and forbidden recipient
-    # else display people keyboard
+def add_spouse(update: Update, context: CallbackContext):
+    """Ajoute un conjoint à un participant.
+    provide names supplier and forbidden recipient else display people keyboard
+    """
     roulette = Roulette()
 
     keyboards.build_exclude_keyboard(update, context, roulette.participants)
@@ -396,6 +398,9 @@ def add_exclusion(update: Update, context: CallbackContext):
         context.bot.send_message(chat_id=update.message.chat_id, text="impossibru")
 
 
+# TODO generate exlcusion from last year
+
+
 def process(update: Update, context: CallbackContext):
     """Lance le tirage au sort et envoie les réponses en message privé."""
     roulette = Roulette()
@@ -408,7 +413,7 @@ def process(update: Update, context: CallbackContext):
 
             # on envoie les résultats en message privé
             for user in roulette.participants:
-                receiver = roulette.get_user(user["dest"])
+                receiver = roulette.get_user(user["giftee"])
                 context.bot.send_message(
                     user["tg_id"],
                     text=f"🎅 Youpi tu offres à : {receiver['name']} 🎁\n",
@@ -506,6 +511,7 @@ def hello(update: Update, context: CallbackContext):
 
 
 def send_audio_quote(chat_id: int, context: CallbackContext, folder: Path):
+    """Petit Comique."""
     audio_files = os.listdir(folder)
     audio = folder / Path(choice(audio_files))
 
@@ -526,6 +532,7 @@ def quote_oss2(update: Update, context: CallbackContext):
 
 
 def unknown_command(update: Update, context: CallbackContext):
+    """Gère les commandes inconues ou incorrectes"""
     context.bot.send_message(
         chat_id=update.effective_chat.id,
         text="Le Mue... quoi? Je n'ai pas compris cette commande.",
@@ -533,6 +540,7 @@ def unknown_command(update: Update, context: CallbackContext):
 
 
 def register_commands(dispatcher):
+    """Register all commands."""
     # users commands
     dispatcher.add_handler(CommandHandler("bonjour", hello))
     dispatcher.add_handler(CommandHandler("hello", hello))
@@ -576,10 +584,11 @@ def register_commands(dispatcher):
 
 def error(update: Update, context: CallbackContext):
     """Bot error handler."""
-    logger.warning('Update "%s" caused error "%s"' % (update, context.error))
+    logger.warning('Update "%s" caused error "%s"', update, context.error)
 
 
 def main():
+    """Start the bot."""
     # Create the EventHandler and pass it your bot's token
     updater = Updater(token=configs.TOKEN, use_context=True)
     dispatcher = updater.dispatcher
@@ -599,7 +608,3 @@ def main():
     # SIGTERM or SIGABRT. This should be used most of the time, since
     # start_polling() is non-blocking and will stop the bot gracefully.
     updater.idle()
-
-
-if __name__ == "__main__":
-    main()
