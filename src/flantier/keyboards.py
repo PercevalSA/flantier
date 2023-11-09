@@ -74,7 +74,10 @@ def build_exclude_keyboard(
         menu.append(footer_buttons)
 
     reply_keyboard = ReplyKeyboardMarkup(keyboard=menu, one_time_keyboard=True)
-    text = "🙅 Qui ne doit pas offrir à qui? 🙅\nSelectionne la personne qui n'a pas le droit d'offrir à quelqu'un."
+    text = (
+        "🙅 Qui ne doit pas offrir à qui? 🙅\nSelectionne la personne qui n'a pas "
+        "le droit d'offrir à quelqu'un
+    )."
     context.bot.send_message(
         chat_id=update.message.chat_id, text=text, reply_markup=reply_keyboard
     )

@@ -46,19 +46,29 @@ def register(update: Update, context: CallbackContext):
     if not not_registered:
         context.bot.send_message(
             chat_id=update.message.chat_id,
-            text=f"🎉 Bravo {update.message.from_user.first_name} 🎉\nTu es bien enregistré.e pour le tirage au sort.",
+            text=(
+                f"🎉 Bravo {update.message.from_user.first_name} 🎉\nTu es bi"
+                "en enregistré.e pour le tirage au sort
+            ).",
         )
 
     elif not_registered == -1:
         context.bot.send_message(
             chat_id=update.message.chat_id,
-            text=f"🦋 Patience {update.message.from_user.first_name},\n🙅 les inscriptions n'ont pas encore commencées ou sont déjà terminées!",
+            text=(
+                f"🦋 Patience {update.message.from_user.first_name},\n🙅 l"
+                "es inscriptions n'ont pas encore commencées ou sont déjà terminées
+            )!",
         )
 
     elif not_registered == -2:
         context.bot.send_message(
             chat_id=update.message.chat_id,
-            text=f"{update.message.from_user.first_name}, petit coquinou! Tu t'es déjà inscrit.e. Si tu veux recevoir un deuxième cadeau, tu peux te faire un auto-cadeau 🤷🔄🎁",
+            text=(
+                f"{update.message.from_user.first_name}, petit coquinou! Tu t'es déjà"
+                " inscrit.e. Si tu veux recevoir un deuxième cadeau, tu peux te faire"
+                " un auto-cadeau 🤷🔄
+            )🎁",
         )
 
 
@@ -67,9 +77,15 @@ def unregister(update: Update, context: CallbackContext):
     roulette = Roulette()
 
     if roulette.remove_user(update.message.from_user.id):
-        text = f"🗑 {update.message.from_user.first_name} a bien été retiré.e du tirage au sort."
+        text = (
+            f"🗑 {update.message.from_user.first_name} a bien été retiré.e du tirage a"
+            " sort."
+        )"
     else:
-        text = f"🤷 {update.message.from_user.first_name} n'a jamais été inscrit.e au tirage au sort..."
+        text = (
+            f"🤷 {update.message.from_user.first_name} n'a jamais été inscrit.e a"
+            "u tirage au sort...
+        )"
 
     context.bot.send_message(chat_id=update.message.chat_id, text=text)
 
@@ -206,7 +222,10 @@ def offer(update: Update, context: CallbackContext):
                     text = f"Tu offres déjà {wishes[cadeau_index - 1]} à {name}"
 
                 else:
-                    text = f"Quelqu'un d'autre offre déjà {wishes[cadeau_index - 1]} à {name}"
+                    text = (
+                        f"Quelqu'un d'autre offre déjà {wishes[cadeau_index - 1]} à"
+                        f" {name}"
+                    )
 
             else:
                 text = "Je ne trouve pas le cadeau dont tu parles..."
@@ -325,7 +344,10 @@ def open_registrations(update: Update, context: CallbackContext):
         Roulette().inscriptions_open = True
         context.bot.send_message(
             chat_id=update.message.chat_id,
-            text="🎉 Les inscriptions sont ouvertes 🎉\n🎅 Vous pouvez désormais vous inscrire en envoyant /participer",
+            text=(
+                "🎉 Les inscriptions sont ouvertes 🎉\n🎅 Vous pouvez désormais v"
+                "ous inscrire en envoyant /particip
+            )er",
         )
 
 
@@ -335,7 +357,10 @@ def close_registrations(update: Update, context: CallbackContext):
         Roulette().inscriptions_open = False
         context.bot.send_message(
             chat_id=update.message.chat_id,
-            text="🙅 Les inscriptions sont fermées 🙅\n🎁 C'est bientôt l'heure des résultats",
+            text=(
+                "🙅 Les inscriptions sont fermées 🙅\n🎁 C'est bientôt l'heure "
+                "des résulta
+            )ts",
         )
 
 
@@ -349,7 +374,10 @@ def add_exclusion(update: Update, context: CallbackContext):
 
     context.bot.send_message(
         chat_id=update.message.chat_id,
-        text="Qui ne doit pas offrir à qui? Selectionne la personne a qui iel ne peut pas offrir:",
+        text=(
+            "Qui ne doit pas offrir à qui? Selectionne la personne a qui iel ne peut"
+            " pas offrir:"
+        ),
     )
     forbidden_recipient = 0
 
@@ -409,7 +437,9 @@ def start(update: Update, context: CallbackContext):
     context.bot.send_message(
         chat_id=update.effective_chat.id,
         text=(
-            "C'est bientôt Noël! Je suis là pour vous aider à organiser tout ça Larmina mon p'tit. Je tire au sort les cadeaux et vous nous faites une jolie table avec une bonne bûche pour le dessert."
+            "C'est bientôt Noël! Je suis là pour vous aider à organiser tout ça Larmina"
+            " mon p'tit. Je tire au sort les cadeaux et vous nous faites une jolie"
+            " table avec une bonne bûche pour le dessert."
         ),
     )
     help(update, context)

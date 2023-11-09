@@ -36,3 +36,33 @@ build-backend = "setuptools.build_meta"
 
 #build-backend = "flit_core.buildapi"
 #requires = ["flit_core >=3.2,<4"]
+
+[tool.ruff]
+select = ["E", "F", "W", "Q", "I"]
+
+# Allow autofix for all enabled rules (when `--fix`) is provided.
+fixable = ["ALL"]
+unfixable = []
+
+# restrict Line length to 99
+line-length = 90
+
+[tool.black]
+line-length = 88
+target-version = ['py37', 'py38', 'py39', 'py310']
+# this experimental, you need spaces in strings for the split to work
+preview = true
+
+[tool.isort]
+# make it compatible with black
+profile = "black"
+
+ignore_missing_imports = true
+# Subset of "--strict" mode.
+check_untyped_defs = true
+disallow_incomplete_defs = true
+strict_concatenate = true
+strict_equality = true
+warn_redundant_casts = true
+warn_unused_configs = true
+warn_unused_ignores = false

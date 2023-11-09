@@ -78,13 +78,19 @@ def find_wishes(tg_id, name, with_comments=False, table=False):
         if table:
             return []
         else:
-            return "Je n'ai trouvé personne correspondant à ta recherche. N'oublie pas la majuscule."
+            return (
+                "Je n'ai trouvé personne correspondant à ta recherche. N'oublie pas la"
+                " majuscule."
+            )
 
     if matches[0].tg_id == tg_id:
         if table:
             return []
         else:
-            return "Hop hop hop ! Tu ne peux pas consulter ta propre liste de cadeaux, ça gacherait la surprise."
+            return (
+                "Hop hop hop ! Tu ne peux pas consulter ta propre liste de cadeaux, ça"
+                " gacherait la surprise."
+            )
 
     if not table:
         souhaits = ""
