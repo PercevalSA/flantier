@@ -8,6 +8,7 @@ from random import choice
 
 import configs
 import keyboards
+import noel_flantier
 import santa
 from roulette import Roulette
 from telegram import (
@@ -23,8 +24,6 @@ from telegram.ext import (
     MessageHandler,
     Updater,
 )
-
-import flantier
 
 # Enable logging
 logging.basicConfig(
@@ -113,6 +112,7 @@ def list_users(update: Update, context: CallbackContext):
 
 
 def get_result(update: Update, context: CallbackContext):
+    """Affiche le résultat du tirage au sort en message privé."""
     roulette = Roulette()
     supplier = roulette.get_user(update.message.from_user.id)
     receiver = roulette.get_user(supplier["giftee"])
@@ -190,9 +190,9 @@ def offer(update: Update, context: CallbackContext):
 
         # trouve le destinataire dans la liste des participants
         if any(qqun.name == name for qqun in roulette.participants):
-            wishes = santa.find_wishes(update.message.from_user.id, name, table=True)
+            _wishes = santa.find_wishes(update.message.from_user.id, name, table=True)
 
-            if len(wishes) > 0 and len(wishes) >= cadeau_index:
+            if len(_wishes) > 0 and len(_wishes) >= cadeau_index:
                 receiver_index = next(
                     (
                         i
@@ -204,7 +204,10 @@ def offer(update: Update, context: CallbackContext):
 
                 if roulette.participants[receiver_index].donor[cadeau_index] is None:
                     text = (
-                        "Tu offres désormais " + wishes[cadeau_index - 1] + " à " + name
+                        "Tu offres désormais "
+                        + _wishes[cadeau_index - 1]
+                        + " à "
+                        + name
                     )
                     # ajoute l'id de l'offrant dans la liste des souhaits du destinataire
                     roulette.participants[receiver_index].donor[
@@ -229,11 +232,11 @@ def offer(update: Update, context: CallbackContext):
                     roulette.participants[receiver_index].donor[cadeau_index]
                     == update.message.from_user.id
                 ):
-                    text = f"Tu offres déjà {wishes[cadeau_index - 1]} à {name}"
+                    text = f"Tu offres déjà {_wishes[cadeau_index - 1]} à {name}"
 
                 else:
                     text = (
-                        f"Quelqu'un d'autre offre déjà {wishes[cadeau_index - 1]} à"
+                        f"Quelqu'un d'autre offre déjà {_wishes[cadeau_index - 1]} à"
                         f" {name}"
                     )
 
@@ -315,6 +318,7 @@ def dont_offer(update: Update, context: CallbackContext):
 
 
 def cancel(update: Update, context: CallbackContext):
+    """Cancel current operation and reset flantier state."""
     reply_del_kb = ReplyKeyboardRemove()
     context.bot.send_message(
         chat_id=update.message.chat_id,
@@ -331,21 +335,17 @@ def cancel(update: Update, context: CallbackContext):
 def is_admin(update: Update, context: CallbackContext) -> bool:
     """check if the given telegram id is admin of the bot
 
-    Args:
-        bot (TYPE): telegram bot
-        tid (int): telegram id to check
-
     Returns:
         bool: whether the telegram user is admin of the bot or not
     """
-    if update.message.from_user.id == configs.admin:
-        return True
-    else:
+    if update.message.from_user.id != configs.admin:
         context.bot.send_message(
             chat_id=update.message.chat_id,
             text="🙅 Petit.e canaillou! Tu ne possèdes pas ce pouvoir.",
         )
         return False
+
+    return True
 
 
 def open_registrations(update: Update, context: CallbackContext):
@@ -460,7 +460,7 @@ def start(update: Update, context: CallbackContext):
     logger.info()
 
 
-def help(update: Update, context: CallbackContext):
+def help_message(update: Update, context: CallbackContext):
     simple_help = """Voici les commandes disponibles:
 /aide - affiche cette aide
 /participer - s'inscrire pour le secret santa
@@ -506,7 +506,7 @@ Commandes administrateur:
 def hello(update: Update, context: CallbackContext):
     """Petit Comique."""
     context.bot.send_message(
-        chat_id=update.message.chat_id, text=choice(flantier.citations)
+        chat_id=update.message.chat_id, text=choice(noel_flantier.quotes)
     )
 
 
@@ -554,8 +554,8 @@ def register_commands(dispatcher):
     dispatcher.add_handler(CommandHandler("list", list_users))
     dispatcher.add_handler(CommandHandler("resultat", get_result))
     dispatcher.add_handler(CommandHandler("result", get_result))
-    dispatcher.add_handler(CommandHandler("aide", help))
-    dispatcher.add_handler(CommandHandler("help", help))
+    dispatcher.add_handler(CommandHandler("aide", help_message))
+    dispatcher.add_handler(CommandHandler("help", help_message))
 
     if configs.extended_mode:
         dispatcher.add_handler(CommandHandler("cadeaux", wishes))
@@ -569,7 +569,7 @@ def register_commands(dispatcher):
     dispatcher.add_handler(CommandHandler("open", open_registrations))
     dispatcher.add_handler(CommandHandler("close", close_registrations))
     dispatcher.add_handler(CommandHandler("tirage", process))
-    dispatcher.add_handler(CommandHandler("exclude", add_exclusion))
+    dispatcher.add_handler(CommandHandler("exclude", add_spouse))
 
     if configs.extended_mode:
         dispatcher.add_handler(CommandHandler("update", update_wishes_list))

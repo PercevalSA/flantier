@@ -2,7 +2,7 @@
 
 """Herr Flantier der Geschenk Manager."""
 
-citations = [
+quotes = [
     (
         "Tu n'es pas seulement un lâche, tu es un traitre, comme ta petite taille le"
         " laissait deviner."

@@ -16,6 +16,7 @@ from telegram.ext import CallbackContext
 logger = logging.getLogger("flantier")
 
 
+# pylint: disable=W0613
 def inline_kb(update: Update, context: CallbackContext) -> None:
     """Sends a message with three inline buttons attached."""
     roulette = Roulette()
@@ -30,12 +31,14 @@ def inline_kb(update: Update, context: CallbackContext) -> None:
     )
 
 
+# pylint: disable=W0613
 def button(update: Update, context: CallbackContext) -> None:
     """Parses the CallbackQuery and updates the message text."""
     query = update.callback_query
 
     # CallbackQueries need to be answered, even if no notification to the user is needed
-    # Some clients may have trouble otherwise. See https://core.telegram.org/bots/api#callbackquery
+    # Some clients may have trouble otherwise.
+    # See https://core.telegram.org/bots/api#callbackquery
     query.answer()
 
     roulette = Roulette()
@@ -166,7 +169,7 @@ def build_present_keyboard(update: Update, context: CallbackContext):
         )
         return
 
-    for i, offer in enumerate(offrant.offer_to):
+    for i, _ in enumerate(offrant.offer_to):
         text += str(offrant.offer_to[i][0]) + " " + str(offrant.offer_to[i][1])
         text += " [" + roulette.participants[offrant.offer_to[i][0]].name + "] : "
         text += (
