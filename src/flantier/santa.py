@@ -52,7 +52,7 @@ def get_cadeaux():
 
             if update_flag:
                 new_data_flag = True
-                logger.info("mise à jour des cadeaux de " + participants[index].name)
+                logger.info("mise à jour des cadeaux de %s", participants[index].name)
 
     return new_data_flag
 
@@ -80,20 +80,20 @@ def find_wishes(tg_id, name, with_comments=False, table=False):
     if len(matches) == 0:
         if table:
             return []
-        else:
-            return (
-                "Je n'ai trouvé personne correspondant à ta recherche. N'oublie pas la"
-                " majuscule."
-            )
+
+        return (
+            "Je n'ai trouvé personne correspondant à ta recherche. N'oublie pas la"
+            " majuscule."
+        )
 
     if matches[0].tg_id == tg_id:
         if table:
             return []
-        else:
-            return (
-                "Hop hop hop ! Tu ne peux pas consulter ta propre liste de cadeaux, ça"
-                " gacherait la surprise."
-            )
+
+        return (
+            "Hop hop hop ! Tu ne peux pas consulter ta propre liste de cadeaux, ça"
+            " gacherait la surprise."
+        )
 
     if not table:
         souhaits = ""
