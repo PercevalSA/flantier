@@ -22,13 +22,13 @@ Attributes:
     # self.offer_to = []
 """
 
-
+# TODO use a class or dataclass
 def person(
     tg_id: int,
     name: str,
-    spouse: int = None,
-    giftee: int = None,
-    last_giftee: int = None,
+    spouse: int = 0,
+    giftee: int = 0,
+    last_giftee: int = 0,
 ):
     """Generates a dict representing a person registered for secret santa.
 
@@ -55,7 +55,7 @@ def load_users():
     logger.info("Restauration de l'état de Flantier")
 
     try:
-        with open(configs.USERS_FILE, "r", encoding="utf-8") as file:
+        with open(Settings().settings.users_file, "r", encoding="utf-8") as file:
             data = json.load(file)
     except FileNotFoundError:
         data = []
@@ -67,5 +67,5 @@ def save_users(users: List):
     """Sauvegarde les utilisateurs dans le fichier de sauvegarde."""
     logger.info("Sauvegarde de l'état de Flantier")
     data = json.dumps(users, indent=4)
-    with open(configs.USERS_FILE, "w", encoding="utf-8") as file:
+    with open(Settings().settings.users_file, "w", encoding="utf-8") as file:
         file.write(data)

@@ -3,28 +3,19 @@
 """Herr Flantier der Geschenk Manager."""
 
 import logging
-import os
-from pathlib import Path
-from random import choice
 
-import configs
 import keyboards
-import noel_flantier
 import santa
 from roulette import Roulette
 from telegram import (
-    ChatAction,
     ReplyKeyboardRemove,
     Update,
 )
 from telegram.ext import (
     CallbackContext,
-    CallbackQueryHandler,
-    CommandHandler,
-    Filters,
-    MessageHandler,
-    Updater,
 )
+
+logger = logging.getLogger("flantier")
 
 
 
@@ -151,7 +142,7 @@ def offer(update: Update, context: CallbackContext):
 
     # on comprend rien
     else:
-        text = ("Enfin! Parle Français: /offrir Prénom Numéro_Cadeau",)
+        text = "Enfin! Parle Français: /offrir Prénom Numéro_Cadeau"
 
     reply_del_kb = ReplyKeyboardRemove()
     context.bot.send_message(

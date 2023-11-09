@@ -1,7 +1,8 @@
-#!/usr/bin/python3
+
 
 """Settings"""
 
+#!/usr/bin/python3
 # Telegram bot token
 TOKEN = ''
 # Google API Token
@@ -18,5 +19,4 @@ GIFTS_FILE = 'cadeaux.bak'
 # Google Sheets Document
 spreadsheet_id = ''
 sheet_id = ''
-nb_cadeaux = 30
-data_range = 'A1:AB' + str(nb_cadeaux)
+data_range = 'A1:AB30'

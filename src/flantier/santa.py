@@ -7,7 +7,7 @@ Stores every wishes and who is offering what.
 import logging
 import pickle
 
-import configs
+from settings import Settings
 from apiclient.discovery import build
 
 logger = logging.getLogger("flantier")

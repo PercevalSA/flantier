@@ -25,6 +25,7 @@ from telegram.ext import (
     Updater,
 )
 
+logger = logging.getLogger("flantier")
 
 def is_admin(update: Update, context: CallbackContext) -> bool:
     """check if the given telegram id is admin of the bot

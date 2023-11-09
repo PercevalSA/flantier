@@ -2,35 +2,30 @@
 """Herr Flantier der Geschenk Manager."""
 
 import logging
-import os
-from pathlib import Path
-from random import choice
 
-import configs
+import settings
 import keyboards
-import noel_flantier
-import santa
 from roulette import Roulette
 from telegram import (
-    ChatAction,
     ReplyKeyboardRemove,
     Update,
 )
 from telegram.ext import (
-    CallbackContext,
+    CallbackContext, 
     CallbackQueryHandler,
     CommandHandler,
     Filters,
     MessageHandler,
     Updater,
 )
+from commands_admin import *
+from commands_flantier import *
+from commands_user import *
+from commands_gift import *
 
-# Enable logging
-logging.basicConfig(
-    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s", level=logging.INFO
-)
+# Enable logging, we do not need "%(asctime)s - %(name)s as it is already printed by ptb
+logging.basicConfig(format="%(levelname)s - %(message)s", level=logging.INFO)
 logger = logging.getLogger("flantier")
-
 
 
 def cancel(update: Update, context: CallbackContext):
@@ -60,7 +55,7 @@ def start(update: Update, context: CallbackContext):
             " table avec une bonne bûche pour le dessert."
         ),
     )
-    help(update, context)
+    help_message(update, context)
     logger.info()
 
 
@@ -165,6 +160,8 @@ def error(update: Update, context: CallbackContext):
 
 def main():
     """Start the bot."""
+    Settings().load_settings()
+
     # Create the EventHandler and pass it your bot's token
     updater = Updater(token=configs.TOKEN, use_context=True)
     dispatcher = updater.dispatcher

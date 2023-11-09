@@ -71,3 +71,6 @@ disable = """
     import-error,
     undefined-variable
 """
+
+[tool.mypy]
+ignore_missing_imports = true

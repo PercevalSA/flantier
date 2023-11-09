@@ -125,7 +125,7 @@ def build_people_keyboard(
 
 def build_wish_keyboard(update: Update, context: CallbackContext, name):
     """Affiche le clavier des souhaits d'une personne."""
-    giftee = next(qqun for qqun in roulette.participants if qqun.name == name)
+    giftee = next(qqun for qqun in Roulette().participants if qqun.name == name)
 
     i = 1
     button_list = []
@@ -153,6 +153,8 @@ def build_wish_keyboard(update: Update, context: CallbackContext, name):
 
 def build_present_keyboard(update: Update, context: CallbackContext):
     """Affiche le clavier des cadeau que l'on souhaite offrir."""
+    roulette = Roulette()
+
     offrant = next(
         qqun
         for qqun in roulette.participants
