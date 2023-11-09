@@ -1,4 +1,5 @@
 #!/usr/bin/python3
+""" Download all OSS 117 audio files from zonesons.com. """
 
 import base64
 from urllib.request import Request, urlopen
@@ -6,9 +7,9 @@ from urllib.request import Request, urlopen
 from bs4 import BeautifulSoup
 
 # 96 pages
-SITE = "https://zonesons.com"
-OSS1 = "/repliques-cultes-de-films-d-espionnage/phrases-cultes-de-oss-117-le-caire-nid-d-espions"
-OSS2 = "/repliques-cultes-de-films-d-espionnage/phrases-cultes-de-oss-117-rio-ne-repond-plus"
+SITE = "https://zonesons.com/"
+OSS1 = "repliques-cultes-de-films-d-espionnage/phrases-cultes-de-oss-117-le-caire-nid-d-espions"
+OSS2 = "repliques-cultes-de-films-d-espionnage/phrases-cultes-de-oss-117-rio-ne-repond-plus"
 FILMS = [OSS1, OSS2]
 FILENAME = "oss1172.txt"
 
@@ -42,13 +43,13 @@ for film in FILMS:
 
         for a in audio:
             mp3 = base64.b64decode(a.get("src")[1:]).decode("utf-8")
-            url = f"{SITE}/{mp3}"
+            mp3_url = f"{SITE}/{mp3}"
             # filename = str(mp3).split("/")[-1]
             filename = str(mp3).rsplit("/", maxsplit=1)[-1]
             print(filename)
             # pylint: disable=W1514
             with open(FILENAME, "a") as file:
-                file.write(f"{url}\n")
+                file.write(f"{mp3_url}\n")
 
 # to download all files use the following command
 # not working (IP ban)

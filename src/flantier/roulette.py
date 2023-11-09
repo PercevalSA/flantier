@@ -23,9 +23,9 @@ class Roulette:
         return Roulette.__instance
 
     def _does_participate(self, tg_id: int):
-        for id, user in enumerate(self.participants):
+        for tgid, user in enumerate(self.participants):
             if user["tg_id"] == tg_id:
-                return id, user
+                return tgid, user
         return None, None
 
     def add_user(self, tg_id: int, name: str) -> int:
@@ -95,7 +95,7 @@ class Roulette:
     def exclude(self, tg_id: int, exclude: int):
         """Ajoute un utilisateur à la liste des exclus d'un autre"""
         for user in self.participants:
-            if user["tg_id"] == user:
+            if user["tg_id"] == tg_id:
                 user["exclude"].append(exclude)
                 return True
                 # FIXME uncomment

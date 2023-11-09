@@ -345,9 +345,9 @@ def open_registrations(update: Update, context: CallbackContext):
         context.bot.send_message(
             chat_id=update.message.chat_id,
             text=(
-                "🎉 Les inscriptions sont ouvertes 🎉\n🎅 Vous pouvez désormais v"
-                "ous inscrire en envoyant /particip
-            )er",
+                "🎉 Les inscriptions sont ouvertes 🎉\n"
+                "🎅 Vous pouvez désormais vous inscrire en envoyant /participer"
+            ),
         )
 
 
