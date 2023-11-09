@@ -162,17 +162,75 @@ def comments(update: Update, context: CallbackContext):
         keyboards.build_people_keyboard(update, context, comments=True)
 
 
+def add_gifter(tg_id: int, name: str, cadeau_index: int) -> str:
+    """Ajoute un offrant à un cadeau.
+    vérifie que la personne existe et la disponiblité du cadeau
+    """
+
+    roulette = Roulette()
+
+    # trouve le destinataire dans la liste des participants
+    if any(qqun.name == name for qqun in roulette.participants):
+        _wishes = santa.find_wishes(tg_id, name, table=True)
+
+        if len(_wishes) > 0 and len(_wishes) >= cadeau_index:
+            receiver_index = next(
+                (
+                    i
+                    for i, qqun in enumerate(roulette.participants)
+                    if qqun.name == name
+                ),
+                -1,
+            )
+
+            if roulette.participants[receiver_index].donor[cadeau_index] is None:
+                text = "Tu offres désormais " + _wishes[cadeau_index - 1] + " à " + name
+                # ajoute l'id de l'offrant dans la liste des souhaits du destinataire
+                roulette.participants[receiver_index].donor[cadeau_index] = tg_id
+
+                # ajoute la place du destinataire et du cadeau
+                # dans la liste offer_to de l'offrant
+                donor_index = next(
+                    (
+                        i
+                        for i, qqun in enumerate(roulette.participants)
+                        if qqun.tg_id == tg_id
+                    ),
+                    -1,
+                )
+                roulette.participants[donor_index].offer_to.append(
+                    (receiver_index, cadeau_index)
+                )
+
+            elif roulette.participants[receiver_index].donor[cadeau_index] == tg_id:
+                text = f"Tu offres déjà {_wishes[cadeau_index - 1]} à {name}"
+
+            else:
+                text = (
+                    f"Quelqu'un d'autre offre déjà {_wishes[cadeau_index - 1]} à {name}"
+                )
+
+        else:
+            text = "Je ne trouve pas le cadeau dont tu parles..."
+    else:
+        text = "Je ne trouve pas la personne dont tu parles..."
+
+    return text
+
+
 def offer(update: Update, context: CallbackContext):
     """Permet de sélectionner un cadeau à offrir."""
 
     roulette = Roulette()
+    message = update.message.text.split(" ")
     # aucun argument fourni
-    if len(update.message.text.split(" ")) == 1:
+    if len(message) == 1:
         keyboards.build_people_keyboard(update, context, offer_flag=True)
+        return
 
     # fourni que le nom
-    elif len(update.message.text.split(" ")) == 2:
-        name = update.message.text.split(" ")[1]
+    if len(message) == 2:
+        name = message[1]
         if any(qqun.name == name for qqun in roulette.participants):
             keyboards.build_wish_keyboard(update, context, name)
         else:
@@ -180,84 +238,20 @@ def offer(update: Update, context: CallbackContext):
                 chat_id=update.message.chat_id,
                 text="Je ne trouve pas la personne dont tu parles...",
             )
+        return
 
     # fourni le nom et le numéro
-    elif len(update.message.text.split(" ")) == 3:
-        # doit vérifier que la personne existe
-        # doit vérifier que le cadeau existe et est disponible
-        name = update.message.text.split(" ")[1]
-        cadeau_index = int(update.message.text.split(" ")[2])
-
-        # trouve le destinataire dans la liste des participants
-        if any(qqun.name == name for qqun in roulette.participants):
-            _wishes = santa.find_wishes(update.message.from_user.id, name, table=True)
-
-            if len(_wishes) > 0 and len(_wishes) >= cadeau_index:
-                receiver_index = next(
-                    (
-                        i
-                        for i, qqun in enumerate(roulette.participants)
-                        if qqun.name == name
-                    ),
-                    -1,
-                )
-
-                if roulette.participants[receiver_index].donor[cadeau_index] is None:
-                    text = (
-                        "Tu offres désormais "
-                        + _wishes[cadeau_index - 1]
-                        + " à "
-                        + name
-                    )
-                    # ajoute l'id de l'offrant dans la liste des souhaits du destinataire
-                    roulette.participants[receiver_index].donor[
-                        cadeau_index
-                    ] = update.message.from_user.id
-
-                    # ajoute la place du destinataire et du cadeau
-                    # dans la liste offer_to de l'offrant
-                    donor_index = next(
-                        (
-                            i
-                            for i, qqun in enumerate(roulette.participants)
-                            if qqun.tg_id == update.message.from_user.id
-                        ),
-                        -1,
-                    )
-                    roulette.participants[donor_index].offer_to.append(
-                        (receiver_index, cadeau_index)
-                    )
-
-                elif (
-                    roulette.participants[receiver_index].donor[cadeau_index]
-                    == update.message.from_user.id
-                ):
-                    text = f"Tu offres déjà {_wishes[cadeau_index - 1]} à {name}"
-
-                else:
-                    text = (
-                        f"Quelqu'un d'autre offre déjà {_wishes[cadeau_index - 1]} à"
-                        f" {name}"
-                    )
-
-            else:
-                text = "Je ne trouve pas le cadeau dont tu parles..."
-        else:
-            text = "Je ne trouve pas la personne dont tu parles..."
-
-        reply_del_kb = ReplyKeyboardRemove()
-        context.bot.send_message(
-            chat_id=update.message.chat_id, text=text, reply_markup=reply_del_kb
-        )
+    if len(update.message.text.split(" ")) == 3:
+        text = add_gifter(update.message.from_user.id, message[1], message[2])
 
     # on comprend rien
     else:
-        reply_del_kb = ReplyKeyboardRemove()
-        context.bot.send_message(
-            chat_id=update.message.chat_id,
-            text="Enfin! Parle Français: /offrir Prénom Numéro_Cadeau",
-            reply_markup=reply_del_kb,
-        )
+        text = ("Enfin! Parle Français: /offrir Prénom Numéro_Cadeau",)
+
+    reply_del_kb = ReplyKeyboardRemove()
+    context.bot.send_message(
+        chat_id=update.message.chat_id, text=text, reply_markup=reply_del_kb
+    )
 
 
 def dont_offer(update: Update, context: CallbackContext):
