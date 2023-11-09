@@ -67,7 +67,7 @@ warn_unused_ignores = false
 [tool.pylint.'MESSAGES CONTROL']
 max-line-length = 90
 disable = """
+    fixme,
     import-error,
-    not-callable,
     undefined-variable
 """

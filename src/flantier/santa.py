@@ -75,7 +75,7 @@ def load_cadeaux():
 
 def find_wishes(tg_id, name, with_comments=False, table=False):
     """Trouve et retourne la liste de souhaits avec le nom de la personne."""
-    matches = [qqun for qqun in participants if (qqun.name == name)]
+    matches = [qqun for qqun in participants if qqun.name == name]
 
     if len(matches) == 0:
         if table:

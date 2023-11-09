@@ -442,12 +442,14 @@ def update_wishes_list(update: Update, context: CallbackContext):
 
 
 def init_christmas():
+    """Start Christmas: load users and close registrations."""
     roulette = Roulette()
     roulette.inscriptions_open = False
     roulette.load_users()
 
 
 def start(update: Update, context: CallbackContext):
+    """Start the interaction with the bot. Enable the bot to talk to user."""
     context.bot.send_message(
         chat_id=update.effective_chat.id,
         text=(
@@ -461,6 +463,7 @@ def start(update: Update, context: CallbackContext):
 
 
 def help_message(update: Update, context: CallbackContext):
+    """Send the help message with all available commands"""
     simple_help = """Voici les commandes disponibles:
 /aide - affiche cette aide
 /participer - s'inscrire pour le secret santa
@@ -516,6 +519,7 @@ def send_audio_quote(chat_id: int, context: CallbackContext, folder: Path):
     audio = folder / Path(choice(audio_files))
 
     context.bot.send_chat_action(chat_id=chat_id, action=ChatAction.RECORD_AUDIO)
+    # pylint: disable=R1732
     context.bot.send_audio(
         chat_id=chat_id, audio=open(audio, "rb"), disable_notification=True
     )
