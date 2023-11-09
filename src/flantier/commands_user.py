@@ -3,13 +3,14 @@
 
 import logging
 
-from roulette import Roulette
 from telegram import (
     Update,
 )
 from telegram.ext import (
     CallbackContext,
 )
+
+from .roulette import Roulette
 
 logger = logging.getLogger("flantier")
 

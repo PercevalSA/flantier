@@ -3,16 +3,15 @@
 
 import logging
 
-import configs
-import keyboards
-import santa
-from roulette import Roulette
 from telegram import (
     Update,
 )
 from telegram.ext import (
     CallbackContext,
 )
+
+from . import keyboards, santa
+from .roulette import Roulette
 
 logger = logging.getLogger("flantier")
 

@@ -3,19 +3,6 @@
 
 import logging
 
-import keyboards
-from commands_admin import (
-    add_spouse,
-    close_registrations,
-    open_registrations,
-    process,
-    update_wishes_list,
-)
-from commands_flantier import hello, quote_oss1, quote_oss2
-from commands_gift import comments, dont_offer, offer, wishes
-from commands_user import get_result, list_users, register, unregister
-from roulette import Roulette
-from settings import Settings
 from telegram import (
     ReplyKeyboardRemove,
     Update,
@@ -24,10 +11,23 @@ from telegram.ext import (
     CallbackContext,
     CallbackQueryHandler,
     CommandHandler,
-    Filters,
     MessageHandler,
     Updater,
 )
+
+from . import keyboards
+from .commands_admin import (
+    add_spouse,
+    close_registrations,
+    open_registrations,
+    process,
+    update_wishes_list,
+)
+from .commands_flantier import hello, quote_oss1, quote_oss2
+from .commands_gift import comments, dont_offer, offer, wishes
+from .commands_user import get_result, list_users, register, unregister
+from .roulette import Roulette
+from .settings import Settings
 
 # Enable logging, we do not need "%(asctime)s - %(name)s as it is already printed by ptb
 logging.basicConfig(format="%(levelname)s - %(message)s", level=logging.INFO)
@@ -143,7 +143,7 @@ def register_commands(dispatcher):
     dispatcher.add_handler(CommandHandler("aide", help_message))
     dispatcher.add_handler(CommandHandler("help", help_message))
 
-    if configs.extended_mode:
+    if Settings().extended_mode:
         dispatcher.add_handler(CommandHandler("cadeaux", wishes))
         dispatcher.add_handler(CommandHandler("commentaires", comments))
         dispatcher.add_handler(CommandHandler("offrir", offer))
@@ -178,7 +178,7 @@ def main():
     Settings().load_settings()
 
     # Create the EventHandler and pass it your bot's token
-    updater = Updater(token=configs.TOKEN, use_context=True)
+    updater = Updater(token=Settings().telegram_bot_token, use_context=True)
     dispatcher = updater.dispatcher
 
     # answer in Telegram on different commands

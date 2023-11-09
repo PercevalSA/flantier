@@ -6,7 +6,7 @@ import json
 import logging
 from typing import List
 
-from settings import Settings
+from .settings import Settings
 
 logger = logging.getLogger("flantier")
 
@@ -23,6 +23,7 @@ Attributes:
     # self.donor = [None] * configs.nb_cadeaux
     # self.offer_to = []
 """
+
 
 # TODO use a class or dataclass
 def person(

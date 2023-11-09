@@ -5,7 +5,7 @@ import logging
 from random import choice
 from typing import List
 
-import users
+from . import users
 
 logger = logging.getLogger("flantier")
 

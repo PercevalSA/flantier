@@ -6,7 +6,6 @@ import os
 from pathlib import Path
 from random import choice
 
-import noel_flantier
 from telegram import (
     ChatAction,
     Update,
@@ -14,6 +13,8 @@ from telegram import (
 from telegram.ext import (
     CallbackContext,
 )
+
+from . import noel_flantier
 
 logger = logging.getLogger("flantier")
 

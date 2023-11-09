@@ -1,12 +1,8 @@
-
 #!/usr/bin/python3
 """Herr Flantier der Geschenk Manager."""
 
 import logging
 
-import keyboards
-import santa
-from roulette import Roulette
 from telegram import (
     ReplyKeyboardRemove,
     Update,
@@ -15,8 +11,10 @@ from telegram.ext import (
     CallbackContext,
 )
 
-logger = logging.getLogger("flantier")
+from . import keyboards, santa
+from .roulette import Roulette
 
+logger = logging.getLogger("flantier")
 
 
 ######################
