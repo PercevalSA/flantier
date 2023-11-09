@@ -57,7 +57,8 @@ def register(update: Update, context: CallbackContext):
             chat_id=update.message.chat_id,
             text=(
                 f"🦋 Patience {update.message.from_user.first_name},\n"
-                "🙅 les inscriptions n'ont pas encore commencées ou sont déjà terminées!"
+                "🙅 les inscriptions n'ont pas encore commencées ou sont déj"
+                "à terminées!"
             ),
         )
 
@@ -101,6 +102,14 @@ def list_users(update: Update, context: CallbackContext):
         text = "😢 Aucun.e participant.e n'est encore inscrit.e."
 
     context.bot.send_message(chat_id=update.message.chat_id, text=text)
+
+    # on check qu'on a accès aux chats privés de tous les participants
+    for user in roulette.participants:
+        logger.info("Envoi du message privé à %s", user["name"])
+        context.bot.send_message(
+            user["tg_id"],
+            text="🧪 Test",
+        )
 
 
 def get_result(update: Update, context: CallbackContext):
@@ -358,9 +367,9 @@ def close_registrations(update: Update, context: CallbackContext):
         context.bot.send_message(
             chat_id=update.message.chat_id,
             text=(
-                "🙅 Les inscriptions sont fermées 🙅\n🎁 C'est bientôt l'heure "
-                "des résulta
-            )ts",
+                "🙅 Les inscriptions sont fermées 🙅\n"
+                "🎁 C'est bientôt l'heure des résultats"
+            ),
         )
 
 
@@ -443,6 +452,7 @@ def start(update: Update, context: CallbackContext):
         ),
     )
     help(update, context)
+    logger.info()
 
 
 def help(update: Update, context: CallbackContext):
@@ -459,7 +469,7 @@ def help(update: Update, context: CallbackContext):
 
 Les commandes aussi sont disponibles en anglais:
 /help, /hello, /register, /remove, /list, /result
-    """
+"""
 
     extended_help = """
 
@@ -470,10 +480,20 @@ Les commandes aussi sont disponibles en anglais:
 /annuler - annule l'opération en cours
     """
 
+    admin_help = """
+
+Commandes administrateur:
+/start - démarre l'interaction avec le bot
+/open - ouvre la session d'inscription
+/close - termine la session d'inscription
+/tirage - lance le tirage au sort avec les contraintes
+/exclude - ajoute une contrainte de destinataire (conjoint, année précédente)
+"""
+
     if configs.extended_mode:
-        help_text = simple_help + extended_help
+        help_text = simple_help + extended_help + admin_help
     else:
-        help_text = simple_help
+        help_text = simple_help + admin_help
 
     context.bot.send_message(chat_id=update.effective_chat.id, text=help_text)
 

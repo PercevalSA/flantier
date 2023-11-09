@@ -15,8 +15,8 @@ dependencies = [
 "Homepage" = "https://github.com/PercevalSA/flantier"
 
 [project.optional-dependencies]
-dev = ["roff"]
-test = []
+dev = ["black", "isort", "pylint", "ruff"]
+# test = [""]
 
 # The following would provide a command line executable called `sample`
 # which executes the function `main` from this package when invoked.
@@ -39,12 +39,9 @@ build-backend = "setuptools.build_meta"
 
 [tool.ruff]
 select = ["E", "F", "W", "Q", "I"]
-
 # Allow autofix for all enabled rules (when `--fix`) is provided.
 fixable = ["ALL"]
 unfixable = []
-
-# restrict Line length to 99
 line-length = 90
 
 [tool.black]
@@ -66,3 +63,10 @@ strict_equality = true
 warn_redundant_casts = true
 warn_unused_configs = true
 warn_unused_ignores = false
+
+[tool.pylint.'MESSAGES CONTROL']
+max-line-length = 90
+disable = """
+    import-error,
+    not-callable
+"""

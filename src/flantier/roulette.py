@@ -11,6 +11,8 @@ logger = logging.getLogger("flantier")
 
 
 class Roulette:
+    """Singleton class to store roulette state."""
+
     inscriptions_open: bool
     participants: List[dict]
 

@@ -166,19 +166,16 @@ def build_present_keyboard(update: Update, context: CallbackContext):
         )
         return
 
-    else:
-        for i, offer in enumerate(offrant.offer_to):
-            text += str(offrant.offer_to[i][0]) + " " + str(offrant.offer_to[i][1])
-            text += " [" + roulette.participants[offrant.offer_to[i][0]].name + "] : "
-            text += (
-                roulette.participants[offrant.offer_to[i][0]].wishes[
-                    offrant.offer_to[i][1]
-                ]
-                + "\n"
-            )
-            button_list.append(
-                f"/retirer {str(offrant.offer_to[i][0])} {str(offrant.offer_to[i][1])}"
-            )
+    for i, offer in enumerate(offrant.offer_to):
+        text += str(offrant.offer_to[i][0]) + " " + str(offrant.offer_to[i][1])
+        text += " [" + roulette.participants[offrant.offer_to[i][0]].name + "] : "
+        text += (
+            roulette.participants[offrant.offer_to[i][0]].wishes[offrant.offer_to[i][1]]
+            + "\n"
+        )
+        button_list.append(
+            f"/retirer {str(offrant.offer_to[i][0])} {str(offrant.offer_to[i][1])}"
+        )
 
         header_buttons = None
         footer_buttons = ["/annuler"]
