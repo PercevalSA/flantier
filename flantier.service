@@ -7,8 +7,8 @@ Type=simple
 
 User=flantier
 Group=flantier
-WorkingDirectory=/srv/flantier
-ExecStart=/usr/bin/python3 /srv/flantier/main.py
+WorkingDirectory=/home/flantier
+ExecStart=/usr/bin/python3 -m flantier
 
 Restart=on-failure
 RestartSec=30s

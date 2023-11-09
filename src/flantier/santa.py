@@ -1,5 +1,8 @@
 #!/usr/bin/python3
-"""Herr Flantier der Geschenk Manager."""
+"""
+Manage wishes and gifts from google sheets. 
+Stores every wishes and who is offering what.
+"""
 
 import logging
 import pickle
