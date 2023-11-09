@@ -17,8 +17,12 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install pylint
+          pip install pylint mypy
+          mypy --install-types --non-interactive
           pip install .
       - name: Analysing the code with pylint
         run: |
           pylint $(git ls-files '*.py')
+      - name: Analysing code typing with mypy
+        run: |
+          mypy $(git ls-files '*.py')

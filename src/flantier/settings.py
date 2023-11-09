@@ -51,14 +51,16 @@ class Settings:
 
 
     def get_settings(self):
+        """load settings from file in module folder"""
         full_file_path = Path(__file__).parent.joinpath('settings.toml')
         with open(full_file_path) as settings:
-            settings_data = toml.load(settings, Loader=toml.Loader)
+            settings_data = toml.load(settings.read())
         return settings_data
 
-        
+
     def load_settings(self, settings_file: Path = DEFAULT_SETTINGS):
-        with open(self.settings_file, 'r') as f:
+        """load settings from settings file in default location"""
+        with open(settings_file, "r", encoding="utf-8") as f:
             self.settings = toml.load(f.read())
 
         return self.settings
@@ -66,4 +68,5 @@ class Settings:
     def setup_templates(self):
         """install templates files in home directory if they does not exist"""
 
-        DEFAULT_SETTINGS.parents().mkdir(on_error=True)
+        self.DEFAULT_SETTINGS.parent.mkdir(parents=True, exist_ok=True)
+        self.DEFAULT_SETTINGS.touch(exist_ok=True)

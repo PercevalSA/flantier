@@ -58,12 +58,13 @@ def comments(update: Update, context: CallbackContext):
         keyboards.build_people_keyboard(update, context, comments=True)
 
 
-def add_gifter(tg_id: int, name: str, cadeau_index: int) -> str:
+def add_gifter(tg_id: int, message: list) -> str:
     """Ajoute un offrant à un cadeau.
     vérifie que la personne existe et la disponiblité du cadeau
     """
 
     roulette = Roulette()
+    name, cadeau_index = message
 
     # trouve le destinataire dans la liste des participants
     if any(qqun.name == name for qqun in roulette.participants):
@@ -138,7 +139,7 @@ def offer(update: Update, context: CallbackContext):
 
     # fourni le nom et le numéro
     if len(update.message.text.split(" ")) == 3:
-        text = add_gifter(update.message.from_user.id, message[1], message[2])
+        text = add_gifter(update.message.from_user.id, message)
 
     # on comprend rien
     else:

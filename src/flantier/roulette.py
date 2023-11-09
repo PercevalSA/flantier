@@ -85,7 +85,7 @@ class Roulette:
         for user in self.participants:
             if user["tg_id"] == tg_id:
                 return user
-        return False
+        return {}
 
     def search_user(self, name: str):
         """Récupère un utilisateur par son nom"""

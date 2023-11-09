@@ -6,6 +6,8 @@ import json
 import logging
 from typing import List
 
+from settings import Settings
+
 logger = logging.getLogger("flantier")
 
 """

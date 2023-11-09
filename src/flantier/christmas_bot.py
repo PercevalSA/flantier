@@ -3,25 +3,25 @@
 
 import logging
 
-import settings
 import keyboards
+from commands_admin import *
+from commands_flantier import *
+from commands_gift import *
+from commands_user import *
 from roulette import Roulette
+from settings import Settings
 from telegram import (
     ReplyKeyboardRemove,
     Update,
 )
 from telegram.ext import (
-    CallbackContext, 
+    CallbackContext,
     CallbackQueryHandler,
     CommandHandler,
     Filters,
     MessageHandler,
     Updater,
 )
-from commands_admin import *
-from commands_flantier import *
-from commands_user import *
-from commands_gift import *
 
 # Enable logging, we do not need "%(asctime)s - %(name)s as it is already printed by ptb
 logging.basicConfig(format="%(levelname)s - %(message)s", level=logging.INFO)
@@ -48,15 +48,20 @@ def init_christmas():
 def start(update: Update, context: CallbackContext):
     """Start the interaction with the bot. Enable the bot to talk to user."""
     context.bot.send_message(
-        chat_id=update.effective_chat.id,
+        chat_id=update.effective_chat.id,  # type: ignore
         text=(
             "C'est bientôt Noël! Je suis là pour vous aider à organiser tout ça Larmina"
             " mon p'tit. Je tire au sort les cadeaux et vous nous faites une jolie"
             " table avec une bonne bûche pour le dessert."
         ),
     )
-    help_message(update, context)
-    logger.info()
+    logger.info(
+        "Recieved a start command from user %s: %d in chat %s: %d",
+        update.message.from_user.username,
+        update.message.from_user.id,
+        update.effective_chat.full_name,  # type: ignore
+        update.message.chat_id,
+    )
 
 
 def help_message(update: Update, context: CallbackContext):
@@ -95,17 +100,18 @@ Commandes administrateur:
 /exclude - ajoute une contrainte de destinataire (conjoint, année précédente)
 """
 
-    if configs.extended_mode:
+    if Settings().extended_mode:
         help_text = simple_help + extended_help + admin_help
     else:
         help_text = simple_help + admin_help
 
-    context.bot.send_message(chat_id=update.effective_chat.id, text=help_text)
+    context.bot.send_message(chat_id=update.effective_chat.id, text=help_text)  # type: ignore
+
 
 def unknown_command(update: Update, context: CallbackContext):
     """Gère les commandes inconues ou incorrectes"""
     context.bot.send_message(
-        chat_id=update.effective_chat.id,
+        chat_id=update.effective_chat.id,  # type: ignore
         text="Le Mue... quoi? Je n'ai pas compris cette commande.",
     )
 
