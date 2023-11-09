@@ -44,21 +44,22 @@ class Roulette:
         if not self.inscriptions_open:
             return -1
 
-        id, user = self._does_participate(tg_id)
-        if id:
-            logger.info(f"{name} est déjà enregistré: {tg_id}")
+        tgid, _ = self._does_participate(tg_id)
+        if tgid:
+            logger.info("%s est déjà enregistré: %d", name, tg_id)
             return -2
 
-        logger.info(f"Inscription de {name}: {tg_id}")
+        logger.info("Inscription de %s: %d", name, tg_id)
         self.participants.append(users.person(tg_id, name))
         users.save_users(self.participants)
         return 0
 
     def remove_user(self, tg_id: int) -> bool:
+        """récupère l'id telegram et supprime le participant"""
         if self.inscriptions_open:
-            id, user = self._does_participate(tg_id)
+            tgid, _ = self._does_participate(tg_id)
             try:
-                self.participants.pop(id)
+                self.participants.pop(tgid)
                 users.save_users(self.participants)
                 return True
 
@@ -67,35 +68,42 @@ class Roulette:
         return False
 
     def load_users(self):
+        """Charge les participants depuis le fichier de sauvegarde"""
         self.participants = users.load_users()
 
     def list_users(self) -> str:
-        users = ""
+        """Liste les participants inscrits"""
+        _users = ""
         for user in self.participants:
-            users += f"{user['name']}\n"
-        return users
+            _users += f"{user['name']}\n"
+        return _users
 
     def get_user(self, tg_id: int) -> dict:
+        """Récupère un utilisateur par son tg_id"""
         for user in self.participants:
             if user["tg_id"] == tg_id:
                 return user
         return False
 
     def search_user(self, name: str):
-        for user in participants:
+        """Récupère un utilisateur par son nom"""
+        for user in self.participants:
             if user["name"] == name:
                 return user
         return None
 
     def exclude(self, tg_id: int, exclude: int):
+        """Ajoute un utilisateur à la liste des exclus d'un autre"""
         for user in self.participants:
             if user["tg_id"] == user:
                 user["exclude"].append(exclude)
                 return True
-                users.save_users(self.participants)
+                # FIXME uncomment
+                # users.save_users(self.participants)
         return False
 
     def is_ready(self):
+        """Vérifie que les conditions sont réunies pour lancer le tirage au sort"""
         return bool(len(self.participants)) and not self.inscriptions_open
 
     def tirage(self) -> bool:
@@ -118,8 +126,7 @@ class Roulette:
                     or possibilite["tg_id"] == quelquun["tg_id"]
                 ):
                     continue
-                else:
-                    possibles.append(possibilite)
+                possibles.append(possibilite)
 
             # s'il n'y a pas de solution on redémarre
             if len(possibles) == 0:

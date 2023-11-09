@@ -75,9 +75,9 @@ def build_exclude_keyboard(
 
     reply_keyboard = ReplyKeyboardMarkup(keyboard=menu, one_time_keyboard=True)
     text = (
-        "🙅 Qui ne doit pas offrir à qui? 🙅\nSelectionne la personne qui n'a pas "
-        "le droit d'offrir à quelqu'un
-    )."
+        "🙅 Qui ne doit pas offrir à qui? 🙅\n"
+        "Selectionne la personne qui n'a pas le droit d'offrir à quelqu'un"
+    )
     context.bot.send_message(
         chat_id=update.message.chat_id, text=text, reply_markup=reply_keyboard
     )
@@ -89,8 +89,8 @@ def build_people_keyboard(
     offer_flag=False,
     comments=False,
 ):
-    roulette = Roulette()
     """Créer le clavier avec les noms des participants."""
+    roulette = Roulette()
     if offer_flag:
         button_list = ["/offrir " + qqun.name for qqun in roulette.participants]
     elif comments:
@@ -167,7 +167,7 @@ def build_present_keyboard(update: Update, context: CallbackContext):
         return
 
     else:
-        for i in range(0, len(offrant.offer_to)):
+        for i, offer in enumerate(offrant.offer_to):
             text += str(offrant.offer_to[i][0]) + " " + str(offrant.offer_to[i][1])
             text += " [" + roulette.participants[offrant.offer_to[i][0]].name + "] : "
             text += (

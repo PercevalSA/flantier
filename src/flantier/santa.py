@@ -13,6 +13,7 @@ logger = logging.getLogger("flantier")
 
 
 def get_cadeaux():
+    """Récupère les cadeaux de chaque participant."""
     service = build("sheets", "v4", credentials=None, developerKey=configs.API_key)
     request = (
         service.spreadsheets()
@@ -57,12 +58,14 @@ def get_cadeaux():
 
 
 def backup_cadeaux():
+    """Sauvegarde les cadeaux de chaque participant."""
     with open(configs.CADEAUX, "wb") as file:
         pickle.dump(participants, file, protocol=pickle.HIGHEST_PROTOCOL)
     logger.info("sauvegarde de l'état de Flantier")
 
 
 def load_cadeaux():
+    """Charge les cadeaux de chaque participant."""
     with open(configs.CADEAUX, "rb") as file:
         participants = pickle.load(file)
 

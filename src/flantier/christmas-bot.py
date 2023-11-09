@@ -47,18 +47,18 @@ def register(update: Update, context: CallbackContext):
         context.bot.send_message(
             chat_id=update.message.chat_id,
             text=(
-                f"🎉 Bravo {update.message.from_user.first_name} 🎉\nTu es bi"
-                "en enregistré.e pour le tirage au sort
-            ).",
+                f"🎉 Bravo {update.message.from_user.first_name} 🎉\n"
+                "Tu es bien enregistré.e pour le tirage au sort"
+            ),
         )
 
     elif not_registered == -1:
         context.bot.send_message(
             chat_id=update.message.chat_id,
             text=(
-                f"🦋 Patience {update.message.from_user.first_name},\n🙅 l"
-                "es inscriptions n'ont pas encore commencées ou sont déjà terminées
-            )!",
+                f"🦋 Patience {update.message.from_user.first_name},\n"
+                "🙅 les inscriptions n'ont pas encore commencées ou sont déjà terminées!"
+            ),
         )
 
     elif not_registered == -2:
@@ -67,8 +67,8 @@ def register(update: Update, context: CallbackContext):
             text=(
                 f"{update.message.from_user.first_name}, petit coquinou! Tu t'es déjà"
                 " inscrit.e. Si tu veux recevoir un deuxième cadeau, tu peux te faire"
-                " un auto-cadeau 🤷🔄
-            )🎁",
+                " un auto-cadeau 🤷🔄🎁"
+            ),
         )
 
 
@@ -78,14 +78,14 @@ def unregister(update: Update, context: CallbackContext):
 
     if roulette.remove_user(update.message.from_user.id):
         text = (
-            f"🗑 {update.message.from_user.first_name} a bien été retiré.e du tirage a"
-            " sort."
-        )"
+            f"🗑 {update.message.from_user.first_name} "
+            "a bien été retiré.e du tirage au sort."
+        )
     else:
         text = (
-            f"🤷 {update.message.from_user.first_name} n'a jamais été inscrit.e a"
-            "u tirage au sort...
-        )"
+            f"🤷 {update.message.from_user.first_name} "
+            "n'a jamais été inscrit.e au tirage au sort..."
+        )
 
     context.bot.send_message(chat_id=update.message.chat_id, text=text)
 
@@ -96,9 +96,9 @@ def list_users(update: Update, context: CallbackContext):
     users = roulette.list_users()
 
     if len(users):
-        text = "🙋 Les participant.e.s sont: \n" + users
+        text = f"🙋 Les participant.e.s sont:\n{users}"
     else:
-        text = ("😢 Aucun.e participant.e n'est encore inscrit.e.",)
+        text = "😢 Aucun.e participant.e n'est encore inscrit.e."
 
     context.bot.send_message(chat_id=update.message.chat_id, text=text)
 
