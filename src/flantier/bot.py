@@ -11,6 +11,8 @@ from telegram.ext import (
     CallbackContext,
     CallbackQueryHandler,
     CommandHandler,
+    Dispatcher,
+    Filters,
     MessageHandler,
     Updater,
 )
@@ -125,7 +127,7 @@ def unknown_command(update: Update, context: CallbackContext) -> None:
     )
 
 
-def register_commands(dispatcher: Updater.Dispatcher) -> None:
+def register_commands(dispatcher: Dispatcher) -> None:
     """Register all commands."""
     # users commands
     dispatcher.add_handler(CommandHandler("bonjour", hello))

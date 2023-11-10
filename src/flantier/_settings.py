@@ -6,8 +6,8 @@ import sys
 from dataclasses import dataclass
 from logging import getLogger
 from pathlib import Path
+from shutil import copyfile
 
-import scutils
 import toml
 
 DEFAULT_SETTINGS = Path.home() / ".config/flantier/settings.toml"
@@ -69,8 +69,11 @@ class SettingsManager:
             with open(settings_file, "r", encoding="utf-8") as f:
                 self.settings = toml.load(f.read())
         except FileNotFoundError:
-            self.setup_templates()
-            logger.error("Please configure settings file at %s", settings_file)
+            self.setup_templates(settings_file)
+            logger.error(
+                "Please configure Flantier Das Geschenk Manager settings at %s",
+                settings_file,
+            )
             sys.exit(1)
 
         return self.settings
@@ -80,9 +83,11 @@ class SettingsManager:
         with open(settings_file, "w", encoding="utf-8") as f:
             toml.dump(self.settings, f)
 
-    def setup_templates(self) -> None:
+    def setup_templates(self, settings_file: Path) -> None:
         """install templates files in home directory if they does not exist"""
-        DEFAULT_SETTINGS.parent.mkdir(parents=True, exist_ok=True)
-        if not DEFAULT_SETTINGS.exists():
-            template = Path(__file__).parent.joinpath("settings.toml")
-            scutils.copy_file(template, DEFAULT_SETTINGS, force=True)
+        template = Path(__file__).parent.joinpath("settings_template.toml")
+        settings_file.parent.mkdir(parents=True, exist_ok=True)
+        try:
+            copyfile(template, settings_file)
+        except IOError:
+            logger.info("Settings file already in place at %s", DEFAULT_SETTINGS)
