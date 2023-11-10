@@ -41,17 +41,22 @@ def start(update: Update, context: CallbackContext) -> None:
     context.bot.send_message(
         chat_id=update.effective_chat.id,  # type: ignore
         text=(
-            "C'est bientôt Noël! Je suis là pour vous aider à organiser tout ça Larmina"
-            " mon p'tit. Je tire au sort les cadeaux et vous nous faites une jolie"
-            " table avec une bonne bûche pour le dessert."
+            "🧑‍🎄 C'est bientôt Noël! "
+            "Je suis là pour vous aider à organiser tout ça Larmina mon p'tit. "
+            "Je tire au sort les cadeaux et vous nous faites une jolie table "
+            "avec une bonne bûche pour le dessert 🪵"
         ),
     )
     logger.info(
-        "Recieved a start command from user %s: %d in chat %s: %d",
+        "Received a start command from user %s: %d in chat %s: %d",
         update.message.from_user.username,
         update.message.from_user.id,
         update.effective_chat.full_name,  # type: ignore
         update.message.chat_id,
+    )
+
+    Roulette().add_user(
+        tg_id=update.message.from_user.id, name=update.message.from_user.username
     )
 
 

@@ -24,6 +24,12 @@ def is_admin(update: Update, context: CallbackContext) -> bool:
         bool: whether the telegram user is admin of the bot or not
     """
 
+    logger.info(
+        "%s request admin rights: %d",
+        update.message.from_user.username,
+        update.message.from_user.id,
+    )
+
     if (
         update.message.from_user.id
         != SettingsManager().settings["telegram"]["administrator"]
@@ -32,21 +38,18 @@ def is_admin(update: Update, context: CallbackContext) -> bool:
             chat_id=update.message.chat_id,
             text="🙅 Petit.e canaillou! Tu ne possèdes pas ce pouvoir.",
         )
-        logger.info("not an admin")
         return False
 
-    logger.info("admin")
     return True
 
 
 def open_registrations(update: Update, context: CallbackContext) -> None:
     """Lance la campagne d'inscription."""
-    logger.info("open registrations")
     if not is_admin(update, context):
         return
 
-    Roulette().registration = True
-    logger.info(f"open registrations: {Roulette().registration}")
+    Roulette().open_registrations()
+
     context.bot.send_message(
         chat_id=update.message.chat_id,
         text=(
@@ -58,21 +61,25 @@ def open_registrations(update: Update, context: CallbackContext) -> None:
 
 def close_registrations(update: Update, context: CallbackContext) -> None:
     """Termine la campagne d'inscription."""
-    if is_admin(update, context):
-        Roulette().registration = False
-        context.bot.send_message(
-            chat_id=update.message.chat_id,
-            text=(
-                "🙅 Les inscriptions sont fermées 🙅\n"
-                "🎁 C'est bientôt l'heure des résultats"
-            ),
-        )
+    if not is_admin(update, context):
+        return
+
+    logger.info(f"close registrations: {Roulette().registration}")
+    Roulette().close_registrations()
+    logger.info(f"close registrations: {Roulette().registration}")
+
+    context.bot.send_message(
+        chat_id=update.message.chat_id,
+        text="🙅 Les inscriptions sont fermées 🙅🎁 C'est bientôt l'heure des résultats",
+    )
 
 
 def add_spouse(update: Update, context: CallbackContext) -> None:
     """Ajoute un conjoint à un participant.
     provide names supplier and forbidden recipient else display people keyboard
     """
+    if not is_admin(update, context):
+        return
     roulette = Roulette()
 
     _keyboards.build_exclude_keyboard(update, context, roulette.participants)

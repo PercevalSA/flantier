@@ -21,6 +21,11 @@ logger = logging.getLogger("flantier")
 
 def _register_user(user_id: int, user_name: str) -> str:
     roulette = Roulette()
+    logger.info("register_user: %s", user_name)
+
+    # users are created with the start command, if not we should create them
+    if not roulette.get_user(user_id):
+        roulette.add_user(tg_id=user_id, name=user_name)
 
     if not roulette.registration:
         return (
@@ -35,12 +40,15 @@ def _register_user(user_id: int, user_name: str) -> str:
             "tu peux te faire un auto-cadeau 🤷🔄🎁"
         )
 
-    roulette.add_user(tg_id=user_id, name=user_name)
-    return f"🎉 Bravo {user_name} 🎉\nTu es bien enregistré.e pour le tirage au sort"
+    if roulette.register_user(tg_id=user_id, name=user_name):
+        return f"🎉 Bravo {user_name} 🎉\nTu es bien enregistré.e pour le tirage au sort"
+    else:
+        return f"❌ désolé {user_name}, il y'a eu un problème lors de ton inscription 😢"
 
 
 def register(update: Update, context: CallbackContext) -> None:
     """Permet de s'inscrire au tirage au sort."""
+    logger.info("register: %s", update.message.from_user)
     text = _register_user(
         update.message.from_user.id, update.message.from_user.first_name
     )
@@ -79,9 +87,9 @@ def list_users(update: Update, context: CallbackContext) -> None:
 
     # on check qu'on a accès aux chats privés de tous les participants
     for user in roulette.participants:
-        logger.info("Envoi du message privé à %s", user["name"])
+        logger.info("Envoi du message privé à %s", user.name)
         context.bot.send_message(
-            user["tg_id"],
+            user.tg_id,
             text="🧪 Test",
         )
 

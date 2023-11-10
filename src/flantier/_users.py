@@ -46,28 +46,33 @@ class UserJSONEncoder(json.JSONEncoder):
         return super().default(o)
 
 
-# users: list[User] = []
-
-
 def user_list_to_json(users: list) -> str:
     """Convertit la liste des utilisateurs en JSON."""
-    return json.dumps(users, cls=UserJSONEncoder, indent=4)
+    data = json.dumps(users, cls=UserJSONEncoder, indent=4)
+    logger.info("user_list_to_json: %s", data)
+    return data
 
 
 def json_to_user_list(data: str) -> list:
     """Convertit le JSON en liste d'utilisateurs."""
-    return json.loads(data, object_hook=lambda d: User(**d))
+    plop = json.loads(data, object_hook=lambda d: User(**d))
+    logger.info("json_to_user_list: %s", plop)
+    return plop
 
 
-def load_users(user_file: Path = DEFAULT_USERS_DB) -> list | None:
+def load_users(user_file: Path = DEFAULT_USERS_DB) -> list[User] | None:
     """Charge les utilisateurs enregistrés dans le fichier de sauvegarde."""
     logger.info("Restauration de l'état de Flantier")
 
     try:
         with open(user_file, "r", encoding="utf-8") as file:
-            users = json_to_user_list(json.load(file))
+            users = json_to_user_list(file.read())
     except FileNotFoundError:
-        return None
+        logger.warn("users file %s not found, creating one", user_file)
+        users = []
+        user_file.parent.mkdir(parents=True, exist_ok=True)
+        with open(user_file, "w", encoding="utf-8") as file:
+            json.dump(users, file, indent=4)
 
     return users
 
