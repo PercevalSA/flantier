@@ -1,0 +1,15 @@
+[telegram]
+TOKEN = ''        # Telegram bot token
+administrator = 0
+
+[google]
+API_key = '' # Google API Token
+# Google Sheets Document
+spreadsheet_id = ''
+sheet_id = ''
+data_range = 'A1:AB30'
+
+[flantier]
+extended_mode = false
+# USERS_FILE = 'users.json'  # file to store users data
+# GIFTS_FILE = 'cadeaux.bak'

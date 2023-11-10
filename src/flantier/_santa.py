@@ -4,12 +4,12 @@ Manage wishes and gifts from google sheets.
 Stores every wishes and who is offering what.
 """
 
-import logging
 import pickle
+from logging import getLogger
 
 from apiclient.discovery import build
 
-logger = logging.getLogger("flantier")
+logger = getLogger("flantier")
 
 # TODO use singleton to store state
 

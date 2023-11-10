@@ -16,26 +16,25 @@ from telegram.ext import (
 )
 
 from flantier import _keyboards
-
-from ._commands_admin import (
+from flantier._commands_admin import (
     add_spouse,
     close_registrations,
     open_registrations,
     process,
     update_wishes_list,
 )
-from ._commands_flantier import hello, quote_oss1, quote_oss2
-from ._commands_gift import comments, dont_offer, offer, wishes
-from ._commands_user import get_result, list_users, register, unregister
-from ._roulette import Roulette
-from ._settings import Settings
+from flantier._commands_flantier import hello, quote_oss1, quote_oss2
+from flantier._commands_gift import comments, dont_offer, offer, wishes
+from flantier._commands_user import get_result, list_users, register, unregister
+from flantier._roulette import Roulette
+from flantier._settings import SettingsManager
 
 # Enable logging, we do not need "%(asctime)s - %(name)s as it is already printed by ptb
 logging.basicConfig(format="%(levelname)s - %(message)s", level=logging.INFO)
 logger = logging.getLogger("flantier")
 
 
-def cancel(update: Update, context: CallbackContext):
+def cancel(update: Update, context: CallbackContext) -> None:
     """Cancel current operation and reset flantier state."""
     reply_del_kb = ReplyKeyboardRemove()
     context.bot.send_message(
@@ -45,14 +44,14 @@ def cancel(update: Update, context: CallbackContext):
     )
 
 
-def init_christmas():
+def init_christmas() -> None:
     """Start Christmas: load users and close registrations."""
     roulette = Roulette()
     roulette.inscriptions_open = False
     roulette.load_users()
 
 
-def start(update: Update, context: CallbackContext):
+def start(update: Update, context: CallbackContext) -> None:
     """Start the interaction with the bot. Enable the bot to talk to user."""
     context.bot.send_message(
         chat_id=update.effective_chat.id,  # type: ignore
@@ -71,7 +70,7 @@ def start(update: Update, context: CallbackContext):
     )
 
 
-def help_message(update: Update, context: CallbackContext):
+def help_message(update: Update, context: CallbackContext) -> None:
     """Send the help message with all available commands"""
     simple_help = """Voici les commandes disponibles:
 /aide - affiche cette aide
@@ -107,7 +106,7 @@ Commandes administrateur:
 /exclude - ajoute une contrainte de destinataire (conjoint, année précédente)
 """
 
-    if Settings().extended_mode:
+    if SettingsManager().extended_mode:
         help_text = simple_help + extended_help + admin_help
     else:
         help_text = simple_help + admin_help
@@ -118,7 +117,7 @@ Commandes administrateur:
     )
 
 
-def unknown_command(update: Update, context: CallbackContext):
+def unknown_command(update: Update, context: CallbackContext) -> None:
     """Gère les commandes inconues ou incorrectes"""
     context.bot.send_message(
         chat_id=update.effective_chat.id,  # type: ignore
@@ -126,7 +125,7 @@ def unknown_command(update: Update, context: CallbackContext):
     )
 
 
-def register_commands(dispatcher):
+def register_commands(dispatcher: Updater.Dispatcher) -> None:
     """Register all commands."""
     # users commands
     dispatcher.add_handler(CommandHandler("bonjour", hello))
@@ -144,7 +143,7 @@ def register_commands(dispatcher):
     dispatcher.add_handler(CommandHandler("aide", help_message))
     dispatcher.add_handler(CommandHandler("help", help_message))
 
-    if Settings().extended_mode:
+    if SettingsManager().settings.extended_mode:
         dispatcher.add_handler(CommandHandler("cadeaux", wishes))
         dispatcher.add_handler(CommandHandler("commentaires", comments))
         dispatcher.add_handler(CommandHandler("offrir", offer))
@@ -158,7 +157,7 @@ def register_commands(dispatcher):
     dispatcher.add_handler(CommandHandler("tirage", process))
     dispatcher.add_handler(CommandHandler("exclude", add_spouse))
 
-    if Settings().extended_mode:
+    if SettingsManager().settings.extended_mode:
         dispatcher.add_handler(CommandHandler("update", update_wishes_list))
 
     # inline kb
@@ -169,17 +168,17 @@ def register_commands(dispatcher):
     dispatcher.add_handler(MessageHandler(Filters.command, unknown_command))
 
 
-def error(update: Update, context: CallbackContext):
+def error(update: Update, context: CallbackContext) -> None:
     """Bot error handler."""
     logger.warning('Update "%s" caused error "%s"', update, context.error)
 
 
-def main():
+def main() -> None:
     """Start the bot."""
-    Settings().load_settings()
+    SettingsManager().load_settings()
 
     # Create the EventHandler and pass it your bot's token
-    updater = Updater(token=Settings().telegram_bot_token, use_context=True)
+    updater = Updater(token=SettingsManager().telegram_bot_token, use_context=True)
     dispatcher = updater.dispatcher
 
     # answer in Telegram on different commands
