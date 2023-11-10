@@ -1,6 +1,6 @@
 """Flantier package."""
 
-from . import christmas_bot
+from flantier import flantier
 
 if __name__ == "__main__":
-    christmas_bot.main()
+    flantier.main()

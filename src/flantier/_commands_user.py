@@ -10,7 +10,7 @@ from telegram.ext import (
     CallbackContext,
 )
 
-from .roulette import Roulette
+from flantier._roulette import Roulette
 
 logger = logging.getLogger("flantier")
 

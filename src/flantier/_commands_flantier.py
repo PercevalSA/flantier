@@ -14,16 +14,14 @@ from telegram.ext import (
     CallbackContext,
 )
 
-from . import noel_flantier
+from flantier._quotes_oss117 import quotes
 
 logger = logging.getLogger("flantier")
 
 
 def hello(update: Update, context: CallbackContext):
     """Petit Comique."""
-    context.bot.send_message(
-        chat_id=update.message.chat_id, text=choice(noel_flantier.quotes)
-    )
+    context.bot.send_message(chat_id=update.message.chat_id, text=choice(quotes))
 
 
 def send_audio_quote(chat_id: int, context: CallbackContext, folder: Path):

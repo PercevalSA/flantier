@@ -5,7 +5,7 @@ import logging
 from random import choice
 from typing import List
 
-from . import users
+from flantier import _users
 
 logger = logging.getLogger("flantier")
 
@@ -52,8 +52,8 @@ class Roulette:
             return -2
 
         logger.info("Inscription de %s: %d", name, tg_id)
-        self.participants.append(users.person(tg_id, name))
-        users.save_users(self.participants)
+        self.participants.append(_users.person(tg_id, name))
+        _users.save_users(self.participants)
         return 0
 
     def remove_user(self, tg_id: int) -> bool:
@@ -62,7 +62,7 @@ class Roulette:
             tgid, _ = self._does_participate(tg_id)
             try:
                 self.participants.pop(tgid)
-                users.save_users(self.participants)
+                _users.save_users(self.participants)
                 return True
 
             except TypeError:
@@ -71,7 +71,7 @@ class Roulette:
 
     def load_users(self):
         """Charge les participants depuis le fichier de sauvegarde"""
-        self.participants = users.load_users()
+        self.participants = _users.load_users()
 
     def list_users(self) -> str:
         """Liste les participants inscrits"""
@@ -141,7 +141,7 @@ class Roulette:
             drawn_users.append(quelquun["giftee"])
 
         print(self.participants)
-        users.save_users(self.participants)
+        _users.save_users(self.participants)
         logger.info("Tirage terminé, les résulats sont tombés.")
 
         return True

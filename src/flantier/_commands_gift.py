@@ -11,8 +11,8 @@ from telegram.ext import (
     CallbackContext,
 )
 
-from . import keyboards, santa
-from .roulette import Roulette
+from flantier import _keyboards, _santa
+from flantier._roulette import Roulette
 
 logger = logging.getLogger("flantier")
 
@@ -30,12 +30,12 @@ def wishes(update: Update, context: CallbackContext):
         reply_del_kb = ReplyKeyboardRemove()
         context.bot.send_message(
             chat_id=update.message.chat_id,
-            text=santa.find_wishes(update.message.from_user.id, name),
+            text=_santa.find_wishes(update.message.from_user.id, name),
             reply_markup=reply_del_kb,
         )
 
     else:
-        keyboards.build_people_keyboard(update, context)
+        _keyboards.build_people_keyboard(update, context)
 
 
 def comments(update: Update, context: CallbackContext):
@@ -46,14 +46,14 @@ def comments(update: Update, context: CallbackContext):
         reply_del_kb = ReplyKeyboardRemove()
         context.bot.send_message(
             chat_id=update.message.chat_id,
-            text=santa.find_wishes(
+            text=_santa.find_wishes(
                 update.message.from_user.id, name, with_comments=True
             ),
             reply_markup=reply_del_kb,
         )
 
     else:
-        keyboards.build_people_keyboard(update, context, comments=True)
+        _keyboards.build_people_keyboard(update, context, comments=True)
 
 
 def add_gifter(tg_id: int, message: list) -> str:
@@ -66,7 +66,7 @@ def add_gifter(tg_id: int, message: list) -> str:
 
     # trouve le destinataire dans la liste des participants
     if any(qqun.name == name for qqun in roulette.participants):
-        _wishes = santa.find_wishes(tg_id, name, table=True)
+        _wishes = _santa.find_wishes(tg_id, name, table=True)
 
         if len(_wishes) > 0 and len(_wishes) >= cadeau_index:
             receiver_index = next(
@@ -120,14 +120,14 @@ def offer(update: Update, context: CallbackContext):
     message = update.message.text.split(" ")
     # aucun argument fourni
     if len(message) == 1:
-        keyboards.build_people_keyboard(update, context, offer_flag=True)
+        _keyboards.build_people_keyboard(update, context, offer_flag=True)
         return
 
     # fourni que le nom
     if len(message) == 2:
         name = message[1]
         if any(qqun.name == name for qqun in roulette.participants):
-            keyboards.build_wish_keyboard(update, context, name)
+            _keyboards.build_wish_keyboard(update, context, name)
         else:
             context.bot.send_message(
                 chat_id=update.message.chat_id,
@@ -163,7 +163,7 @@ def dont_offer(update: Update, context: CallbackContext):
             chat_id=update.message.chat_id,
             text="Voici la liste des cadeaux que tu offres. Lequel veux-tu supprimer?",
         )
-        keyboards.build_present_keyboard(update, context)
+        _keyboards.build_present_keyboard(update, context)
 
     else:
         reply_del_kb = ReplyKeyboardRemove()

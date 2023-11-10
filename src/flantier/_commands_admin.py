@@ -10,8 +10,8 @@ from telegram.ext import (
     CallbackContext,
 )
 
-from . import keyboards, santa
-from .roulette import Roulette
+from flantier import _keyboards, _santa
+from flantier._roulette import Roulette
 
 logger = logging.getLogger("flantier")
 
@@ -64,7 +64,7 @@ def add_spouse(update: Update, context: CallbackContext):
     """
     roulette = Roulette()
 
-    keyboards.build_exclude_keyboard(update, context, roulette.participants)
+    _keyboards.build_exclude_keyboard(update, context, roulette.participants)
     supplier = roulette.search_user("TUTU")
 
     context.bot.send_message(
@@ -111,7 +111,7 @@ def process(update: Update, context: CallbackContext):
 
 def update_wishes_list(update: Update, context: CallbackContext):
     """Met à jour la liste des cadeaux."""
-    if santa.get_cadeaux():
+    if _santa.get_cadeaux():
         text = "liste des cadeaux inchangée\n"
     else:
         text = "liste des cadeaux mise à jour\n"

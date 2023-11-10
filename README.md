@@ -8,7 +8,7 @@ based on https://python-telegram-bot.org and Google Doc API
 
 1. clone repo and go in folder
 2. edit settings to add your bot key: `vim settings.toml`
-3. start bot: `python3 christmas_bot.py settings.toml`
+3. start bot: `python3 flantier.py settings.toml`
 
 Optionnal: set admin id in `settings.toml` by using the `/register` command while the bot is running and look in `users.json`"
 

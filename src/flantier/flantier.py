@@ -15,19 +15,20 @@ from telegram.ext import (
     Updater,
 )
 
-from . import keyboards
-from .commands_admin import (
+from flantier import _keyboards
+
+from ._commands_admin import (
     add_spouse,
     close_registrations,
     open_registrations,
     process,
     update_wishes_list,
 )
-from .commands_flantier import hello, quote_oss1, quote_oss2
-from .commands_gift import comments, dont_offer, offer, wishes
-from .commands_user import get_result, list_users, register, unregister
-from .roulette import Roulette
-from .settings import Settings
+from ._commands_flantier import hello, quote_oss1, quote_oss2
+from ._commands_gift import comments, dont_offer, offer, wishes
+from ._commands_user import get_result, list_users, register, unregister
+from ._roulette import Roulette
+from ._settings import Settings
 
 # Enable logging, we do not need "%(asctime)s - %(name)s as it is already printed by ptb
 logging.basicConfig(format="%(levelname)s - %(message)s", level=logging.INFO)
@@ -161,8 +162,8 @@ def register_commands(dispatcher):
         dispatcher.add_handler(CommandHandler("update", update_wishes_list))
 
     # inline kb
-    dispatcher.add_handler(CommandHandler("contraintes", keyboards.inline_kb))
-    dispatcher.add_handler(CallbackQueryHandler(keyboards.button))
+    dispatcher.add_handler(CommandHandler("contraintes", _keyboards.inline_kb))
+    dispatcher.add_handler(CallbackQueryHandler(_keyboards.button))
 
     # unkown commands
     dispatcher.add_handler(MessageHandler(Filters.command, unknown_command))
