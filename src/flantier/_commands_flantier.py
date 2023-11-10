@@ -2,7 +2,7 @@
 """Herr Flantier der Geschenk Manager."""
 
 import logging
-import os
+from glob import glob
 from pathlib import Path
 from random import choice
 
@@ -26,7 +26,7 @@ def hello(update: Update, context: CallbackContext):
 
 def send_audio_quote(chat_id: int, context: CallbackContext, folder: Path):
     """Petit Comique."""
-    audio_files = os.listdir(folder)
+    audio_files = glob(f"{folder}/*.mp3")
     audio = folder / Path(choice(audio_files))
 
     context.bot.send_chat_action(chat_id=chat_id, action=ChatAction.RECORD_AUDIO)
@@ -38,9 +38,19 @@ def send_audio_quote(chat_id: int, context: CallbackContext, folder: Path):
 
 def quote_oss1(update: Update, context: CallbackContext):
     """Petit Comique."""
-    send_audio_quote(update.message.chat_id, context, Path("audio/oss1"))
+    send_audio_quote(
+        update.message.chat_id,
+        context,
+        Path("phrases-cultes-de-oss-117-le-caire-nid-d-espions"),
+    )
 
 
 def quote_oss2(update: Update, context: CallbackContext):
     """Petit Comique."""
-    send_audio_quote(update.message.chat_id, context, Path("audio/oss2"))
+    send_audio_quote(
+        update.message.chat_id,
+        context,
+        Path(
+            "repliques-cultes-de-films-d-espionnage/phrases-cultes-de-oss-117-rio-ne-repond-plus"
+        ),
+    )

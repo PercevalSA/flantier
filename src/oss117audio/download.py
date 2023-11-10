@@ -35,9 +35,6 @@ def list_quotes(film: str) -> list:
     for page in tqdm(range(1, 97)):
         page_url = f"{SITE}{film}/page-{page}#cu"
         soup = url_to_soup(page_url)
-
-        print(page_url)
-
         for quote in soup.findAll("a", {"class": "PostHeader"}):
             quotes.append(SITE + quote.get("href"))
 
@@ -46,8 +43,11 @@ def list_quotes(film: str) -> list:
 
 def get_quotes_url(film_name: str, quotes: list):
     """Download all OSS 117 audio files from zonesons.com."""
+    print("Construction de la liste des URL des citations audios")
+
     film_name = Path(film_name)
     film_name.mkdir(parents=True, exist_ok=True)
+    url_file = film_name / "quotes.txt"
 
     for quote_url in tqdm(quotes):
         soup = url_to_soup(quote_url)
@@ -58,8 +58,10 @@ def get_quotes_url(film_name: str, quotes: list):
             mp3_url = f"{SITE}/{mp3}"
             # filename = str(mp3).rsplit("/", maxsplit=1)[-1]
 
-            with open(film_name / "quotes.txt", "a", encoding="utf-8") as file:
+            with open(url_file, "a", encoding="utf-8") as file:
                 file.write(f"{mp3_url}\n")
+
+    print(f"liste des URL enregistrées dans {url_file}")
 
 
 # we cannot download files directly because of IP ban
