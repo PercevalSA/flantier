@@ -5,7 +5,7 @@ import logging
 from random import choice
 from typing import List
 
-from flantier import _users
+from flantier._users import User, load_users, save_users
 
 logger = logging.getLogger("flantier")
 
@@ -14,7 +14,7 @@ class Roulette:
     """Singleton class to store roulette state."""
 
     inscriptions_open: bool
-    participants: List[dict]
+    participants: List[User]
 
     # singleton
     __instance = None
@@ -52,8 +52,8 @@ class Roulette:
             return -2
 
         logger.info("Inscription de %s: %d", name, tg_id)
-        self.participants.append(_users.person(tg_id, name))
-        _users.save_users(self.participants)
+        self.participants.append(User(tg_id, name))
+        save_users(self.participants)
         return 0
 
     def remove_user(self, tg_id: int) -> bool:
@@ -62,7 +62,7 @@ class Roulette:
             tgid, _ = self._does_participate(tg_id)
             try:
                 self.participants.pop(tgid)
-                _users.save_users(self.participants)
+                save_users(self.participants)
                 return True
 
             except TypeError:
@@ -71,21 +71,21 @@ class Roulette:
 
     def load_users(self):
         """Charge les participants depuis le fichier de sauvegarde"""
-        self.participants = _users.load_users()
+        self.participants = load_users()
 
     def list_users(self) -> str:
         """Liste les participants inscrits"""
         _users = ""
         for user in self.participants:
-            _users += f"{user['name']}\n"
+            _users += f"{user.name}\n"
         return _users
 
-    def get_user(self, tg_id: int) -> dict:
+    def get_user(self, tg_id: int) -> User:
         """Récupère un utilisateur par son tg_id"""
         for user in self.participants:
-            if user["tg_id"] == tg_id:
+            if user.tg_id == tg_id:
                 return user
-        return {}
+        return None
 
     def search_user(self, name: str):
         """Récupère un utilisateur par son nom"""
@@ -97,7 +97,7 @@ class Roulette:
     def exclude(self, tg_id: int, exclude: int):
         """Ajoute un utilisateur à la liste des exclus d'un autre"""
         for user in self.participants:
-            if user["tg_id"] == tg_id:
+            if user.tg_id == tg_id:
                 user["exclude"].append(exclude)
                 return True
                 # FIXME uncomment
@@ -141,7 +141,7 @@ class Roulette:
             drawn_users.append(quelquun["giftee"])
 
         print(self.participants)
-        _users.save_users(self.participants)
+        save_users(self.participants)
         logger.info("Tirage terminé, les résulats sont tombés.")
 
         return True

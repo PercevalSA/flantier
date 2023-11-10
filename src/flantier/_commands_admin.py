@@ -12,6 +12,7 @@ from telegram.ext import (
 
 from flantier import _keyboards, _santa
 from flantier._roulette import Roulette
+from flantier._settings import Settings
 
 logger = logging.getLogger("flantier")
 
@@ -22,7 +23,7 @@ def is_admin(update: Update, context: CallbackContext) -> bool:
     Returns:
         bool: whether the telegram user is admin of the bot or not
     """
-    if update.message.from_user.id != configs.admin:
+    if update.message.from_user.id != Settings().administrator:
         context.bot.send_message(
             chat_id=update.message.chat_id,
             text="🙅 Petit.e canaillou! Tu ne possèdes pas ce pouvoir.",

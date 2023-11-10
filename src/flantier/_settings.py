@@ -33,6 +33,8 @@ class Settings:
     settings: dict
     telegram_bot_token: str
     google_api_key: str
+    # telegram id of the bot administrator in charge of the roulette
+    administrator: int
 
     # file to store users data and roulette results
     users_file: Path

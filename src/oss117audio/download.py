@@ -27,13 +27,14 @@ def url_to_soup(url):
     return BeautifulSoup(html_page, "html.parser")
 
 
-def list_quotes(film: str) -> list:
-    print(f"Analyse des citations de {film}")
+def list_quotes(_film: str) -> list:
+    """List all OSS 117 quotes from zonesons.com."""
+    print(f"Analyse des citations de {_film}")
     quotes = []
 
     # 96 pages
     for page in tqdm(range(1, 97)):
-        page_url = f"{SITE}{film}/page-{page}#cu"
+        page_url = f"{SITE}{_film}/page-{page}#cu"
         soup = url_to_soup(page_url)
         for quote in soup.findAll("a", {"class": "PostHeader"}):
             quotes.append(SITE + quote.get("href"))
@@ -41,11 +42,11 @@ def list_quotes(film: str) -> list:
     return quotes
 
 
-def get_quotes_url(film_name: str, quotes: list):
-    """Download all OSS 117 audio files from zonesons.com."""
+def get_quotes_url(_film: str, quotes: list):
+    """Save all OSS 117 audio files URL from zonesons.com."""
     print("Construction de la liste des URL des citations audios")
 
-    film_name = Path(film_name)
+    film_name = Path(_film)
     film_name.mkdir(parents=True, exist_ok=True)
     url_file = film_name / "quotes.txt"
 
@@ -75,7 +76,7 @@ def get_quotes_url(film_name: str, quotes: list):
 
 if __name__ == "__main__":
     for film in FILMS:
-        get_quotes_url(film.split("/")[-1], list_quotes(film))
+        get_quotes_url(film.split("/", maxsplit=1)[-1], list_quotes(film))
 
     print("listing all quotes done. Go into each folder and run the following command:")
     print('while read p; do open -a Safari "$p"; sleep 5; done <quotes.txt')

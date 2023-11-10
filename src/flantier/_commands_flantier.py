@@ -50,7 +50,5 @@ def quote_oss2(update: Update, context: CallbackContext):
     send_audio_quote(
         update.message.chat_id,
         context,
-        Path(
-            "repliques-cultes-de-films-d-espionnage/phrases-cultes-de-oss-117-rio-ne-repond-plus"
-        ),
+        Path("phrases-cultes-de-oss-117-rio-ne-repond-plus"),
     )

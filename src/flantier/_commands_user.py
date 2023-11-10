@@ -78,7 +78,7 @@ def list_users(update: Update, context: CallbackContext):
     roulette = Roulette()
     users = roulette.list_users()
 
-    if len(users):
+    if users:
         text = f"🙋 Les participant.e.s sont:\n{users}"
     else:
         text = "😢 Aucun.e participant.e n'est encore inscrit.e."

@@ -158,7 +158,7 @@ def register_commands(dispatcher):
     dispatcher.add_handler(CommandHandler("tirage", process))
     dispatcher.add_handler(CommandHandler("exclude", add_spouse))
 
-    if configs.extended_mode:
+    if Settings().extended_mode:
         dispatcher.add_handler(CommandHandler("update", update_wishes_list))
 
     # inline kb
