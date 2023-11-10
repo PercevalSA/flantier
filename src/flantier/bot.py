@@ -28,6 +28,7 @@ from flantier._commands_admin import (
 from flantier._commands_flantier import hello, quote_oss1, quote_oss2
 from flantier._commands_gift import comments, dont_offer, offer, wishes
 from flantier._commands_user import get_result, list_users, register, unregister
+from flantier._roulette import Roulette
 from flantier._settings import SettingsManager
 
 # Enable logging, we do not need "%(asctime)s - %(name)s as it is already printed by ptb
@@ -170,7 +171,6 @@ def error(update: Update, context: CallbackContext) -> None:
 def init_christmas() -> None:
     """Start Christmas: load users and close registrations."""
     roulette = Roulette()
-    roulette.inscriptions_open = False
     roulette.load_users()
 
 
@@ -179,7 +179,7 @@ def main() -> None:
     settings = SettingsManager().load_settings()
     logger.info(settings)
     # Create the EventHandler and pass it your bot's token
-    updater = Updater(token=settings["telegram"]["token"], use_context=True)
+    updater = Updater(token=settings["telegram"]["bot_token"], use_context=True)
     dispatcher = updater.dispatcher
 
     # answer in Telegram on different commands

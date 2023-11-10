@@ -3,7 +3,6 @@
 
 import logging
 from random import choice
-from typing import List
 
 from flantier._users import User, load_users, save_users
 
@@ -13,8 +12,11 @@ logger = logging.getLogger("flantier")
 class Roulette:
     """Singleton class to store roulette state."""
 
-    inscriptions_open: bool
-    participants: List[User]
+    registration: bool
+    participants: list[User]
+
+    def __init__(self, registration: bool = False) -> None:
+        self.registration = registration
 
     # singleton
     __instance = None
@@ -24,13 +26,13 @@ class Roulette:
             Roulette.__instance = super(Roulette, cls).__new__(cls, *args, **kwargs)
         return Roulette.__instance
 
-    def _does_participate(self, tg_id: int):
+    def _does_participate(self, tg_id: int) -> tuple:
         for tgid, user in enumerate(self.participants):
-            if user["tg_id"] == tg_id:
+            if user.tg_id == tg_id:
                 return tgid, user
         return None, None
 
-    def add_user(self, tg_id: int, name: str) -> int:
+    def add_user(self, tg_id: int, name: str) -> None:
         """récupère l'id telegram et ajoute le participant au fichier.
 
         Args:
@@ -39,26 +41,25 @@ class Roulette:
 
         Returns:
             int:
-                0 : user is correclty registered
+                 0: user is correclty registered
                 -1: inscription are not open yet
                 -2: user is already registered
         """
-        if not self.inscriptions_open:
-            return -1
+        if not self.registration:
+            return
 
         tgid, _ = self._does_participate(tg_id)
         if tgid:
             logger.info("%s est déjà enregistré: %d", name, tg_id)
-            return -2
+            return
 
         logger.info("Inscription de %s: %d", name, tg_id)
         self.participants.append(User(tg_id, name))
         save_users(self.participants)
-        return 0
 
     def remove_user(self, tg_id: int) -> bool:
         """récupère l'id telegram et supprime le participant"""
-        if self.inscriptions_open:
+        if self.registration:
             tgid, _ = self._does_participate(tg_id)
             try:
                 self.participants.pop(tgid)
@@ -106,7 +107,7 @@ class Roulette:
 
     def is_ready(self):
         """Vérifie que les conditions sont réunies pour lancer le tirage au sort"""
-        return bool(len(self.participants)) and not self.inscriptions_open
+        return bool(len(self.participants)) and not self.registration
 
     def tirage(self) -> bool:
         """Algorithme de tirage au sort, complète automatique les champs 'giftee'."""

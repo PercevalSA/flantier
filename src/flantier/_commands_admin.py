@@ -23,33 +23,43 @@ def is_admin(update: Update, context: CallbackContext) -> bool:
     Returns:
         bool: whether the telegram user is admin of the bot or not
     """
-    if update.message.from_user.id != SettingsManager().settings["administrator"]:
+
+    if (
+        update.message.from_user.id
+        != SettingsManager().settings["telegram"]["administrator"]
+    ):
         context.bot.send_message(
             chat_id=update.message.chat_id,
             text="🙅 Petit.e canaillou! Tu ne possèdes pas ce pouvoir.",
         )
+        logger.info("not an admin")
         return False
 
+    logger.info("admin")
     return True
 
 
-def open_registrations(update: Update, context: CallbackContext):
+def open_registrations(update: Update, context: CallbackContext) -> None:
     """Lance la campagne d'inscription."""
-    if is_admin(update, context):
-        Roulette().inscriptions_open = True
-        context.bot.send_message(
-            chat_id=update.message.chat_id,
-            text=(
-                "🎉 Les inscriptions sont ouvertes 🎉\n"
-                "🎅 Vous pouvez désormais vous inscrire en envoyant /participer"
-            ),
-        )
+    logger.info("open registrations")
+    if not is_admin(update, context):
+        return
+
+    Roulette().registration = True
+    logger.info(f"open registrations: {Roulette().registration}")
+    context.bot.send_message(
+        chat_id=update.message.chat_id,
+        text=(
+            "🎉 Les inscriptions sont ouvertes 🎉\n"
+            "🎅 Vous pouvez désormais vous inscrire en envoyant /participer"
+        ),
+    )
 
 
-def close_registrations(update: Update, context: CallbackContext):
+def close_registrations(update: Update, context: CallbackContext) -> None:
     """Termine la campagne d'inscription."""
     if is_admin(update, context):
-        Roulette().inscriptions_open = False
+        Roulette().registration = False
         context.bot.send_message(
             chat_id=update.message.chat_id,
             text=(
@@ -59,7 +69,7 @@ def close_registrations(update: Update, context: CallbackContext):
         )
 
 
-def add_spouse(update: Update, context: CallbackContext):
+def add_spouse(update: Update, context: CallbackContext) -> None:
     """Ajoute un conjoint à un participant.
     provide names supplier and forbidden recipient else display people keyboard
     """
@@ -86,7 +96,7 @@ def add_spouse(update: Update, context: CallbackContext):
 # TODO generate exlcusion from last year
 
 
-def process(update: Update, context: CallbackContext):
+def process(update: Update, context: CallbackContext) -> None:
     """Lance le tirage au sort et envoie les réponses en message privé."""
     roulette = Roulette()
 
@@ -110,7 +120,7 @@ def process(update: Update, context: CallbackContext):
             )
 
 
-def update_wishes_list(update: Update, context: CallbackContext):
+def update_wishes_list(update: Update, context: CallbackContext) -> None:
     """Met à jour la liste des cadeaux."""
     if _santa.get_cadeaux():
         text = "liste des cadeaux inchangée\n"

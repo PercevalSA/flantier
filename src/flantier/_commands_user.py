@@ -19,43 +19,35 @@ logger = logging.getLogger("flantier")
 #########################
 
 
-def register(update: Update, context: CallbackContext):
-    """Permet de s'inscrire au tirage au sort."""
+def _register_user(user_id: int, user_name: str) -> str:
     roulette = Roulette()
-    not_registered = roulette.add_user(
-        tg_id=update.message.from_user.id, name=update.message.from_user.first_name
+
+    if not roulette.registration:
+        return (
+            f"🦋 Patience {user_name},\n"
+            "🙅 les inscriptions n'ont pas encore commencées ou sont déjà terminées!"
+        )
+
+    if roulette.get_user(user_id).registered:
+        return (
+            f"{user_name}, petit coquinou! Tu t'es déjà inscrit.e. "
+            "Si tu veux recevoir un deuxième cadeau, "
+            "tu peux te faire un auto-cadeau 🤷🔄🎁"
+        )
+
+    roulette.add_user(tg_id=user_id, name=user_name)
+    return f"🎉 Bravo {user_name} 🎉\nTu es bien enregistré.e pour le tirage au sort"
+
+
+def register(update: Update, context: CallbackContext) -> None:
+    """Permet de s'inscrire au tirage au sort."""
+    text = _register_user(
+        update.message.from_user.id, update.message.from_user.first_name
     )
-    if not not_registered:
-        context.bot.send_message(
-            chat_id=update.message.chat_id,
-            text=(
-                f"🎉 Bravo {update.message.from_user.first_name} 🎉\n"
-                "Tu es bien enregistré.e pour le tirage au sort"
-            ),
-        )
-
-    elif not_registered == -1:
-        context.bot.send_message(
-            chat_id=update.message.chat_id,
-            text=(
-                f"🦋 Patience {update.message.from_user.first_name},\n"
-                "🙅 les inscriptions n'ont pas encore commencées ou sont déj"
-                "à terminées!"
-            ),
-        )
-
-    elif not_registered == -2:
-        context.bot.send_message(
-            chat_id=update.message.chat_id,
-            text=(
-                f"{update.message.from_user.first_name}, petit coquinou! Tu t'es déjà"
-                " inscrit.e. Si tu veux recevoir un deuxième cadeau, tu peux te faire"
-                " un auto-cadeau 🤷🔄🎁"
-            ),
-        )
+    context.bot.send_message(chat_id=update.message.chat_id, text=text)
 
 
-def unregister(update: Update, context: CallbackContext):
+def unregister(update: Update, context: CallbackContext) -> None:
     """Permet de se désinscrire du tirage au sort."""
     roulette = Roulette()
 
@@ -73,7 +65,7 @@ def unregister(update: Update, context: CallbackContext):
     context.bot.send_message(chat_id=update.message.chat_id, text=text)
 
 
-def list_users(update: Update, context: CallbackContext):
+def list_users(update: Update, context: CallbackContext) -> None:
     """Liste les participants inscrits."""
     roulette = Roulette()
     users = roulette.list_users()
@@ -94,7 +86,7 @@ def list_users(update: Update, context: CallbackContext):
         )
 
 
-def get_result(update: Update, context: CallbackContext):
+def get_result(update: Update, context: CallbackContext) -> None:
     """Affiche le résultat du tirage au sort en message privé."""
     roulette = Roulette()
     supplier = roulette.get_user(update.message.from_user.id)

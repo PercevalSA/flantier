@@ -19,35 +19,46 @@ from flantier._quotes_oss117 import quotes
 logger = logging.getLogger("flantier")
 
 
-def hello(update: Update, context: CallbackContext):
-    """Petit Comique."""
-    context.bot.send_message(chat_id=update.message.chat_id, text=choice(quotes))
+def _send_written_quote(
+    chat_id: int,
+    context: CallbackContext,
+) -> None:
+    context.bot.send_message(chat_id=chat_id, text=choice(quotes))
 
 
-def send_audio_quote(chat_id: int, context: CallbackContext, folder: Path):
+def _send_audio_quote(chat_id: int, context: CallbackContext, folder: Path) -> None:
     """Petit Comique."""
     audio_files = glob(f"{folder}/*.mp3")
-    audio = folder / Path(choice(audio_files))
 
+    if not audio_files:
+        logger.error("No audio files found in %s", folder)
+        _send_written_quote(chat_id, context)
+        return
+
+    audio = folder / Path(choice(audio_files))
     context.bot.send_chat_action(chat_id=chat_id, action=ChatAction.RECORD_AUDIO)
-    # pylint: disable=R1732
     context.bot.send_audio(
         chat_id=chat_id, audio=open(audio, "rb"), disable_notification=True
     )
 
 
-def quote_oss1(update: Update, context: CallbackContext):
+def hello(update: Update, context: CallbackContext) -> None:
     """Petit Comique."""
-    send_audio_quote(
+    _send_written_quote(update.message.chat_id, context)
+
+
+def quote_oss1(update: Update, context: CallbackContext) -> None:
+    """Petit Comique."""
+    _send_audio_quote(
         update.message.chat_id,
         context,
         Path("phrases-cultes-de-oss-117-le-caire-nid-d-espions"),
     )
 
 
-def quote_oss2(update: Update, context: CallbackContext):
+def quote_oss2(update: Update, context: CallbackContext) -> None:
     """Petit Comique."""
-    send_audio_quote(
+    _send_audio_quote(
         update.message.chat_id,
         context,
         Path("phrases-cultes-de-oss-117-rio-ne-repond-plus"),
