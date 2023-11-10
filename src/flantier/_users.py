@@ -3,13 +3,13 @@
 """
 
 import json
-import logging
 from dataclasses import asdict, dataclass, is_dataclass
-from typing import List
+from logging import getLogger
+from pathlib import Path
 
-from flantier._settings import Settings
+DEFAULT_USERS_DB = Path.home() / ".cache/flantier/users.json"
 
-logger = logging.getLogger("flantier")
+logger = getLogger("flantier")
 
 
 @dataclass
@@ -46,31 +46,34 @@ class UserJSONEncoder(json.JSONEncoder):
         return super().default(o)
 
 
-def user_list_to_json(users: List):
+# users: list[User] = []
+
+
+def user_list_to_json(users: list) -> str:
     """Convertit la liste des utilisateurs en JSON."""
     return json.dumps(users, cls=UserJSONEncoder, indent=4)
 
 
-def json_to_user_list(data: str):
+def json_to_user_list(data: str) -> list:
     """Convertit le JSON en liste d'utilisateurs."""
     return json.loads(data, object_hook=lambda d: User(**d))
 
 
-def load_users():
+def load_users(user_file: Path = DEFAULT_USERS_DB) -> list | None:
     """Charge les utilisateurs enregistrés dans le fichier de sauvegarde."""
     logger.info("Restauration de l'état de Flantier")
 
     try:
-        with open(Settings().settings.users_file, "r", encoding="utf-8") as file:
-            data = json.load(file)
+        with open(user_file, "r", encoding="utf-8") as file:
+            users = json_to_user_list(json.load(file))
     except FileNotFoundError:
-        data = []
+        return None
 
-    return data
+    return users
 
 
-def save_users(users: List):
+def save_users(users: list, users_file: Path = DEFAULT_USERS_DB) -> None:
     """Sauvegarde les utilisateurs dans le fichier de sauvegarde."""
     logger.info("Sauvegarde de l'état de Flantier")
-    with open(Settings().users_file, "w", encoding="utf-8") as file:
+    with open(users_file, "w", encoding="utf-8") as file:
         file.write(user_list_to_json(users))

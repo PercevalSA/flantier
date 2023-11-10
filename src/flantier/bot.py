@@ -28,29 +28,11 @@ from flantier._commands_admin import (
 from flantier._commands_flantier import hello, quote_oss1, quote_oss2
 from flantier._commands_gift import comments, dont_offer, offer, wishes
 from flantier._commands_user import get_result, list_users, register, unregister
-from flantier._roulette import Roulette
 from flantier._settings import SettingsManager
 
 # Enable logging, we do not need "%(asctime)s - %(name)s as it is already printed by ptb
 logging.basicConfig(format="%(levelname)s - %(message)s", level=logging.INFO)
 logger = logging.getLogger("flantier")
-
-
-def cancel(update: Update, context: CallbackContext) -> None:
-    """Cancel current operation and reset flantier state."""
-    reply_del_kb = ReplyKeyboardRemove()
-    context.bot.send_message(
-        chat_id=update.message.chat_id,
-        text="Opération annulée.",
-        reply_markup=reply_del_kb,
-    )
-
-
-def init_christmas() -> None:
-    """Start Christmas: load users and close registrations."""
-    roulette = Roulette()
-    roulette.inscriptions_open = False
-    roulette.load_users()
 
 
 def start(update: Update, context: CallbackContext) -> None:
@@ -108,7 +90,7 @@ Commandes administrateur:
 /exclude - ajoute une contrainte de destinataire (conjoint, année précédente)
 """
 
-    if SettingsManager().extended_mode:
+    if SettingsManager().settings["flantier"]["extended_mode"]:
         help_text = simple_help + extended_help + admin_help
     else:
         help_text = simple_help + admin_help
@@ -116,6 +98,16 @@ Commandes administrateur:
     context.bot.send_message(
         chat_id=update.effective_chat.id,  # type: ignore
         text=help_text,
+    )
+
+
+def cancel(update: Update, context: CallbackContext) -> None:
+    """Cancel current operation and reset flantier state."""
+    reply_del_kb = ReplyKeyboardRemove()
+    context.bot.send_message(
+        chat_id=update.message.chat_id,
+        text="Opération annulée.",
+        reply_markup=reply_del_kb,
     )
 
 
@@ -127,7 +119,7 @@ def unknown_command(update: Update, context: CallbackContext) -> None:
     )
 
 
-def register_commands(dispatcher: Dispatcher) -> None:
+def register_commands(dispatcher: Dispatcher, extended_mode: bool = False) -> None:
     """Register all commands."""
     # users commands
     dispatcher.add_handler(CommandHandler("bonjour", hello))
@@ -145,7 +137,7 @@ def register_commands(dispatcher: Dispatcher) -> None:
     dispatcher.add_handler(CommandHandler("aide", help_message))
     dispatcher.add_handler(CommandHandler("help", help_message))
 
-    if SettingsManager().settings.extended_mode:
+    if extended_mode:
         dispatcher.add_handler(CommandHandler("cadeaux", wishes))
         dispatcher.add_handler(CommandHandler("commentaires", comments))
         dispatcher.add_handler(CommandHandler("offrir", offer))
@@ -159,7 +151,7 @@ def register_commands(dispatcher: Dispatcher) -> None:
     dispatcher.add_handler(CommandHandler("tirage", process))
     dispatcher.add_handler(CommandHandler("exclude", add_spouse))
 
-    if SettingsManager().settings.extended_mode:
+    if extended_mode:
         dispatcher.add_handler(CommandHandler("update", update_wishes_list))
 
     # inline kb
@@ -175,16 +167,23 @@ def error(update: Update, context: CallbackContext) -> None:
     logger.warning('Update "%s" caused error "%s"', update, context.error)
 
 
+def init_christmas() -> None:
+    """Start Christmas: load users and close registrations."""
+    roulette = Roulette()
+    roulette.inscriptions_open = False
+    roulette.load_users()
+
+
 def main() -> None:
     """Start the bot."""
-    SettingsManager().load_settings()
-
+    settings = SettingsManager().load_settings()
+    logger.info(settings)
     # Create the EventHandler and pass it your bot's token
-    updater = Updater(token=SettingsManager().telegram_bot_token, use_context=True)
+    updater = Updater(token=settings["telegram"]["token"], use_context=True)
     dispatcher = updater.dispatcher
 
     # answer in Telegram on different commands
-    register_commands(dispatcher)
+    register_commands(dispatcher, settings["flantier"]["extended_mode"])
 
     # log all errors
     dispatcher.add_error_handler(error)

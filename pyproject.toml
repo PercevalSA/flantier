@@ -50,7 +50,7 @@ unfixable = []
 line-length = 90
 
 [tool.black]
-line-length = 88
+line-length = 90
 target-version = ['py37', 'py38', 'py39', 'py310']
 # this experimental, you need spaces in strings for the split to work
 preview = true
