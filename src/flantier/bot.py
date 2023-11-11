@@ -28,8 +28,8 @@ from flantier._commands_admin import (
 from flantier._commands_flantier import hello, quote_oss1, quote_oss2
 from flantier._commands_gift import comments, dont_offer, offer, wishes
 from flantier._commands_user import get_result, list_users, register, unregister
-from flantier._roulette import Roulette
 from flantier._settings import SettingsManager
+from flantier._users import UserManager
 
 # Enable logging, we do not need "%(asctime)s - %(name)s as it is already printed by ptb
 logging.basicConfig(format="%(levelname)s - %(message)s", level=logging.INFO)
@@ -55,7 +55,7 @@ def start(update: Update, context: CallbackContext) -> None:
         update.message.chat_id,
     )
 
-    Roulette().add_user(
+    UserManager().add_user(
         tg_id=update.message.from_user.id, name=update.message.from_user.username
     )
 
@@ -173,12 +173,6 @@ def error(update: Update, context: CallbackContext) -> None:
     logger.warning('Update "%s" caused error "%s"', update, context.error)
 
 
-def init_christmas() -> None:
-    """Start Christmas: load users and close registrations."""
-    roulette = Roulette()
-    roulette.load_users()
-
-
 def main() -> None:
     """Start the bot."""
     settings = SettingsManager().load_settings()
@@ -193,7 +187,8 @@ def main() -> None:
     # log all errors
     dispatcher.add_error_handler(error)
 
-    init_christmas()
+    # init users
+    UserManager().load_users()
 
     # Start the Bot
     updater.start_polling()

@@ -56,25 +56,113 @@ def json_to_user_list(data: str) -> list:
     return json.loads(data, object_hook=lambda d: User(**d))
 
 
-def load_users(user_file: Path = DEFAULT_USERS_DB) -> list[User] | None:
-    """Charge les utilisateurs enregistrés dans le fichier de sauvegarde."""
-    logger.info("Restauration de l'état de Flantier")
+class UserManager:
+    """Singleton class to store roulette state."""
 
-    try:
-        with open(user_file, "r", encoding="utf-8") as file:
-            users = json_to_user_list(file.read())
-    except FileNotFoundError:
-        logger.warning("users file %s not found, creating one", user_file)
-        users = []
-        user_file.parent.mkdir(parents=True, exist_ok=True)
-        with open(user_file, "w", encoding="utf-8") as file:
-            json.dump(users, file, indent=4)
+    users: list[User] = []
+    # singleton
+    __instance = None
 
-    return users
+    def __new__(cls, *args, **kwargs):
+        if UserManager.__instance is None:
+            UserManager.__instance = super(UserManager, cls).__new__(cls, *args, **kwargs)
+        return UserManager.__instance
 
+    #
+    # user management
+    #
 
-def save_users(users: list, users_file: Path = DEFAULT_USERS_DB) -> None:
-    """Sauvegarde les utilisateurs dans le fichier de sauvegarde."""
-    logger.info("Sauvegarde de l'état de Flantier")
-    with open(users_file, "w", encoding="utf-8") as file:
-        file.write(user_list_to_json(users))
+    def get_user(self, tg_id: int, registered: bool = False) -> User | None:
+        """Récupère un utilisateur par son tg_id. Si registered est True,
+        ne renvoie que les utilisateurs inscrits pour le tirage au sort.
+        """
+        for user in self.users:
+            if user.tg_id == tg_id:
+                if not registered != user.registered:  # nxor
+                    return user
+
+        return None
+
+    def search_user(self, name: str) -> User | None:
+        """Récupère un utilisateur par son nom"""
+        for user in self.users:
+            if user.name == name:
+                return user
+
+        return None
+
+    def add_user(self, tg_id: int, name: str) -> bool:
+        """récupère l'id telegram et ajoute l'utilisateur au fichier.
+
+        Args:
+            tg_id (int): telegram id of the new user
+            name (str): Name of the user used to filter gifts column in Google Sheets
+
+        Returns:
+            bool: true on success, false on error
+        """
+
+        if self.get_user(tg_id):
+            logger.info("user %s is already known from flantier bot: %d", name, tg_id)
+            return False
+
+        logger.info("Adding user %s: %d", name, tg_id)
+        self.users.append(User(tg_id, name))
+        logger.info("users: %s", self.users)
+        self.save_users()
+        return True
+
+    def remove_user(self, tg_id: int) -> bool:
+        """supprime l'utilisateur de la base de données"""
+        try:
+            self.users.remove(self.get_user(tg_id))  # type: ignore
+            self.save_users()
+            return True
+        except TypeError:
+            pass
+
+        return False
+
+    def list_users(self) -> str:
+        """Liste les users inscrits"""
+        _users = ""
+        for user in self.users:
+            _users += f"{user.name}\n"
+        return _users
+
+    def set_spouse(self, tg_id: int, spouse: int) -> bool:
+        """Ajoute un conjoint à un participant."""
+        for user in self.users:
+            if user.tg_id == tg_id:
+                user.spouse = spouse
+                self.save_users()
+                return True
+        return False
+
+    def update_with_last_year_results(self) -> None:
+        """update each user last_giftee with the result of last year and reset giftee."""
+        for user in self.users:
+            if user.giftee != 0:
+                user.last_giftee = user.giftee
+                user.giftee = 0
+        self.save_users()
+
+    # manage users file
+    def load_users(self, user_file: Path = DEFAULT_USERS_DB) -> None:
+        """Charge les utilisateurs enregistrés dans le fichier de sauvegarde."""
+        logger.info("Restauration de l'état de Flantier")
+
+        try:
+            with open(user_file, "r", encoding="utf-8") as file:
+                self.users = json_to_user_list(file.read())
+        except FileNotFoundError:
+            logger.warning("users file %s not found, creating one", user_file)
+            user_file.parent.mkdir(parents=True, exist_ok=True)
+            with open(user_file, "w", encoding="utf-8") as file:
+                json.dump(self.users, file, indent=4)
+
+    def save_users(self, users_file: Path = DEFAULT_USERS_DB) -> None:
+        """Sauvegarde les utilisateurs dans le fichier de sauvegarde."""
+        logger.info("Sauvegarde de l'état de Flantier")
+        with open(users_file, "w", encoding="utf-8") as file:
+            file.write(user_list_to_json(self.users))

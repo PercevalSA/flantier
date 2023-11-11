@@ -1,7 +1,7 @@
 #!/usr/bin/python3
 """COMMANDES ADMINISTRATEUR"""
 
-import logging
+from logging import getLogger
 
 from telegram import (
     Update,
@@ -13,8 +13,9 @@ from telegram.ext import (
 from flantier import _keyboards, _santa
 from flantier._roulette import Roulette
 from flantier._settings import SettingsManager
+from flantier._users import UserManager
 
-logger = logging.getLogger("flantier")
+logger = getLogger("flantier")
 
 
 def is_admin(update: Update, context: CallbackContext) -> bool:
@@ -50,9 +51,8 @@ def open_registrations(update: Update, context: CallbackContext) -> None:
     if not is_admin(update, context):
         return
 
-    roulette = Roulette()
-    roulette.open_registrations()
-    roulette.update_with_last_year_results()
+    Roulette().open_registrations()
+    UserManager().update_with_last_year_results()
 
     context.bot.send_message(
         chat_id=update.message.chat_id,
@@ -82,11 +82,11 @@ def add_spouse(update: Update, context: CallbackContext) -> None:
     """
     if not is_admin(update, context):
         return
-    roulette = Roulette()
+    user_manager = UserManager()
 
-    _keyboards.build_exclude_keyboard(update, context, roulette.participants)
+    _keyboards.build_exclude_keyboard(update, context, user_manager.participants)
     # TODO get supplier from message
-    supplier = roulette.search_user("TUTU")
+    supplier = user_manager.search_user("TUTU")
 
     context.bot.send_message(
         chat_id=update.message.chat_id,
@@ -97,7 +97,7 @@ def add_spouse(update: Update, context: CallbackContext) -> None:
     )
     forbidden_recipient = 0
 
-    if roulette.set_spouse(supplier, forbidden_recipient):
+    if user_manager.set_spouse(supplier, forbidden_recipient):
         context.bot.send_message(chat_id=update.message.chat_id, text="c'est bon")
     else:
         context.bot.send_message(chat_id=update.message.chat_id, text="impossibru")

@@ -11,6 +11,7 @@ from telegram.ext import (
 )
 
 from flantier._roulette import Roulette
+from flantier._users import UserManager
 
 logger = logging.getLogger("flantier")
 
@@ -21,11 +22,12 @@ logger = logging.getLogger("flantier")
 
 def _register_user(user_id: int, user_name: str) -> str:
     roulette = Roulette()
+    user_manager = UserManager()
     logger.info("user %s requested registration: %d", user_name, user_id)
 
     # users are created with the start command, if not we should create them
-    if not roulette.get_user(user_id):
-        roulette.add_user(tg_id=user_id, name=user_name)
+    if not user_manager.get_user(user_id):
+        user_manager.add_user(tg_id=user_id, name=user_name)
 
     if not roulette.registration:
         return (
@@ -33,7 +35,7 @@ def _register_user(user_id: int, user_name: str) -> str:
             "🙅 les inscriptions n'ont pas encore commencées ou sont déjà terminées!"
         )
 
-    if roulette.get_user(user_id).registered:
+    if user_manager.get_user(user_id).registered:  # type: ignore
         return (
             f"{user_name}, petit coquinou! Tu t'es déjà inscrit.e. "
             "Si tu veux recevoir un deuxième cadeau, "
@@ -57,9 +59,7 @@ def register(update: Update, context: CallbackContext) -> None:
 
 def unregister(update: Update, context: CallbackContext) -> None:
     """Permet de se désinscrire du tirage au sort."""
-    roulette = Roulette()
-
-    if roulette.remove_user(update.message.from_user.id):
+    if Roulette().unregister_user(update.message.from_user.id):
         text = (
             f"🗑 {update.message.from_user.first_name} "
             "a bien été retiré.e du tirage au sort."
@@ -75,30 +75,25 @@ def unregister(update: Update, context: CallbackContext) -> None:
 
 def list_users(update: Update, context: CallbackContext) -> None:
     """Liste les participants inscrits."""
-    roulette = Roulette()
-    users = roulette.list_users()
-
-    if users:
-        text = f"🙋 Les participant.e.s sont:\n{users}"
+    users_list = UserManager().users
+    if users_list:
+        text = f"🙋 Les participant.e.s sont:\n{users_list}"
     else:
         text = "😢 Aucun.e participant.e n'est encore inscrit.e."
 
     context.bot.send_message(chat_id=update.message.chat_id, text=text)
 
-    # on check qu'on a accès aux chats privés de tous les participants
-    for user in roulette.participants:
+    # FIXME find another way to check that we have access to all users private chats
+    for user in UserManager().users:
         logger.info("Envoi du message privé à %s", user.name)
-        context.bot.send_message(
-            user.tg_id,
-            text="🧪 Test",
-        )
+        context.bot.send_message(user.tg_id, text="🧪 Test de message privé 🧪")
 
 
 def get_result(update: Update, context: CallbackContext) -> None:
     """Affiche le résultat du tirage au sort en message privé."""
-    roulette = Roulette()
-    supplier = roulette.get_user(update.message.from_user.id)
-    receiver = roulette.get_user(supplier["giftee"])
+    user_manager = UserManager()
+    supplier = user_manager.get_user(update.message.from_user.id)
+    receiver = user_manager.get_user(supplier["giftee"])
 
     context.bot.send_message(
         chat_id=update.message.from_user.id,
