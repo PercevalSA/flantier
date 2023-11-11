@@ -82,23 +82,29 @@ def add_spouse(update: Update, context: CallbackContext) -> None:
     """
     if not is_admin(update, context):
         return
-    user_manager = UserManager()
 
-    _keyboards.build_exclude_keyboard(update, context, user_manager.participants)
-    # TODO get supplier from message
-    supplier = user_manager.search_user("TUTU")
+    user_manager = UserManager()
+    _keyboards.build_exclude_keyboard(update, context, user_manager.users)
+
+    logger.info("message %s", update.message)
+    giver = user_manager.search_user("TITI")
+    logger.info(giver)
 
     context.bot.send_message(
         chat_id=update.message.chat_id,
         text=(
-            "Qui ne doit pas offrir à qui? Selectionne la personne a qui iel ne peut"
-            " pas offrir:"
+            "❓ Qui ne doit pas offrir à qui? "
+            "Selectionne la personne a qui iel ne peut pas offrir:"
         ),
     )
     forbidden_recipient = 0
 
-    if user_manager.set_spouse(supplier, forbidden_recipient):
-        context.bot.send_message(chat_id=update.message.chat_id, text="c'est bon")
+    if user_manager.set_spouse(giver.tg_id, forbidden_recipient):
+        context.bot.send_message(
+            chat_id=update.message.chat_id,
+            text="📝 c'est bien noté!",
+        )
+        logger.info("set spouse %d for %s", forbidden_recipient, giver.name)
     else:
         context.bot.send_message(chat_id=update.message.chat_id, text="impossibru")
 

@@ -93,7 +93,7 @@ Commandes administrateur:
 /open - ouvre la session d'inscription
 /close - termine la session d'inscription
 /tirage - lance le tirage au sort avec les contraintes
-/exclude - ajoute une contrainte de destinataire (conjoint, année précédente)
+/exclude - ajoute une contrainte de destinataire (conjoint)
 """
 
     if SettingsManager().settings["flantier"]["extended_mode"]:

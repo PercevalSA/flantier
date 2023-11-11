@@ -13,6 +13,7 @@ from telegram import (
 from telegram.ext import CallbackContext
 
 from flantier._roulette import Roulette
+from flantier._users import UserManager
 
 logger = logging.getLogger("flantier")
 
@@ -20,16 +21,13 @@ logger = logging.getLogger("flantier")
 # pylint: disable=W0613
 def inline_kb(update: Update, context: CallbackContext) -> None:
     """Sends a message with three inline buttons attached."""
-    roulette = Roulette()
     keyboard = [
-        [InlineKeyboardButton(user["name"], callback_data=str(user["tg_id"]))]
-        for user in roulette.participants
+        [InlineKeyboardButton(user.name, callback_data=str(user["tg_id"]))]
+        for user in UserManager().users
     ]
 
     reply_markup = InlineKeyboardMarkup(keyboard)
-    update.message.reply_text(
-        "Qui ne peut pas offrir à qui?", reply_markup=reply_markup
-    )
+    update.message.reply_text("Qui ne peut pas offrir à qui?", reply_markup=reply_markup)
 
 
 # pylint: disable=W0613
@@ -42,19 +40,15 @@ def button(update: Update, context: CallbackContext) -> None:
     # See https://core.telegram.org/bots/api#callbackquery
     query.answer()
 
-    roulette = Roulette()
-    print("roulette")
-    print(query.data)
-    user = roulette.get_user(int(query.data))
-    print(user)
-    excludes = ""
-    if len(user["exclude"]) == 0:
-        text = f"{user['name']} peut offrir à tout le monde"
+    user_manager = UserManager()
+    logger.info("Query data %s", query.data)
+    user = user_manager.get_user(int(query.data))
+    logger.info("User %s", user)
+
+    if user.spouse == 0 and user.giftee == 0:
+        text = f"{user.name} peut offrir à tout le monde"
     else:
-        for u in user["exclude"]:
-            print(u)
-            excludes = excludes + roulette.get_user(u)["name"] + ", "
-        text = f"{user['name']} ne peut pas offrir à {excludes}"
+        text = f"{user.name} ne peut pas offrir à {user.spouse} et à {user.last_giftee}"
     query.edit_message_text(text=text)
 
 
@@ -63,9 +57,9 @@ def build_exclude_keyboard(
     update: Update,
     context: CallbackContext,
     user_list: list,
-):
+) -> None:
     """Créer le clavier avec les noms des participants."""
-    button_list = [user["name"] for user in user_list]
+    button_list = [f"/exclude {user.name}" for user in user_list]
 
     header_buttons = None
     footer_buttons = ["/annuler"]
@@ -90,9 +84,9 @@ def build_exclude_keyboard(
 def build_people_keyboard(
     update: Update,
     context: CallbackContext,
-    offer_flag=False,
-    comments=False,
-):
+    offer_flag: bool = False,
+    comments: bool = False,
+) -> None:
     """Créer le clavier avec les noms des participants."""
     roulette = Roulette()
     if offer_flag:
@@ -124,7 +118,7 @@ def build_people_keyboard(
     )
 
 
-def build_wish_keyboard(update: Update, context: CallbackContext, name):
+def build_wish_keyboard(update: Update, context: CallbackContext, name: str) -> None:
     """Affiche le clavier des souhaits d'une personne."""
     giftee = next(qqun for qqun in Roulette().participants if qqun.name == name)
 
@@ -152,7 +146,7 @@ def build_wish_keyboard(update: Update, context: CallbackContext, name):
     )
 
 
-def build_present_keyboard(update: Update, context: CallbackContext):
+def build_present_keyboard(update: Update, context: CallbackContext) -> None:
     """Affiche le clavier des cadeau que l'on souhaite offrir."""
     roulette = Roulette()
 
