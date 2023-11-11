@@ -48,16 +48,12 @@ class UserJSONEncoder(json.JSONEncoder):
 
 def user_list_to_json(users: list) -> str:
     """Convertit la liste des utilisateurs en JSON."""
-    data = json.dumps(users, cls=UserJSONEncoder, indent=4)
-    logger.info("user_list_to_json: %s", data)
-    return data
+    return json.dumps(users, cls=UserJSONEncoder, indent=4)
 
 
 def json_to_user_list(data: str) -> list:
     """Convertit le JSON en liste d'utilisateurs."""
-    plop = json.loads(data, object_hook=lambda d: User(**d))
-    logger.info("json_to_user_list: %s", plop)
-    return plop
+    return json.loads(data, object_hook=lambda d: User(**d))
 
 
 def load_users(user_file: Path = DEFAULT_USERS_DB) -> list[User] | None:

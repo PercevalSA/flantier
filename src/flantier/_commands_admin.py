@@ -25,7 +25,7 @@ def is_admin(update: Update, context: CallbackContext) -> bool:
     """
 
     logger.info(
-        "%s request admin rights: %d",
+        "%s requested admin rights: %d",
         update.message.from_user.username,
         update.message.from_user.id,
     )
@@ -44,11 +44,15 @@ def is_admin(update: Update, context: CallbackContext) -> bool:
 
 
 def open_registrations(update: Update, context: CallbackContext) -> None:
-    """Lance la campagne d'inscription."""
+    """Lance la campagne d'inscription. Récupère les résultats de l'année précédente
+    comme nouvelles conditions de tirage au sort.
+    """
     if not is_admin(update, context):
         return
 
-    Roulette().open_registrations()
+    roulette = Roulette()
+    roulette.open_registrations()
+    roulette.update_with_last_year_results()
 
     context.bot.send_message(
         chat_id=update.message.chat_id,
@@ -64,9 +68,7 @@ def close_registrations(update: Update, context: CallbackContext) -> None:
     if not is_admin(update, context):
         return
 
-    logger.info(f"close registrations: {Roulette().registration}")
     Roulette().close_registrations()
-    logger.info(f"close registrations: {Roulette().registration}")
 
     context.bot.send_message(
         chat_id=update.message.chat_id,
@@ -108,23 +110,23 @@ def process(update: Update, context: CallbackContext) -> None:
     roulette = Roulette()
 
     if is_admin(update, context):
-        if roulette.is_ready():
-            # tant que le tirage ne fonctionne pas on relance
-            while not roulette.tirage():
-                continue
-
-            # on envoie les résultats en message privé
-            for user in roulette.participants:
-                receiver = roulette.get_user(user["giftee"])
-                context.bot.send_message(
-                    user["tg_id"],
-                    text=f"🎅 Youpi tu offres à : {receiver['name']} 🎁\n",
-                )
-        else:
+        if not roulette.is_ready():
             context.bot.send_message(
                 chat_id=update.message.chat_id,
                 text="⚠️ Les inscriptions ne sont pas encore terminées. ⚠️",
             )
+            return
+
+        roulette.tirage()
+
+        # send results to everyone as private message
+        for user in roulette.participants:
+            if user.registered:
+                receiver = roulette.get_user(user.giftee)
+                context.bot.send_message(
+                    user.tg_id,
+                    text=f"🎅 Youpi tu offres à {receiver.name} 🎁\n",
+                )
 
 
 def update_wishes_list(update: Update, context: CallbackContext) -> None:

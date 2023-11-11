@@ -1,7 +1,9 @@
 #!/usr/bin/python3
 """Herr Flantier der Geschenk Manager."""
 
+import time
 from logging import getLogger
+from multiprocessing import Process
 from random import choice
 
 from flantier._users import User, load_users, save_users
@@ -155,21 +157,28 @@ class Roulette:
     # roulette management
     #
 
-    def exclude(self, tg_id: int, exclude: int) -> bool:
-        """Ajoute un utilisateur à la liste des exclus d'un autre"""
+    def set_spouse(self, tg_id: int, spouse: int) -> bool:
+        """Ajoute un conjoint à un participant."""
         for user in self.participants:
             if user.tg_id == tg_id:
-                user.spouse = exclude
+                user.spouse = spouse
+                save_users(self.participants)
                 return True
-                # FIXME uncomment
-                # users.save_users(self.participants)
         return False
+
+    def update_with_last_year_results(self) -> None:
+        """update each user last_giftee with the result of last year and reset giftee."""
+        for user in self.participants:
+            if user.giftee != 0:
+                user.last_giftee = user.giftee
+                user.giftee = 0
+        save_users(self.participants)
 
     def is_ready(self) -> bool:
         """Vérifie que les conditions sont réunies pour lancer le tirage au sort"""
-        return bool(len(self.participants)) and not self.registration
+        return bool(self.participants) and not self.registration
 
-    def tirage(self) -> bool:
+    def _roulette(self) -> bool:
         """Algorithme de tirage au sort, complète automatique les champs 'giftee'."""
         drawn_users = []
 
@@ -195,15 +204,27 @@ class Roulette:
             # s'il n'y a pas de solution on redémarre
             if len(possibles) == 0:
                 logger.info("Pas de solution, on recommence le tirage.")
+                time.sleep(0.1)
                 return False
 
             giftee = choice(possibles)
             quelquun.giftee = giftee.tg_id
-            print(f"{quelquun.name} offre à {giftee.name}")
+            logger.debug(f"{quelquun.name} offers to {giftee.name}")
             drawn_users.append(quelquun.giftee)
 
-        print(self.participants)
         save_users(self.participants)
-        logger.info("Tirage terminé, les résulats sont tombés.")
-
+        logger.info("the roulette just finished. Results will be send to every user")
         return True
+
+    def roulette(self):
+        # tant que le tirage ne fonctionne pas on relance
+        while not self._roulette():
+            continue
+        return True
+
+    def tirage(self):
+        roulette_process = Process(target=self.roulette, name="spin_the_wheel")
+        roulette_process.start()
+        roulette_process.join(timeout=5)
+        roulette_process.terminate()
+        return roulette_process.exitcode

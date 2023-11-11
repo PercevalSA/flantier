@@ -21,7 +21,7 @@ logger = logging.getLogger("flantier")
 
 def _register_user(user_id: int, user_name: str) -> str:
     roulette = Roulette()
-    logger.info("register_user: %s", user_name)
+    logger.info("user %s requested registration: %d", user_name, user_id)
 
     # users are created with the start command, if not we should create them
     if not roulette.get_user(user_id):
