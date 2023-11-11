@@ -37,9 +37,10 @@ def _send_audio_quote(chat_id: int, context: CallbackContext, folder: Path) -> N
 
     audio = folder / Path(choice(audio_files))
     context.bot.send_chat_action(chat_id=chat_id, action=ChatAction.RECORD_AUDIO)
-    context.bot.send_audio(
-        chat_id=chat_id, audio=open(audio, "rb"), disable_notification=True
-    )
+    with open(audio, "rb") as audio_file:
+        context.bot.send_audio(
+            chat_id=chat_id, audio=audio_file, disable_notification=True
+        )
 
 
 def hello(update: Update, context: CallbackContext) -> None:

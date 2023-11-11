@@ -185,7 +185,7 @@ def main() -> None:
     logger.info(settings)
     # Create the EventHandler and pass it your bot's token
     updater = Updater(token=settings["telegram"]["bot_token"], use_context=True)
-    dispatcher = updater.dispatcher
+    dispatcher = updater.dispatcher  # type: ignore
 
     # answer in Telegram on different commands
     register_commands(dispatcher, settings["flantier"]["extended_mode"])

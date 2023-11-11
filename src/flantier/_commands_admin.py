@@ -85,6 +85,7 @@ def add_spouse(update: Update, context: CallbackContext) -> None:
     roulette = Roulette()
 
     _keyboards.build_exclude_keyboard(update, context, roulette.participants)
+    # TODO get supplier from message
     supplier = roulette.search_user("TUTU")
 
     context.bot.send_message(
@@ -96,7 +97,7 @@ def add_spouse(update: Update, context: CallbackContext) -> None:
     )
     forbidden_recipient = 0
 
-    if roulette.exclude(supplier, forbidden_recipient):
+    if roulette.set_spouse(supplier, forbidden_recipient):
         context.bot.send_message(chat_id=update.message.chat_id, text="c'est bon")
     else:
         context.bot.send_message(chat_id=update.message.chat_id, text="impossibru")

@@ -11,7 +11,9 @@ from tqdm import tqdm
 SITE = "https://zonesons.com"
 # pylint: disable=C0301
 OSS1 = "/repliques-cultes-de-films-d-espionnage/phrases-cultes-de-oss-117-le-caire-nid-d-espions"
-OSS2 = "/repliques-cultes-de-films-d-espionnage/phrases-cultes-de-oss-117-rio-ne-repond-plus"
+OSS2 = (
+    "/repliques-cultes-de-films-d-espionnage/phrases-cultes-de-oss-117-rio-ne-repond-plus"
+)
 FILMS = [OSS1, OSS2]
 
 
@@ -42,7 +44,7 @@ def list_quotes(_film: str) -> list:
     return quotes
 
 
-def get_quotes_url(_film: str, quotes: list):
+def get_quotes_url(_film: str, quotes: list) -> None:
     """Save all OSS 117 audio files URL from zonesons.com."""
     print("Construction de la liste des URL des citations audios")
 

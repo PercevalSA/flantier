@@ -209,7 +209,7 @@ class Roulette:
 
             giftee = choice(possibles)
             quelquun.giftee = giftee.tg_id
-            logger.debug(f"{quelquun.name} offers to {giftee.name}")
+            logger.debug("%s offers to %s", quelquun.name, giftee.name)
             drawn_users.append(quelquun.giftee)
 
         save_users(self.participants)
@@ -217,12 +217,14 @@ class Roulette:
         return True
 
     def roulette(self):
+        """Lance le tirage au sort."""
         # tant que le tirage ne fonctionne pas on relance
         while not self._roulette():
             continue
         return True
 
     def tirage(self):
+        """Lance le tirage au sort dans un processus séparé."""
         roulette_process = Process(target=self.roulette, name="spin_the_wheel")
         roulette_process.start()
         roulette_process.join(timeout=5)

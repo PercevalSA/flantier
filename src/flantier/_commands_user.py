@@ -42,8 +42,8 @@ def _register_user(user_id: int, user_name: str) -> str:
 
     if roulette.register_user(tg_id=user_id, name=user_name):
         return f"🎉 Bravo {user_name} 🎉\nTu es bien enregistré.e pour le tirage au sort"
-    else:
-        return f"❌ désolé {user_name}, il y'a eu un problème lors de ton inscription 😢"
+
+    return f"❌ désolé {user_name}, il y'a eu un problème lors de ton inscription 😢"
 
 
 def register(update: Update, context: CallbackContext) -> None:
