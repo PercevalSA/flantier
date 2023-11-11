@@ -103,31 +103,35 @@ def add_spouse(update: Update, context: CallbackContext) -> None:
         context.bot.send_message(chat_id=update.message.chat_id, text="impossibru")
 
 
-# TODO generate exlcusion from last year
-
-
 def process(update: Update, context: CallbackContext) -> None:
     """Lance le tirage au sort et envoie les réponses en message privé."""
+    if not is_admin(update, context):
+        return
+
     roulette = Roulette()
 
-    if is_admin(update, context):
-        if not roulette.is_ready():
-            context.bot.send_message(
-                chat_id=update.message.chat_id,
-                text="⚠️ Les inscriptions ne sont pas encore terminées. ⚠️",
-            )
-            return
+    if not roulette.is_ready():
+        context.bot.send_message(
+            chat_id=update.message.chat_id,
+            text="⚠️ Les inscriptions ne sont pas encore terminées. ⚠️",
+        )
+        return
 
-        roulette.tirage()
+    roulette.tirage()
 
-        # send results to everyone as private message
-        for user in roulette.participants:
-            if user.registered:
-                receiver = roulette.get_user(user.giftee)
-                context.bot.send_message(
-                    user.tg_id,
-                    text=f"🎅 Youpi tu offres à {receiver.name} 🎁\n",
-                )
+    # send results to everyone as private message
+    user_manager = UserManager()
+    for user in user_manager.users:
+        if not user.registered:
+            pass
+
+        giftee = user_manager.get_user(user.giftee)
+        logger.info("send result to %s: giftee is %d", user.name, giftee.tg_id)
+
+        context.bot.send_message(
+            user.tg_id,
+            text=f"🎅 Youpi tu offres à {giftee.name} 🎁\n",
+        )
 
 
 def update_wishes_list(update: Update, context: CallbackContext) -> None:

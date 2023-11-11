@@ -72,14 +72,13 @@ class UserManager:
     # user management
     #
 
-    def get_user(self, tg_id: int, registered: bool = False) -> User | None:
+    def get_user(self, tg_id: int) -> User | None:
         """Récupère un utilisateur par son tg_id. Si registered est True,
         ne renvoie que les utilisateurs inscrits pour le tirage au sort.
         """
         for user in self.users:
             if user.tg_id == tg_id:
-                if not registered != user.registered:  # nxor
-                    return user
+                return user
 
         return None
 
@@ -90,6 +89,10 @@ class UserManager:
                 return user
 
         return None
+
+    def is_registered(self, tg_id: int) -> bool:
+        """Renvoie True si l'utilisateur est inscrit au tirage au sort."""
+        return get_user(tg_id).registered
 
     def add_user(self, tg_id: int, name: str) -> bool:
         """récupère l'id telegram et ajoute l'utilisateur au fichier.

@@ -44,14 +44,14 @@ class Roulette:
 
         user_manager = UserManager()
 
-        if user_manager.get_user(tg_id, registered=True):
+        if user_manager.is_registered(tg_id):
             logger.info("%s is already registered: %d", name, tg_id)
             return False
 
         for user in user_manager.users:
             if user.tg_id == tg_id:
                 user.registered = True
-                save_users(user_manager.users)
+                user_manager.save_users()
                 return True
 
         logger.info("user %s not found: %s", name, tg_id)
@@ -67,14 +67,14 @@ class Roulette:
 
         user_manager = UserManager()
 
-        if not user_manager.get_user(tg_id, registered=True):
+        if not user_manager.is_registered(tg_id):
             logger.info("%d is not registered", tg_id)
             return True
 
         for user in user_manager.users:
             if user.tg_id == tg_id:
                 user.registered = False
-                save_users(user_manager.users)
+                user_manager.save_users()
                 return True
 
         return False
