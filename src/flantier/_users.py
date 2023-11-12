@@ -158,7 +158,7 @@ class UserManager:
         try:
             with open(user_file, "r", encoding="utf-8") as file:
                 self.users = json_to_user_list(file.read())
-        except FileNotFoundError:
+        except (FileNotFoundError, json.decoder.JSONDecodeError):
             logger.warning("users file %s not found, creating one", user_file)
             user_file.parent.mkdir(parents=True, exist_ok=True)
             with open(user_file, "w", encoding="utf-8") as file:

@@ -56,7 +56,16 @@ def start(update: Update, context: CallbackContext) -> None:
     )
 
     UserManager().add_user(
-        tg_id=update.message.from_user.id, name=update.message.from_user.username
+        tg_id=update.message.from_user.id,
+        name=update.effective_chat.full_name.split(" ")[0],
+    )
+
+
+def stop(update: Update, context: CallbackContext) -> None:
+    logger.info(
+        "user requested a delete and block: %s %d",
+        update.message.from_user.username,
+        update.message.from_user.id,
     )
 
 
@@ -127,6 +136,10 @@ def unknown_command(update: Update, context: CallbackContext) -> None:
 
 def register_commands(dispatcher: Dispatcher, extended_mode: bool = False) -> None:
     """Register all commands."""
+
+    # generic bot commands
+    dispatcher.add_handler(CommandHandler("start", start))
+
     # users commands
     dispatcher.add_handler(CommandHandler("bonjour", hello))
     dispatcher.add_handler(CommandHandler("hello", hello))
@@ -151,7 +164,6 @@ def register_commands(dispatcher: Dispatcher, extended_mode: bool = False) -> No
         dispatcher.add_handler(CommandHandler("annuler", cancel))
 
     # admin commands
-    dispatcher.add_handler(CommandHandler("start", start))
     dispatcher.add_handler(CommandHandler("open", open_registrations))
     dispatcher.add_handler(CommandHandler("close", close_registrations))
     dispatcher.add_handler(CommandHandler("tirage", process))
@@ -178,14 +190,13 @@ def main() -> None:
     settings = SettingsManager().load_settings()
     logger.info(settings)
     # Create the EventHandler and pass it your bot's token
-    updater = Updater(token=settings["telegram"]["bot_token"], use_context=True)
-    dispatcher = updater.dispatcher  # type: ignore
+    updater = Updater(token=settings["telegram"]["bot_token"])
 
     # answer in Telegram on different commands
-    register_commands(dispatcher, settings["flantier"]["extended_mode"])
+    register_commands(updater.dispatcher, settings["flantier"]["extended_mode"])
 
     # log all errors
-    dispatcher.add_error_handler(error)
+    updater.dispatcher.add_error_handler(error)
 
     # init users
     UserManager().load_users()

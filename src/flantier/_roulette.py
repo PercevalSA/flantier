@@ -96,6 +96,7 @@ class Roulette:
 
         logger.info("\nC'est parti !!!\n")
 
+        logger.info(participants)
         # attribution
         for one in participants:
             # build the possibles giftees list
@@ -127,9 +128,17 @@ class Roulette:
         """Lance le tirage au sort."""
         # tant que le tirage ne fonctionne pas on relance
         user_manager = UserManager()
-        while not self._roulette(user_manager.users):
+        participants = [user for user in user_manager.users if user.registered]
+
+        logger.info(participants)
+        if len(participants) < 2:
+            logger.warning("not enough registered users: canceling tirage")
+            return False
+
+        while not self._roulette(participants):
             sleep(0.1)
             continue
+
         user_manager.save_users()
         return True
 
@@ -139,4 +148,5 @@ class Roulette:
         roulette_process.start()
         roulette_process.join(timeout=5)
         roulette_process.terminate()
+        logger.info("roulette process terminated: %d", roulette_process.exitcode)
         return roulette_process.exitcode

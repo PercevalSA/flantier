@@ -52,12 +52,11 @@ def button(update: Update, context: CallbackContext) -> None:
     query.edit_message_text(text=text)
 
 
-# to do inline
 def build_exclude_keyboard(
     update: Update,
     context: CallbackContext,
     user_list: list,
-) -> None:
+) -> ReplyKeyboardMarkup:
     """Créer le clavier avec les noms des participants."""
     button_list = [f"/exclude {user.name}" for user in user_list]
 
@@ -71,31 +70,31 @@ def build_exclude_keyboard(
     if footer_buttons:
         menu.append(footer_buttons)
 
-    reply_keyboard = ReplyKeyboardMarkup(keyboard=menu, one_time_keyboard=True)
-    text = (
-        "🙅 Qui ne doit pas offrir à qui? 🙅\n"
-        "Selectionne la personne qui n'a pas le droit d'offrir à quelqu'un"
-    )
-    context.bot.send_message(
-        chat_id=update.message.chat_id, text=text, reply_markup=reply_keyboard
-    )
+    return ReplyKeyboardMarkup(keyboard=menu, one_time_keyboard=True)
+    # text = (
+    #     "🙅 Qui ne doit pas offrir à qui? 🙅\n"
+    #     "Selectionne la personne qui n'a pas le droit d'offrir à quelqu'un"
+    # )
+    # context.bot.send_message(
+    #     chat_id=update.message.chat_id, text=text, reply_markup=reply_keyboard
+    # )
+
+
+# /exclude => present keyboard with names, force reply to get the name associated with the command
+# /exclude name => if no name valid, ask again
+
+
+# def build_exclude_keyboard(update: Update, context: CallbackContext):
 
 
 def build_people_keyboard(
-    update: Update,
-    context: CallbackContext,
-    offer_flag: bool = False,
-    comments: bool = False,
-) -> None:
-    """Créer le clavier avec les noms des participants."""
-    roulette = Roulette()
-    if offer_flag:
-        button_list = ["/offrir " + qqun.name for qqun in roulette.participants]
-    elif comments:
-        button_list = ["/commentaires " + qqun.name for qqun in roulette.participants]
-    else:
-        button_list = ["/cadeaux " + qqun.name for qqun in roulette.participants]
+    update: Update, context: CallbackContext, command: str = ""
+) -> ReplyKeyboardMarkup:
+    """Créer le clavier avec les noms des participants. Ajoute la commande en prefix
+    /offrir, cadeaux, commentaires, /exclude
+    """
 
+    button_list = [command + u.name for u in UserManager().users]
     header_buttons = None
     footer_buttons = ["/annuler"]
     n_cols = 2
@@ -106,16 +105,12 @@ def build_people_keyboard(
     if footer_buttons:
         menu.append(footer_buttons)
 
-    reply_keyboard = ReplyKeyboardMarkup(keyboard=menu, one_time_keyboard=True)
+    return ReplyKeyboardMarkup(keyboard=menu, one_time_keyboard=True)
 
-    if offer_flag:
-        text = "À qui veux-tu offrir ?"
-    else:
-        text = "De qui veux-tu afficher la liste de souhaits ?"
-
-    context.bot.send_message(
-        chat_id=update.message.chat_id, text=text, reply_markup=reply_keyboard
-    )
+    # if command == "/offrir":
+    #     text = "À qui veux-tu offrir ?"
+    # else:
+    #     text = "De qui veux-tu afficher la liste de souhaits ?"
 
 
 def build_wish_keyboard(update: Update, context: CallbackContext, name: str) -> None:
