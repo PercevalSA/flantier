@@ -148,12 +148,14 @@ def register_commands(dispatcher: Dispatcher, extended_mode: bool = False) -> No
     dispatcher.add_handler(CommandHandler("aide", help_message))
     dispatcher.add_handler(CommandHandler("help", help_message))
 
+    # remove custom keyboard
+    dispatcher.add_handler(CommandHandler("annuler", cancel))
+
     if extended_mode:
         dispatcher.add_handler(CommandHandler("cadeaux", wishes))
         dispatcher.add_handler(CommandHandler("commentaires", comments))
         dispatcher.add_handler(CommandHandler("offrir", offer))
         dispatcher.add_handler(CommandHandler("retirer", dont_offer))
-        dispatcher.add_handler(CommandHandler("annuler", cancel))
 
     # admin commands
     dispatcher.add_handler(CommandHandler("open", open_registrations))

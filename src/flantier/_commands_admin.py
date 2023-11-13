@@ -93,15 +93,37 @@ def add_spouse(update: Update, context: CallbackContext) -> None:
 
     user_manager = UserManager()
 
-    if len(context.args) != 1:
+    if len(context.args) == 1:
         force_reply = ForceReply(
             force_reply=True,
             selective=False,
-            input_field_placeholder="selectionne ta/ton conjoint",
         )
 
-        reply_keyboard = _keyboards.build_exclude_keyboard(
-            update, context, user_manager.users
+        reply_keyboard = _keyboards.build_people_keyboard(
+            update, context, command="/exclude " + context.args[0]
+        )
+
+        context.bot.send_message(
+            chat_id=update.message.chat_id,
+            text="🙅 Qui ne doit pas recevoir de qui? 🙅",
+            reply_to_message_id=update.message.message_id,
+            reply_markup=force_reply,
+        )
+        context.bot.send_message(
+            chat_id=update.message.chat_id,
+            text=f"Selectionne le ou la conjoint.e de {context.args[0]}",
+            reply_markup=reply_keyboard,
+        )
+        return
+
+    if len(context.args) != 2:
+        force_reply = ForceReply(
+            force_reply=True,
+            selective=False,
+        )
+
+        reply_keyboard = _keyboards.build_people_keyboard(
+            update, context, command="/exclude"
         )
 
         context.bot.send_message(
@@ -124,15 +146,18 @@ def add_spouse(update: Update, context: CallbackContext) -> None:
 
     if not spouse or spouse.tg_id == update.message.from_user.id:
         context.bot.send_message(chat_id=update.message.chat_id, text="❌ impossibru")
-        logger.info("cannot find spouse in users")
+        logger.info("cannot find spouse in users: %s", str(context.args[0]))
         return
 
     user_manager.set_spouse(update.message.from_user.id, spouse.tg_id)
     context.bot.send_message(
         chat_id=update.message.chat_id,
-        text="📝 c'est bien noté!",
+        text=(
+            "📝 c'est bien noté! 📝\n"
+            f"🧑‍🤝‍🧑 {context.args[1]} est le/la conjoint.e de {context.args[0]}"
+        ),
     )
-    logger.info("set spouse %s for %s", update.message.from_user.name, spouse.name)
+    logger.info("set spouse %s for %s", context.args[0], context.args[1])
 
 
 def process(update: Update, context: CallbackContext) -> None:

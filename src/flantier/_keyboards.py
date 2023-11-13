@@ -86,15 +86,13 @@ def build_exclude_keyboard(
 # /exclude name => if no name valid, ask again
 
 
-# def build_exclude_keyboard(update: Update, context: CallbackContext):
-
-
 def build_people_keyboard(
     update: Update, context: CallbackContext, command: str = ""
 ) -> ReplyKeyboardMarkup:
     """Créer le clavier avec les noms des participants. Ajoute la commande en prefix
     /offrir, cadeaux, commentaires, /exclude
     """
+    command = command + " "
 
     button_list = [command + u.name for u in UserManager().users]
     header_buttons = None
