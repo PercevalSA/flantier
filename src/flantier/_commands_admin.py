@@ -93,6 +93,18 @@ def add_spouse(update: Update, context: CallbackContext) -> None:
 
     user_manager = UserManager()
 
+    for name in context.args:
+        user = user_manager.search_user(name)
+        logger.info("searching for %s", name)
+
+        if not user or user.tg_id == update.message.from_user.id:
+            context.bot.send_message(
+                chat_id=update.message.chat_id,
+                text=f"❌ Je n'ai pas trouvé {name} dans la liste des inscrits. 😕",
+            )
+            logger.info("cannot find user: %s", name)
+            return
+
     if len(context.args) == 1:
         force_reply = ForceReply(
             force_reply=True,
@@ -141,12 +153,13 @@ def add_spouse(update: Update, context: CallbackContext) -> None:
 
     # get the tg_id of the user which the name has been given in message[1]
     # and add it as spouse
-    spouse = user_manager.search_user(context.args[0])
-    logger.info(spouse)
-
-    if not spouse or spouse.tg_id == update.message.from_user.id:
+    giver = user_manager.search_user(context.args[0])
+    spouse = user_manager.search_user(context.args[1])
+    if spouse.tg_id == giver.tg_id:
         context.bot.send_message(chat_id=update.message.chat_id, text="❌ impossibru")
-        logger.info("cannot find spouse in users: %s", str(context.args[0]))
+        logger.info(
+            "giver (%s) and spouse (%s) are the same person.", giver.name, spouse.name
+        )
         return
 
     user_manager.set_spouse(update.message.from_user.id, spouse.tg_id)

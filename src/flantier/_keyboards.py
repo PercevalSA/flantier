@@ -73,17 +73,6 @@ def build_exclude_keyboard(
         menu.append(footer_buttons)
 
     return ReplyKeyboardMarkup(keyboard=menu, one_time_keyboard=True)
-    # text = (
-    #     "🙅 Qui ne doit pas offrir à qui? 🙅\n"
-    #     "Selectionne la personne qui n'a pas le droit d'offrir à quelqu'un"
-    # )
-    # context.bot.send_message(
-    #     chat_id=update.message.chat_id, text=text, reply_markup=reply_keyboard
-    # )
-
-
-# /exclude => present keyboard with names, force reply to get the name associated with the command
-# /exclude name => if no name valid, ask again
 
 
 def build_people_keyboard(
@@ -115,7 +104,7 @@ def build_people_keyboard(
 
 def build_wish_keyboard(update: Update, context: CallbackContext, name: str) -> None:
     """Affiche le clavier des souhaits d'une personne."""
-    giftee = next(qqun for qqun in Roulette().participants if qqun.name == name)
+    giftee = next(qqun for qqun in UserManager().users if qqun.name == name)
 
     i = 1
     button_list = []
