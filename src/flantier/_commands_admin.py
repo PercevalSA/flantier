@@ -73,7 +73,9 @@ def close_registrations(update: Update, context: CallbackContext) -> None:
 
     context.bot.send_message(
         chat_id=update.message.chat_id,
-        text="🙅 Les inscriptions sont fermées 🙅🎁 C'est bientôt l'heure des résultats",
+        text=(
+            "🙅 Les inscriptions sont fermées 🙅\n⏰ C'est bientôt l'heure des résultats"
+        ),
     )
 
 
@@ -147,7 +149,7 @@ def process(update: Update, context: CallbackContext) -> None:
         )
         return
 
-    if not roulette.tirage():
+    if roulette.tirage() != 0:
         context.bot.send_message(
             chat_id=update.message.chat_id,
             text="⚠️ Le tirage au sort n'a pas pu être effectué. ⚠️",

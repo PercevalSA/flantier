@@ -1,6 +1,7 @@
 #!/usr/bin/python3
 """Herr Flantier der Geschenk Manager."""
 
+import sys
 from logging import getLogger
 from multiprocessing import Process
 from random import choice
@@ -94,9 +95,9 @@ class Roulette:
         for one in participants:
             one.giftee = 0
 
-        logger.info("\nC'est parti !!!\n")
+        logger.info("starting the roulette, spinning the wheel of fortuuuune")
+        logger.debug(participants)
 
-        logger.info(participants)
         # attribution
         for one in participants:
             # build the possibles giftees list
@@ -130,23 +131,24 @@ class Roulette:
         user_manager = UserManager()
         participants = [user for user in user_manager.users if user.registered]
 
-        logger.info(participants)
         if len(participants) < 2:
             logger.warning("not enough registered users: canceling tirage")
-            return False
+            sys.exit(None)
 
         while not self._roulette(participants):
             sleep(0.1)
             continue
 
         user_manager.save_users()
-        return True
 
     def tirage(self):
         """Lance le tirage au sort dans un processus séparé."""
         roulette_process = Process(target=self.roulette, name="spin_the_wheel")
         roulette_process.start()
         roulette_process.join(timeout=5)
-        roulette_process.terminate()
+        roulette_process.terminate()  # exitcode = None
+        if roulette_process.exitcode is None:
+            logger.warning("roulette process timed out")
+            return 1
         logger.info("roulette process terminated: %d", roulette_process.exitcode)
         return roulette_process.exitcode

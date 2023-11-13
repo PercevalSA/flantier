@@ -61,14 +61,6 @@ def start(update: Update, context: CallbackContext) -> None:
     )
 
 
-def stop(update: Update, context: CallbackContext) -> None:
-    logger.info(
-        "user requested a delete and block: %s %d",
-        update.message.from_user.username,
-        update.message.from_user.id,
-    )
-
-
 def help_message(update: Update, context: CallbackContext) -> None:
     """Send the help message with all available commands"""
     simple_help = """Voici les commandes disponibles:

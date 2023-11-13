@@ -52,6 +52,8 @@ def button(update: Update, context: CallbackContext) -> None:
     query.edit_message_text(text=text)
 
 
+# TODO use callback querry handler
+# https://github.com/python-telegram-bot/v13.x-wiki/wiki/Code-snippets#build-a-menu-with-buttons
 def build_exclude_keyboard(
     update: Update,
     context: CallbackContext,
