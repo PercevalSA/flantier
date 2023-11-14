@@ -12,7 +12,6 @@ from telegram import (
 )
 from telegram.ext import CallbackContext
 
-from flantier._roulette import Roulette
 from flantier._users import UserManager
 
 logger = logging.getLogger("flantier")
@@ -22,7 +21,7 @@ logger = logging.getLogger("flantier")
 def inline_kb(update: Update, context: CallbackContext) -> None:
     """Sends a message with three inline buttons attached."""
     keyboard = [
-        [InlineKeyboardButton(user.name, callback_data=str(user["tg_id"]))]
+        [InlineKeyboardButton(user.name, callback_data=str(user.tg_id))]
         for user in UserManager().users
     ]
 
@@ -133,13 +132,9 @@ def build_wish_keyboard(update: Update, context: CallbackContext, name: str) -> 
 
 def build_present_keyboard(update: Update, context: CallbackContext) -> None:
     """Affiche le clavier des cadeau que l'on souhaite offrir."""
-    roulette = Roulette()
+    users = UserManager().users
 
-    offrant = next(
-        qqun
-        for qqun in roulette.participants
-        if qqun.tg_id == update.message.from_user.id
-    )
+    offrant = next(qqun for qqun in users if qqun.tg_id == update.message.from_user.id)
 
     text = ""
     button_list = []
@@ -153,11 +148,8 @@ def build_present_keyboard(update: Update, context: CallbackContext) -> None:
 
     for i, _ in enumerate(offrant.offer_to):
         text += str(offrant.offer_to[i][0]) + " " + str(offrant.offer_to[i][1])
-        text += " [" + roulette.participants[offrant.offer_to[i][0]].name + "] : "
-        text += (
-            roulette.participants[offrant.offer_to[i][0]].wishes[offrant.offer_to[i][1]]
-            + "\n"
-        )
+        text += " [" + users[offrant.offer_to[i][0]].name + "] : "
+        text += users[offrant.offer_to[i][0]].wishes[offrant.offer_to[i][1]] + "\n"
         button_list.append(
             f"/retirer {str(offrant.offer_to[i][0])} {str(offrant.offer_to[i][1])}"
         )

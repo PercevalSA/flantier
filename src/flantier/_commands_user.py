@@ -1,7 +1,7 @@
 #!/usr/bin/python3
-"""Herr Flantier der Geschenk Manager."""
+"""User commands."""
 
-import logging
+from logging import getLogger
 
 from telegram import (
     Update,
@@ -13,11 +13,7 @@ from telegram.ext import (
 from flantier._roulette import Roulette
 from flantier._users import UserManager
 
-logger = logging.getLogger("flantier")
-
-#########################
-# COMMANDES UTILISATEUR #
-#########################
+logger = getLogger("flantier")
 
 
 def _register_user(user_id: int, user_name: str) -> str:
@@ -93,9 +89,9 @@ def get_result(update: Update, context: CallbackContext) -> None:
     """Affiche le résultat du tirage au sort en message privé."""
     user_manager = UserManager()
     supplier = user_manager.get_user(update.message.from_user.id)
-    receiver = user_manager.get_user(supplier["giftee"])
+    receiver = user_manager.get_user(supplier.giftee)
 
     context.bot.send_message(
         chat_id=update.message.from_user.id,
-        text=f"🎅 Youpi tu offres à : {receiver['name']} 🎁\n",
+        text=f"🎅 Youpi tu offres à : {receiver.name} 🎁\n",
     )

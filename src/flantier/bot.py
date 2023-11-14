@@ -174,10 +174,10 @@ def main() -> None:
     updater = Updater(token=settings["telegram"]["bot_token"])
 
     # answer in Telegram on different commands
-    register_commands(updater.dispatcher)
+    register_commands(updater.dispatcher)  # type: ignore
 
     # log all errors
-    updater.dispatcher.add_error_handler(error)
+    updater.dispatcher.add_error_handler(error)  # type: ignore
 
     # init users
     UserManager().load_users()

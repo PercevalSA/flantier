@@ -12,16 +12,13 @@ from telegram.ext import (
 )
 
 from flantier import _keyboards, _santa
-from flantier._roulette import Roulette
 from flantier._users import UserManager
 
 logger = getLogger("flantier")
 
 
 def wishes(update: Update, context: CallbackContext) -> None:
-    """Affiche la liste de cadeaux d'une personne."""
-    #
-
+    """Récupère et affiche la liste des souhaits d'un participant avec son nom."""
     if not context.args:
         logger.info("no name given, displaying user list as keyboard")
         people_kb = _keyboards.build_people_keyboard(update, context, "/cadeaux")
@@ -35,9 +32,18 @@ def wishes(update: Update, context: CallbackContext) -> None:
     # we join all args in order to search for kids name in db which can have spaces
     name = " ".join(context.args)
     logger.info("displaying wishes for %s", name)
-    text = _santa.get_wish_list(UserManager().search_user(name).tg_id)
-    if not text:
-        text = f"🎅 {name} ne veut rien pour Noël 🫥"
+
+    user = UserManager().search_user(name)
+    if not user:
+        text = (
+            "Je n'ai trouvé personne correspondant à ta recherche. N'oublie pas la"
+            " majuscule."
+        )
+
+    else:
+        text = _santa.get_wish_list(user.tg_id)
+        if not text:
+            text = f"🎅 {name} ne veut rien pour Noël 🫥"
 
     context.bot.send_message(
         chat_id=update.message.chat_id,
@@ -66,40 +72,33 @@ def add_gifter(tg_id: int, message: list) -> str:
     """Ajoute un offrant à un cadeau.
     vérifie que la personne existe et la disponiblité du cadeau
     """
-
-    roulette = Roulette()
+    participants = UserManager().users
     name, cadeau_index = message
 
     # trouve le destinataire dans la liste des participants
-    if any(qqun.name == name for qqun in roulette.participants):
+    if any(qqun.name == name for qqun in participants):
         _wishes = _santa.find_wishes(tg_id, name, table=True)
 
         if len(_wishes) > 0 and len(_wishes) >= cadeau_index:
             receiver_index = next(
-                (i for i, qqun in enumerate(roulette.participants) if qqun.name == name),
+                (i for i, qqun in enumerate(participants) if qqun.name == name),
                 -1,
             )
 
-            if roulette.participants[receiver_index].donor[cadeau_index] is None:
+            if participants[receiver_index].donor[cadeau_index] is None:
                 text = "Tu offres désormais " + _wishes[cadeau_index - 1] + " à " + name
                 # ajoute l'id de l'offrant dans la liste des souhaits du destinataire
-                roulette.participants[receiver_index].donor[cadeau_index] = tg_id
+                participants[receiver_index].donor[cadeau_index] = tg_id
 
                 # ajoute la place du destinataire et du cadeau
                 # dans la liste offer_to de l'offrant
                 donor_index = next(
-                    (
-                        i
-                        for i, qqun in enumerate(roulette.participants)
-                        if qqun.tg_id == tg_id
-                    ),
+                    (i for i, qqun in enumerate(participants) if qqun.tg_id == tg_id),
                     -1,
                 )
-                roulette.participants[donor_index].offer_to.append(
-                    (receiver_index, cadeau_index)
-                )
+                participants[donor_index].offer_to.append((receiver_index, cadeau_index))
 
-            elif roulette.participants[receiver_index].donor[cadeau_index] == tg_id:
+            elif participants[receiver_index].donor[cadeau_index] == tg_id:
                 text = f"Tu offres déjà {_wishes[cadeau_index - 1]} à {name}"
 
             else:
@@ -115,20 +114,18 @@ def add_gifter(tg_id: int, message: list) -> str:
     return text
 
 
-def offer(update: Update, context: CallbackContext):
+def offer(update: Update, context: CallbackContext) -> None:
     """Permet de sélectionner un cadeau à offrir."""
-
-    roulette = Roulette()
     message = update.message.text.split(" ")
     # aucun argument fourni
     if len(message) == 1:
-        _keyboards.build_people_keyboard(update, context, offer_flag=True)
+        _keyboards.build_people_keyboard(update, context, command="/offrir")
         return
 
     # fourni que le nom
     if len(message) == 2:
         name = message[1]
-        if any(qqun.name == name for qqun in roulette.participants):
+        if any(qqun.name == name for qqun in UserManager().users):
             _keyboards.build_wish_keyboard(update, context, name)
         else:
             context.bot.send_message(
@@ -151,14 +148,14 @@ def offer(update: Update, context: CallbackContext):
     )
 
 
-def dont_offer(update: Update, context: CallbackContext):
+def dont_offer(update: Update, context: CallbackContext) -> None:
     """Annule la réservation d'un cadeau à offrir.
 
     trouver tous les cadeaux qu'on offre
     implémenter la find wishes pour le offer to
     proposer de les annuler
     """
-    roulette = Roulette()
+    participants = UserManager().users
 
     if len(update.message.text.split(" ")) != 3:
         context.bot.send_message(
@@ -170,9 +167,7 @@ def dont_offer(update: Update, context: CallbackContext):
     else:
         reply_del_kb = ReplyKeyboardRemove()
         offrant = next(
-            qqun
-            for qqun in roulette.participants
-            if qqun["tg_id"] == update.message.from_user.id
+            qqun for qqun in participants if qqun.tg_id == update.message.from_user.id
         )
         command = update.message.text.split(" ")
         receiver_index = int(command[1])
@@ -193,7 +188,7 @@ def dont_offer(update: Update, context: CallbackContext):
             )
 
             del offrant.offer_to[offrande_index]
-            roulette.participants[receiver_index].donor[cadeau_index] = None
+            participants[receiver_index].donor[cadeau_index] = None
 
             context.bot.send_message(
                 chat_id=update.message.chat_id,

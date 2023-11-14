@@ -41,13 +41,13 @@ def get_gifts() -> list:
 
 
 def create_missing_users() -> None:
-    """create users in database that have a column in google sheet but no telegram account."""
+    """create users present in google sheet but not in database (no telegram account)."""
     gifts = get_gifts()
     user_manager = UserManager()
 
     for user in gifts[0::2]:
         name = user[0]
-        logger.info("creating user %s if missing", name)
+        logger.info("checking if %s is missing", name)
         if not user_manager.search_user(name):
             user_manager.add_user(name=name, tg_id=0)
 
@@ -70,7 +70,7 @@ def update_wishes_list() -> None:
 
 
 def get_wish_list(tg_id: int) -> str:
-    """Récupère la liste des souhaits d'un participant."""
+    """Récupère la liste des souhaits d'un participant avec son nom."""
     user = UserManager().get_user(tg_id)
     return "\n".join(w for w in user.wishes)
 
@@ -84,10 +84,7 @@ def find_wishes(tg_id, name, with_comments=False, table=False):
         if table:
             return []
 
-        return (
-            "Je n'ai trouvé personne correspondant à ta recherche. N'oublie pas la"
-            " majuscule."
-        )
+        return ()
 
     if matches[0].tg_id == tg_id:
         if table:
@@ -113,9 +110,9 @@ def find_wishes(tg_id, name, with_comments=False, table=False):
             souhaits = name + " n'a rien demandé pour Noël :'("
 
     else:
-        souhaits = []
+        liste_souhaits = []
         i = 1
         while matches[0].wishes[i] is not None:
-            souhaits.append(matches[0].wishes[i])
+            liste_souhaits.append(matches[0].wishes[i])
             i += 1
     return souhaits
