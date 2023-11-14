@@ -1,7 +1,7 @@
 #!/usr/bin/python3
 """Herr Flantier der Geschenk Manager."""
 
-import logging
+from logging import getLogger
 
 from telegram import (
     ReplyKeyboardRemove,
@@ -13,17 +13,41 @@ from telegram.ext import (
 
 from flantier import _keyboards, _santa
 from flantier._roulette import Roulette
+from flantier._users import UserManager
 
-logger = logging.getLogger("flantier")
-
-
-######################
-# COMMANDES AVANCEES #
-######################
+logger = getLogger("flantier")
 
 
-def wishes(update: Update, context: CallbackContext):
+def wishes(update: Update, context: CallbackContext) -> None:
     """Affiche la liste de cadeaux d'une personne."""
+    #
+
+    if not context.args:
+        logger.info("no name given, displaying user list as keyboard")
+        people_kb = _keyboards.build_people_keyboard(update, context, "/cadeaux")
+        context.bot.send_message(
+            chat_id=update.message.chat_id,
+            text="🤷 De qui veux-tu afficher la liste de souhaits ? 🤷",
+            reply_markup=people_kb,
+        )
+        return
+
+    # we join all args in order to search for kids name in db which can have spaces
+    name = " ".join(context.args)
+    logger.info("displaying wishes for %s", name)
+    text = _santa.get_wish_list(UserManager().search_user(name).tg_id)
+    if not text:
+        text = f"🎅 {name} ne veut rien pour Noël 🫥"
+
+    context.bot.send_message(
+        chat_id=update.message.chat_id,
+        text=text,
+        reply_markup=ReplyKeyboardRemove(),
+    )
+
+
+def comments(update: Update, context: CallbackContext) -> None:
+    """Affiche la liste de cadeaux et les commentaires associés d'une personne."""
     if len(update.message.text.split(" ")) > 1:
         name = update.message.text.split(" ")[1]
 
@@ -35,25 +59,7 @@ def wishes(update: Update, context: CallbackContext):
         )
 
     else:
-        _keyboards.build_people_keyboard(update, context)
-
-
-def comments(update: Update, context: CallbackContext):
-    """Affiche la liste de cadeaux et les commentaires associés d'une personne."""
-    if len(update.message.text.split(" ")) > 1:
-        name = update.message.text.split(" ")[1]
-
-        reply_del_kb = ReplyKeyboardRemove()
-        context.bot.send_message(
-            chat_id=update.message.chat_id,
-            text=_santa.find_wishes(
-                update.message.from_user.id, name, with_comments=True
-            ),
-            reply_markup=reply_del_kb,
-        )
-
-    else:
-        _keyboards.build_people_keyboard(update, context, comments=True)
+        _keyboards.build_people_keyboard(update, context, command="/commentaires")
 
 
 def add_gifter(tg_id: int, message: list) -> str:
@@ -70,11 +76,7 @@ def add_gifter(tg_id: int, message: list) -> str:
 
         if len(_wishes) > 0 and len(_wishes) >= cadeau_index:
             receiver_index = next(
-                (
-                    i
-                    for i, qqun in enumerate(roulette.participants)
-                    if qqun.name == name
-                ),
+                (i for i, qqun in enumerate(roulette.participants) if qqun.name == name),
                 -1,
             )
 

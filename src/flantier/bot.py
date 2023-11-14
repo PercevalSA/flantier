@@ -26,7 +26,7 @@ from flantier._commands_admin import (
     update_wishes_list,
 )
 from flantier._commands_flantier import hello, quote_oss1, quote_oss2
-from flantier._commands_gift import comments, dont_offer, offer, wishes
+from flantier._commands_santa import comments, dont_offer, offer, wishes
 from flantier._commands_user import get_result, list_users, register, unregister
 from flantier._settings import SettingsManager
 from flantier._users import UserManager
@@ -102,7 +102,7 @@ def cancel(update: Update, context: CallbackContext) -> None:
     reply_del_kb = ReplyKeyboardRemove()
     context.bot.send_message(
         chat_id=update.message.chat_id,
-        text="Opération annulée.",
+        text="🙅 Opération annulée.",
         reply_markup=reply_del_kb,
     )
 
@@ -139,6 +139,7 @@ def register_commands(dispatcher: Dispatcher) -> None:
 
     # remove custom keyboard
     dispatcher.add_handler(CommandHandler("annuler", cancel))
+    dispatcher.add_handler(CommandHandler("cancel", cancel))
 
     dispatcher.add_handler(CommandHandler("cadeaux", wishes))
     dispatcher.add_handler(CommandHandler("commentaires", comments))

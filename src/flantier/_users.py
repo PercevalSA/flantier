@@ -44,7 +44,7 @@ class UserJSONEncoder(json.JSONEncoder):
 
 def user_list_to_json(users: list) -> str:
     """Convertit la liste des utilisateurs en JSON."""
-    return json.dumps(users, cls=UserJSONEncoder, indent=4)
+    return json.dumps(users, cls=UserJSONEncoder, indent=4, ensure_ascii=False)
 
 
 def json_to_user_list(data: str) -> list:
@@ -107,7 +107,7 @@ class UserManager:
 
         logger.info("Adding user %s: %d", name, tg_id)
         self.users.append(User(tg_id, name))
-        logger.info("users: %s", self.users)
+        logger.debug("users: %s", self.users)
         self.save_users()
         return True
 
@@ -172,5 +172,9 @@ class UserManager:
     def save_users(self, users_file: Path = DEFAULT_USERS_DB) -> None:
         """Sauvegarde les utilisateurs dans le fichier de sauvegarde."""
         logger.info("Sauvegarde de l'état de Flantier")
-        with open(users_file, "w", encoding="utf-8") as file:
+        with open(
+            users_file,
+            "w",
+            encoding="utf-8",
+        ) as file:
             file.write(user_list_to_json(self.users))

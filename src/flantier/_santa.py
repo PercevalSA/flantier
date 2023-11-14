@@ -36,7 +36,7 @@ def get_gifts() -> list:
     values = spreadsheet.get("values")
 
     logger.info("gettings gifts from google sheet")
-    logger.info(values)
+    logger.debug(values)
     return values
 
 
@@ -45,7 +45,7 @@ def create_missing_users() -> None:
     gifts = get_gifts()
     user_manager = UserManager()
 
-    for user in gifts[::2]:
+    for user in gifts[0::2]:
         name = user[0]
         logger.info("creating user %s if missing", name)
         if not user_manager.search_user(name):
@@ -69,9 +69,15 @@ def update_wishes_list() -> None:
         user_manager.update_user(user)
 
 
+def get_wish_list(tg_id: int) -> str:
+    """Récupère la liste des souhaits d'un participant."""
+    user = UserManager().get_user(tg_id)
+    return "\n".join(w for w in user.wishes)
+
+
 def find_wishes(tg_id, name, with_comments=False, table=False):
     """Trouve et retourne la liste de souhaits avec le nom de la personne."""
-    participants = UserManager().get_users()
+    participants = UserManager().users
     matches = [qqun for qqun in participants if qqun.name == name]
 
     if len(matches) == 0:

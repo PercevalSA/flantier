@@ -33,13 +33,6 @@ class SettingsManager:
         """return settings"""
         return self.settings
 
-    # def get_settings(self):
-    #     """load settings from file in module folder"""
-    #     full_file_path = Path(__file__).parent.joinpath("settings.toml")
-    #     with open(full_file_path, "r", encoding="utf-8") as settings:
-    #         settings_data = toml.load(settings.read())
-    #     return settings_data
-
     def load_settings(self, settings_file: Path = DEFAULT_SETTINGS) -> dict:
         """load settings from settings file in default location"""
         try:

@@ -76,10 +76,12 @@ def build_exclude_keyboard(
 
 
 def build_people_keyboard(
-    update: Update, context: CallbackContext, command: str = ""
+    update: Update,
+    context: CallbackContext,
+    command: str = "",
 ) -> ReplyKeyboardMarkup:
     """Créer le clavier avec les noms des participants. Ajoute la commande en prefix
-    /offrir, cadeaux, commentaires, /exclude
+    /offrir, /cadeaux, /commentaires, /exclude
     """
     command = command + " "
 
@@ -99,7 +101,6 @@ def build_people_keyboard(
     # if command == "/offrir":
     #     text = "À qui veux-tu offrir ?"
     # else:
-    #     text = "De qui veux-tu afficher la liste de souhaits ?"
 
 
 def build_wish_keyboard(update: Update, context: CallbackContext, name: str) -> None:
