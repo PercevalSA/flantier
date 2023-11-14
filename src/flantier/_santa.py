@@ -14,17 +14,6 @@ from flantier._users import UserManager
 logger = getLogger("flantier")
 
 
-def update_user_gifts(user_name: str, gifts: list) -> None:
-    """Update user gifts in database."""
-    user_manager = UserManager()
-    user = user_manager.search_user(user_name)
-    if not user:
-        return
-
-    user.wishes = gifts
-    user_manager.update_user(user)
-
-
 def get_gifts() -> list:
     """Récupère les cadeaux de chaque participant depuis le google doc."""
     google_settings = SettingsManager().get_settings()["google"]
@@ -51,17 +40,33 @@ def get_gifts() -> list:
     return values
 
 
+def create_missing_users() -> None:
+    """create users in database that have a column in google sheet but no telegram account."""
+    gifts = get_gifts()
+    user_manager = UserManager()
+
+    for user in gifts[::2]:
+        name = user[0]
+        logger.info("creating user %s if missing", name)
+        if not user_manager.search_user(name):
+            user_manager.add_user(name=name, tg_id=0)
+
+
 def update_wishes_list() -> None:
     """Met à jour la liste des cadeaux de chaque participant."""
     values = get_gifts()
+    user_manager = UserManager()
 
     for column in range(0, len(values), 2):
         name = values[column][0]
         gifts = values[column][1:]
-        logger.info(name)
-        logger.info(gifts)
-        update_user_gifts(name, gifts)
         logger.info("mise à jour des cadeaux de %s", name)
+
+        user = user_manager.search_user(name)
+        if not user:
+            pass
+        user.wishes = gifts
+        user_manager.update_user(user)
 
 
 def find_wishes(tg_id, name, with_comments=False, table=False):

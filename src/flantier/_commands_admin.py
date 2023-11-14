@@ -211,10 +211,8 @@ def process(update: Update, context: CallbackContext) -> None:
 
 def update_wishes_list(update: Update, context: CallbackContext) -> None:
     """Met à jour la liste des cadeaux."""
-    if _santa.update_wishes_list():
-        text = "liste des cadeaux inchangée\n"
-    else:
-        text = "liste des cadeaux mise à jour\n"
-
+    _santa.create_missing_users()
+    _santa.update_wishes_list()
+    text = "🎁 liste des cadeaux mise à jour 🎁🎁🎁"
     context.bot.send_message(chat_id=update.message.chat_id, text=text)
     logger.info(text)

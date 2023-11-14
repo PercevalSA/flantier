@@ -101,7 +101,7 @@ class UserManager:
             bool: true on success, false on error
         """
 
-        if self.get_user(tg_id):
+        if self.get_user(tg_id) and tg_id != 0:
             logger.info("user %s is already known from flantier bot: %d", name, tg_id)
             return False
 
