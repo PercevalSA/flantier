@@ -71,18 +71,13 @@ def unregister(update: Update, context: CallbackContext) -> None:
 
 def list_users(update: Update, context: CallbackContext) -> None:
     """Liste les participants inscrits."""
-    users_list = UserManager().users
+    users_list = "\n".join(u.name for u in UserManager().users if u.registered)
     if users_list:
         text = f"🙋 Les participant.e.s sont:\n{users_list}"
     else:
         text = "😢 Aucun.e participant.e n'est encore inscrit.e."
 
     context.bot.send_message(chat_id=update.message.chat_id, text=text)
-
-    # FIXME find another way to check that we have access to all users private chats
-    for user in UserManager().users:
-        logger.info("Envoi du message privé à %s", user.name)
-        context.bot.send_message(user.tg_id, text="🧪 Test de message privé 🧪")
 
 
 def get_result(update: Update, context: CallbackContext) -> None:
