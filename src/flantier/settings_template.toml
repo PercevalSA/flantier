@@ -7,6 +7,3 @@ api_key = ''           # Google API Token to access Google Sheets API for gift l
 spreadsheet_id = ''
 sheet_id = ''
 data_range = 'A1:AB30' # select the area where to search for whishes in sheet
-
-[flantier]
-audio_folder = '' # folder where to store audio files

@@ -16,6 +16,8 @@ from telegram.ext import (
 
 from flantier._quotes_oss117 import quotes
 
+AUDIO_BASE_FOLDER = Path.home() / ".cache/flantier/"
+
 logger = logging.getLogger("flantier")
 
 
@@ -53,7 +55,7 @@ def quote_oss1(update: Update, context: CallbackContext) -> None:
     _send_audio_quote(
         update.message.chat_id,
         context,
-        Path("phrases-cultes-de-oss-117-le-caire-nid-d-espions"),
+        AUDIO_BASE_FOLDER / "phrases-cultes-de-oss-117-le-caire-nid-d-espions",
     )
 
 
@@ -62,5 +64,5 @@ def quote_oss2(update: Update, context: CallbackContext) -> None:
     _send_audio_quote(
         update.message.chat_id,
         context,
-        Path("phrases-cultes-de-oss-117-rio-ne-repond-plus"),
+        AUDIO_BASE_FOLDER / "phrases-cultes-de-oss-117-rio-ne-repond-plus",
     )
