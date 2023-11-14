@@ -4,11 +4,7 @@ After=network-online.target
 
 [Service]
 Type=simple
-
-User=flantier
-Group=flantier
-WorkingDirectory=/home/flantier
-ExecStart=/usr/bin/python3 -m flantier
+ExecStart=flantier
 
 Restart=on-failure
 RestartSec=30s

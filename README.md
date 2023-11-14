@@ -26,5 +26,6 @@ Optionnal: set admin id in `settings.toml` by using the `/register` command whil
 1. launch service `sudo systemctl daemon-reload && sudo systemctl enable flantier && sudo systemctl start flantier`
 
 ### Install flantier directly with pip
-1. create new user: `sudo adduser --shell /bin/noshell --disabled-login flantier`
-1. `sudo -u flantier python3 -m pip install "flantier @ git+https://github.com/PercevalSA/flantier"`
+1. install flantier `python3 -m pip install "flantier @ git+https://github.com/PercevalSA/flantier"`
+1. create service folder `mkdir -p ~/.config/systemd/user/`
+1. install service `wget -O ~/.config/systemd/user/flantier.service https://raw.githubusercontent.com/PercevalSA/flantier/main/flantier.service`
