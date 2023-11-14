@@ -4,79 +4,69 @@ Manage wishes and gifts from google sheets.
 Stores every wishes and who is offering what.
 """
 
-import pickle
 from logging import getLogger
 
 from apiclient.discovery import build
 
+from flantier._settings import SettingsManager
+from flantier._users import UserManager
+
 logger = getLogger("flantier")
 
-# TODO use singleton to store state
+
+def update_user_gifts(user_name: str, gifts: list) -> None:
+    """Update user gifts in database."""
+    user_manager = UserManager()
+    user = user_manager.search_user(user_name)
+    if not user:
+        return
+
+    user.wishes = gifts
+    user_manager.update_user(user)
 
 
-def get_cadeaux():
-    """Récupère les cadeaux de chaque participant."""
-    service = build("sheets", "v4", credentials=None, developerKey=configs.API_key)
+def get_gifts() -> list:
+    """Récupère les cadeaux de chaque participant depuis le google doc."""
+    google_settings = SettingsManager().get_settings()["google"]
+    service = build(
+        "sheets",
+        "v4",
+        credentials=None,
+        developerKey=google_settings["api_key"],
+    )
     request = (
         service.spreadsheets()
         .values()
         .get(
-            spreadsheetId=configs.spreadsheet_id,
-            range=configs.data_range,
+            spreadsheetId=google_settings["spreadsheet_id"],
+            range=google_settings["data_range"],
             majorDimension="COLUMNS",
         )
     )
     spreadsheet = request.execute()
-
     values = spreadsheet.get("values")
-    # data_json = json.dumps(values, indent=4, ensure_ascii=False)
-    new_data_flag = False
+
+    logger.info("gettings gifts from google sheet")
+    logger.info(values)
+    return values
+
+
+def update_wishes_list() -> None:
+    """Met à jour la liste des cadeaux de chaque participant."""
+    values = get_gifts()
 
     for column in range(0, len(values), 2):
         name = values[column][0]
-        index = next(
-            (i for i, qqun in enumerate(participants) if qqun.name == name), -1
-        )
-
-        # mise à jour de la liste de cadeaux si les élements sont différents
-        if index != -1:
-            update_flag = False
-            # met à jour la liste des cadeaux
-            for i in range(0, len(values[column])):
-                if participants[index].wishes[i] != values[column][i]:
-                    participants[index].wishes[i] = values[column][i]
-                    update_flag = True
-
-            # met à jour la liste des commentaires
-            for i in range(0, len(values[column + 1])):
-                if participants[index].comments[i] != values[column + 1][i]:
-                    participants[index].comments[i] = values[column + 1][i]
-
-            if update_flag:
-                new_data_flag = True
-                logger.info("mise à jour des cadeaux de %s", participants[index].name)
-
-    return new_data_flag
-
-
-def backup_cadeaux():
-    """Sauvegarde les cadeaux de chaque participant."""
-    with open(configs.CADEAUX, "wb") as file:
-        pickle.dump(participants, file, protocol=pickle.HIGHEST_PROTOCOL)
-    logger.info("sauvegarde de l'état de Flantier")
-
-
-def load_cadeaux():
-    """Charge les cadeaux de chaque participant."""
-    with open(configs.CADEAUX, "rb") as file:
-        participants = pickle.load(file)
-
-    logger.info("restauration de l'état de Flantier")
-    return participants
+        gifts = values[column][1:]
+        logger.info(name)
+        logger.info(gifts)
+        update_user_gifts(name, gifts)
+        logger.info("mise à jour des cadeaux de %s", name)
 
 
 def find_wishes(tg_id, name, with_comments=False, table=False):
     """Trouve et retourne la liste de souhaits avec le nom de la personne."""
+    participants = UserManager().get_users()
     matches = [qqun for qqun in participants if qqun.name == name]
 
     if len(matches) == 0:

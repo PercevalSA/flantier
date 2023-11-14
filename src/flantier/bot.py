@@ -57,13 +57,13 @@ def start(update: Update, context: CallbackContext) -> None:
 
     UserManager().add_user(
         tg_id=update.message.from_user.id,
-        name=update.effective_chat.full_name.split(" ")[0],
+        name=update.message.from_user.first_name,
     )
 
 
 def help_message(update: Update, context: CallbackContext) -> None:
     """Send the help message with all available commands"""
-    simple_help = """Voici les commandes disponibles:
+    help_text = """Voici les commandes disponibles:
 /aide - affiche cette aide
 /participer - s'inscrire pour le secret santa
 /retirer - se désinscrire du secret santa
@@ -76,18 +76,12 @@ def help_message(update: Update, context: CallbackContext) -> None:
 
 Les commandes aussi sont disponibles en anglais:
 /help, /hello, /register, /remove, /list, /result
-"""
-
-    extended_help = """
 
 /cadeaux - donne la liste des voeux de cadeaux
 /commentaires - donne les commentaires associés aux voeux
 /offrir - reserve un cadeau à offrir (pour que personne d'autre ne l'offre)
 /retirer - annule la réservation
 /annuler - annule l'opération en cours
-    """
-
-    admin_help = """
 
 Commandes administrateur:
 /start - démarre l'interaction avec le bot
@@ -96,11 +90,6 @@ Commandes administrateur:
 /tirage - lance le tirage au sort avec les contraintes
 /exclude - ajoute une contrainte de destinataire (conjoint)
 """
-
-    if SettingsManager().settings["flantier"]["extended_mode"]:
-        help_text = simple_help + extended_help + admin_help
-    else:
-        help_text = simple_help + admin_help
 
     context.bot.send_message(
         chat_id=update.effective_chat.id,  # type: ignore
@@ -126,7 +115,7 @@ def unknown_command(update: Update, context: CallbackContext) -> None:
     )
 
 
-def register_commands(dispatcher: Dispatcher, extended_mode: bool = False) -> None:
+def register_commands(dispatcher: Dispatcher) -> None:
     """Register all commands."""
 
     # generic bot commands
@@ -151,20 +140,17 @@ def register_commands(dispatcher: Dispatcher, extended_mode: bool = False) -> No
     # remove custom keyboard
     dispatcher.add_handler(CommandHandler("annuler", cancel))
 
-    if extended_mode:
-        dispatcher.add_handler(CommandHandler("cadeaux", wishes))
-        dispatcher.add_handler(CommandHandler("commentaires", comments))
-        dispatcher.add_handler(CommandHandler("offrir", offer))
-        dispatcher.add_handler(CommandHandler("retirer", dont_offer))
+    dispatcher.add_handler(CommandHandler("cadeaux", wishes))
+    dispatcher.add_handler(CommandHandler("commentaires", comments))
+    dispatcher.add_handler(CommandHandler("offrir", offer))
+    dispatcher.add_handler(CommandHandler("retirer", dont_offer))
 
     # admin commands
     dispatcher.add_handler(CommandHandler("open", open_registrations))
     dispatcher.add_handler(CommandHandler("close", close_registrations))
     dispatcher.add_handler(CommandHandler("tirage", process))
     dispatcher.add_handler(CommandHandler("exclude", add_spouse))
-
-    if extended_mode:
-        dispatcher.add_handler(CommandHandler("update", update_wishes_list))
+    dispatcher.add_handler(CommandHandler("update", update_wishes_list))
 
     # inline kb
     dispatcher.add_handler(CommandHandler("contraintes", _keyboards.inline_kb))
@@ -187,7 +173,7 @@ def main() -> None:
     updater = Updater(token=settings["telegram"]["bot_token"])
 
     # answer in Telegram on different commands
-    register_commands(updater.dispatcher, settings["flantier"]["extended_mode"])
+    register_commands(updater.dispatcher)
 
     # log all errors
     updater.dispatcher.add_error_handler(error)

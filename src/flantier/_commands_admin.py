@@ -211,7 +211,7 @@ def process(update: Update, context: CallbackContext) -> None:
 
 def update_wishes_list(update: Update, context: CallbackContext) -> None:
     """Met à jour la liste des cadeaux."""
-    if _santa.get_cadeaux():
+    if _santa.update_wishes_list():
         text = "liste des cadeaux inchangée\n"
     else:
         text = "liste des cadeaux mise à jour\n"

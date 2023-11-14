@@ -3,13 +3,20 @@
 """
 
 import json
-from dataclasses import asdict, dataclass, is_dataclass
+from dataclasses import asdict, dataclass, field, is_dataclass
 from logging import getLogger
 from pathlib import Path
 
 DEFAULT_USERS_DB = Path.home() / ".cache/flantier/users.json"
 
 logger = getLogger("flantier")
+
+
+# @dataclass
+# class Wish:
+#     wish: str  # cadeaux qui viennent du google doc
+#     comment: str  # commentaires qui viennent du google doc
+#     giver: str  # la personne qui offre ce cadeau
 
 
 @dataclass
@@ -22,19 +29,8 @@ class User:
     giftee: int = 0  # telegram id of the person to offer a gift
     last_giftee: int = 0  # telegram id of the person who recieved the gift last year
     registered: bool = False  # is the user registered for secret santa
-
-    """
-    TODO add
-        comments (str): commentaires qui viennent du google doc
-        donor (TYPE): liste des personnes qui offrent les cadeaux correspondant
-        offer_to (List): liste de [personne, cadeau] que la personne a décidé d'offrir
-        wishes (List[str]): cadeaux qui viennent du google doc
-
-        # self.wishes = [None] * configs.nb_cadeaux
-        # self.comments = [None] * configs.nb_cadeaux
-        # self.donor = [None] * configs.nb_cadeaux
-        # self.offer_to = []
-    """
+    # TODO use Wish dataclass instead of dict
+    wishes: list = field(default_factory=list)  # list of wishes as tuple (wish, comment)
 
 
 class UserJSONEncoder(json.JSONEncoder):
@@ -124,6 +120,15 @@ class UserManager:
         except TypeError:
             pass
 
+        return False
+
+    def update_user(self, user: User) -> bool:
+        """Met à jour l'utilisateur dans la base de données"""
+        for i, _user in enumerate(self.users):
+            if _user.tg_id == user.tg_id:
+                self.users[i] = user
+                self.save_users()
+                return True
         return False
 
     def list_users(self) -> str:
