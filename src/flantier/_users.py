@@ -105,8 +105,14 @@ class UserManager:
             logger.info("user %s is already known from flantier bot: %d", name, tg_id)
             return False
 
-        logger.info("Adding user %s: %d", name, tg_id)
-        self.users.append(User(tg_id, name))
+        user = self.search_user(name)
+        if user:
+            logger.info("updating user %s: %d", name, tg_id)
+            user.tg_id = tg_id
+        else:
+            logger.info("Aadding user %s: %d", name, tg_id)
+            self.users.append(User(tg_id, name))
+
         logger.debug("users: %s", self.users)
         self.save_users()
         return True
