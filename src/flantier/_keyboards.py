@@ -8,7 +8,6 @@ from telegram import (
     InlineKeyboardButton,
     InlineKeyboardMarkup,
     ReplyKeyboardMarkup,
-    ReplyKeyboardRemove,
     Update,
 )
 from telegram.ext import (
@@ -22,54 +21,6 @@ from flantier._santa import get_wish_list
 from flantier._users import UserManager
 
 logger = getLogger("flantier")
-
-
-def cancel(update: Update, context: CallbackContext) -> None:
-    """Cancel current operation and reset flantier state."""
-    reply_del_kb = ReplyKeyboardRemove()
-    context.bot.send_message(
-        chat_id=update.message.chat_id,
-        text="🙅 Opération annulée.",
-        reply_markup=reply_del_kb,
-    )
-
-
-# call back data allow to identify the command the user wants to execute
-# we set in callback the command and the user id to execute the command on as tuple
-# filter_registered is used as logic implication which is equivalent to (not A or B)
-# https://fr.wikipedia.org/wiki/Table_de_v%C3%A9rit%C3%A9#Implication_logique
-def build_inline_kb(
-    command: str,
-    filter_registered: bool = False,
-) -> InlineKeyboardMarkup:
-    """build an inline keyboard based on user names."""
-    keyboard = [
-        [
-            InlineKeyboardButton(
-                user.name,
-                callback_data=command + " " + str(user.tg_id) + " " + str(user.name),
-            )
-        ]
-        for user in UserManager().users
-        if (not filter_registered or user.registered)
-    ]
-
-    return InlineKeyboardMarkup(keyboard)
-
-
-def contraints_inline_kb(update: Update, context: CallbackContext) -> None:
-    """Send a message with user constraints inline buttons attached."""
-    keyboard = build_inline_kb("constaints", filter_registered=True)
-    update.message.reply_text(
-        "e qui veux tu afficher les contraintes?", reply_markup=keyboard
-    )
-
-
-def wishes_inline_kb(update: Update, context: CallbackContext) -> None:
-    keyboard = build_inline_kb("wishes", filter_registered=True)
-    update.message.reply_text(
-        "De qui veux tu consulter la liste de souhaits?", reply_markup=keyboard
-    )
 
 
 def get_user_constraints(user_id: int) -> str:
@@ -99,7 +50,43 @@ def get_user_constraints(user_id: int) -> str:
     return text
 
 
-# pylint: disable=W0613
+# call back data allow to identify the command the user wants to execute
+# we set in callback the command and the user id to execute the command on as tuple
+# filter_registered is used as logic implication which is equivalent to (not A or B)
+# https://fr.wikipedia.org/wiki/Table_de_v%C3%A9rit%C3%A9#Implication_logique
+def build_inline_kb(
+    command: str,
+    filter_registered: bool = False,
+) -> InlineKeyboardMarkup:
+    """build an inline keyboard based on user names."""
+    keyboard = [
+        [
+            InlineKeyboardButton(
+                user.name,
+                callback_data=command + " " + str(user.tg_id) + " " + str(user.name),
+            )
+        ]
+        for user in UserManager().users
+        if (not filter_registered or user.registered)
+    ]
+    return InlineKeyboardMarkup(keyboard)
+
+
+def contraints_inline_kb(update: Update, context: CallbackContext) -> None:
+    """Send a message with user constraints inline buttons attached."""
+    keyboard = build_inline_kb("constaints", filter_registered=True)
+    update.message.reply_text(
+        "e qui veux tu afficher les contraintes?", reply_markup=keyboard
+    )
+
+
+def wishes_inline_kb(update: Update, context: CallbackContext) -> None:
+    keyboard = build_inline_kb("wishes")
+    update.message.reply_text(
+        "De qui veux tu consulter la liste de souhaits?", reply_markup=keyboard
+    )
+
+
 def user_button(update: Update, context: CallbackContext) -> None:
     """Parses the CallbackQuery and updates the message text."""
     query = update.callback_query
@@ -118,8 +105,9 @@ def user_button(update: Update, context: CallbackContext) -> None:
         text = get_user_constraints(user_id)
 
     if command == "wishes":
-        text = get_wish_list(UserManager().search_user(user_name))
-        if not text:
+        wishes = get_wish_list(UserManager().search_user(user_name))
+        text = f"🎅 {user_name} voudrait pour Noël:\n" + wishes
+        if not wishes:
             text = f"🎅 {user_name} ne veut rien pour Noël 🫥"
 
     logger.info("response: %s", text)
@@ -129,8 +117,18 @@ def user_button(update: Update, context: CallbackContext) -> None:
 def register_keyboards(dispatcher: Dispatcher) -> None:
     """Register all inline keyboards."""
     dispatcher.add_handler(CommandHandler("contraintes", contraints_inline_kb))
-    dispatcher.add_handler(CommandHandler("wish", wishes_inline_kb))
+    dispatcher.add_handler(CommandHandler("cadeaux", wishes_inline_kb))
     dispatcher.add_handler(CallbackQueryHandler(user_button))
+
+
+def cancel(update: Update, context: CallbackContext) -> None:
+    """Cancel current operation and reset flantier state."""
+    reply_del_kb = ReplyKeyboardRemove()
+    context.bot.send_message(
+        chat_id=update.message.chat_id,
+        text="🙅 Opération annulée.",
+        reply_markup=reply_del_kb,
+    )
 
 
 # TODO use callback querry handler

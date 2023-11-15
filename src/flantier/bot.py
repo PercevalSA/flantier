@@ -23,7 +23,6 @@ from flantier._commands_admin import (
     update_wishes_list,
 )
 from flantier._commands_flantier import hello, quote_oss1, quote_oss2
-from flantier._commands_santa import wishes
 from flantier._commands_user import get_result, list_users, register, unregister
 from flantier._keyboards import cancel, register_keyboards
 from flantier._settings import SettingsManager
@@ -133,7 +132,6 @@ def register_commands(dispatcher: Dispatcher) -> None:
     # remove custom keyboard
     dispatcher.add_handler(CommandHandler("annuler", cancel))
 
-    dispatcher.add_handler(CommandHandler("cadeaux", wishes))
     dispatcher.add_handler(CommandHandler("commentaires", unimplemented_command))
     dispatcher.add_handler(CommandHandler("offrir", unimplemented_command))
     dispatcher.add_handler(CommandHandler("retirer", unimplemented_command))
