@@ -93,7 +93,7 @@ def add_spouse(update: Update, context: CallbackContext) -> None:
 
     user_manager = UserManager()
 
-    for name in context.args:
+    for name in context.args:  # type: ignore
         user = user_manager.search_user(name)
         logger.info("searching for %s", name)
 
@@ -105,14 +105,14 @@ def add_spouse(update: Update, context: CallbackContext) -> None:
             logger.info("cannot find user: %s", name)
             return
 
-    if len(context.args) == 1:
+    if len(context.args) == 1:  # type: ignore
         force_reply = ForceReply(
             force_reply=True,
             selective=False,
         )
 
         reply_keyboard = _keyboards.build_people_keyboard(
-            update, context, command="/exclude " + context.args[0]
+            update, context, command="/exclude " + context.args[0]  # type: ignore
         )
 
         context.bot.send_message(
@@ -123,12 +123,12 @@ def add_spouse(update: Update, context: CallbackContext) -> None:
         )
         context.bot.send_message(
             chat_id=update.message.chat_id,
-            text=f"Selectionne le ou la conjoint.e de {context.args[0]}",
+            text=f"Selectionne le ou la conjoint.e de {context.args[0]}",  # type: ignore
             reply_markup=reply_keyboard,
         )
         return
 
-    if len(context.args) != 2:
+    if len(context.args) != 2:  # type: ignore
         force_reply = ForceReply(
             force_reply=True,
             selective=False,
@@ -153,8 +153,8 @@ def add_spouse(update: Update, context: CallbackContext) -> None:
 
     # get the tg_id of the user which the name has been given in message[1]
     # and add it as spouse
-    giver = user_manager.search_user(context.args[0])
-    spouse = user_manager.search_user(context.args[1])
+    giver = user_manager.search_user(context.args[0])  # type: ignore
+    spouse = user_manager.search_user(context.args[1])  # type: ignore
     if spouse.tg_id == giver.tg_id:
         context.bot.send_message(chat_id=update.message.chat_id, text="❌ impossibru")
         logger.info(
@@ -167,10 +167,11 @@ def add_spouse(update: Update, context: CallbackContext) -> None:
         chat_id=update.message.chat_id,
         text=(
             "📝 c'est bien noté! 📝\n"
-            f"🧑‍🤝‍🧑 {context.args[1]} est le/la conjoint.e de {context.args[0]}"
+            f"🧑‍🤝‍🧑 {context.args[1]} est le/la conjoint.e "  # type: ignore
+            f"de {context.args[0]}"  # type: ignore
         ),
     )
-    logger.info("set spouse %s for %s", context.args[0], context.args[1])
+    logger.info("set spouse %s for %s", context.args[0], context.args[1])  # type: ignore
 
 
 def process(update: Update, context: CallbackContext) -> None:

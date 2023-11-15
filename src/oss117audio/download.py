@@ -83,4 +83,4 @@ if __name__ == "__main__":
 
     print("listing all quotes done. Go into each folder and run the following command:")
     print('while read p; do open -a Safari "$p"; sleep 5; done <quotes.txt')
-    print(f"please put both folders in {AUDIO_BASE_FOLDER})
+    print(f"please put both folders in {AUDIO_BASE_FOLDER}")

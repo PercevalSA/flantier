@@ -11,7 +11,12 @@ from telegram import (
     ReplyKeyboardRemove,
     Update,
 )
-from telegram.ext import CallbackContext
+from telegram.ext import (
+    CallbackContext,
+    CallbackQueryHandler,
+    CommandHandler,
+    Dispatcher,
+)
 
 from flantier._users import UserManager
 
@@ -60,12 +65,12 @@ def button(update: Update, context: CallbackContext) -> None:
     if user.spouse == 0 or user.last_giftee == 0:
         try:
             constraint = user_manager.get_user(user.spouse)
-        except Error:
-            pass
+        except RuntimeError as e:
+            logger.error(e)
         try:
             constraint = user_manager.get_user(user.last_giftee)
-        except Error:
-            pass
+        except RuntimeError as e:
+            logger.error(e)
 
         text = f"{user.name} ne peut pas offrir à {constraint.name}"
     else:
@@ -77,7 +82,7 @@ def button(update: Update, context: CallbackContext) -> None:
 
 
 def register_keyboards(dispatcher: Dispatcher) -> None:
-    # inline kb
+    """Register all inline keyboards."""
     dispatcher.add_handler(CommandHandler("contraintes", inline_kb))
     dispatcher.add_handler(CallbackQueryHandler(button))
 
