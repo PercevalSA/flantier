@@ -35,6 +35,7 @@ class SettingsManager:
 
     def load_settings(self, settings_file: Path = DEFAULT_SETTINGS) -> dict:
         """load settings from settings file in default location"""
+        logger.info("Loading settings from %s", settings_file)
         try:
             with open(settings_file, "r", encoding="utf-8") as f:
                 self.settings = toml.load(f)

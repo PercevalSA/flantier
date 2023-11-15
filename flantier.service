@@ -6,8 +6,8 @@ After=network-online.target
 Type=simple
 ExecStart=flantier
 
-Restart=on-failure
-RestartSec=30s
+Restart=always
+RestartSec=5s
 
 [Install]
 WantedBy=multi-user.target

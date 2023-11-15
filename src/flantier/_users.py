@@ -158,7 +158,7 @@ class UserManager:
     # manage users file
     def load_users(self, user_file: Path = DEFAULT_USERS_DB) -> None:
         """Charge les utilisateurs enregistrés dans le fichier de sauvegarde."""
-        logger.info("Restauration de l'état de Flantier")
+        logger.info("Restauration de l'état de Flantier depuis %s", user_file)
 
         try:
             with open(user_file, "r", encoding="utf-8") as file:
@@ -171,7 +171,7 @@ class UserManager:
 
     def save_users(self, users_file: Path = DEFAULT_USERS_DB) -> None:
         """Sauvegarde les utilisateurs dans le fichier de sauvegarde."""
-        logger.info("Sauvegarde de l'état de Flantier")
+        logger.info("Sauvegarde de l'état de Flantier: %s", users_file)
         with open(
             users_file,
             "w",
