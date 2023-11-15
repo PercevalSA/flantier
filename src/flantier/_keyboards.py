@@ -18,6 +18,7 @@ from telegram.ext import (
     Dispatcher,
 )
 
+from flantier._santa import get_wish_list
 from flantier._users import UserManager
 
 logger = getLogger("flantier")
@@ -33,33 +34,48 @@ def cancel(update: Update, context: CallbackContext) -> None:
     )
 
 
-# pylint: disable=W0613
-def inline_kb(update: Update, context: CallbackContext) -> None:
-    """Sends a message with three inline buttons attached."""
+# call back data allow to identify the command the user wants to execute
+# we set in callback the command and the user id to execute the command on as tuple
+# filter_registered is used as logic implication which is equivalent to (not A or B)
+# https://fr.wikipedia.org/wiki/Table_de_v%C3%A9rit%C3%A9#Implication_logique
+def build_inline_kb(
+    command: str,
+    filter_registered: bool = False,
+) -> InlineKeyboardMarkup:
+    """build an inline keyboard based on user names."""
     keyboard = [
-        [InlineKeyboardButton(user.name, callback_data=str(user.tg_id))]
+        [
+            InlineKeyboardButton(
+                user.name,
+                callback_data=command + " " + str(user.tg_id) + " " + str(user.name),
+            )
+        ]
         for user in UserManager().users
-        if user.tg_id
+        if (not filter_registered or user.registered)
     ]
 
-    reply_markup = InlineKeyboardMarkup(keyboard)
-    update.message.reply_text("Qui ne peut pas offrir à qui?", reply_markup=reply_markup)
+    return InlineKeyboardMarkup(keyboard)
 
 
-# pylint: disable=W0613
-def button(update: Update, context: CallbackContext) -> None:
-    """Parses the CallbackQuery and updates the message text."""
-    query = update.callback_query
+def contraints_inline_kb(update: Update, context: CallbackContext) -> None:
+    """Send a message with user constraints inline buttons attached."""
+    keyboard = build_inline_kb("constaints", filter_registered=True)
+    update.message.reply_text(
+        "e qui veux tu afficher les contraintes?", reply_markup=keyboard
+    )
 
-    # CallbackQueries need to be answered, even if no notification to the user is needed
-    # Some clients may have trouble otherwise.
-    # See https://core.telegram.org/bots/api#callbackquery
-    query.answer()
 
+def wishes_inline_kb(update: Update, context: CallbackContext) -> None:
+    keyboard = build_inline_kb("wishes", filter_registered=True)
+    update.message.reply_text(
+        "De qui veux tu consulter la liste de souhaits?", reply_markup=keyboard
+    )
+
+
+def get_user_constraints(user_id: int) -> str:
     user_manager = UserManager()
-    logger.debug("Query data %s", query.data)
-    user = user_manager.get_user(int(query.data))
-    logger.debug("User %s", user)
+    user = user_manager.get_user(user_id)
+    logger.debug("searching for %s constraints", user)
 
     if user.spouse == 0 and user.last_giftee == 0:
         text = f"{user.name} peut offrir à tout le monde"
@@ -79,13 +95,42 @@ def button(update: Update, context: CallbackContext) -> None:
             f"{user.name} ne peut pas offrir à {user_manager.get_user(user.spouse).name} "
             f"et à {user_manager.get_user(user.last_giftee).name}"
         )
+
+    return text
+
+
+# pylint: disable=W0613
+def user_button(update: Update, context: CallbackContext) -> None:
+    """Parses the CallbackQuery and updates the message text."""
+    query = update.callback_query
+    # CallbackQueries need to be answered, even if no notification to the user is needed
+    # Some clients may have trouble otherwise.
+    # See https://core.telegram.org/bots/api#callbackquery
+    query.answer()
+
+    data = query.data.split(" ", 3)
+    logger.info("keyboard query data: %s", data)
+    command = data[0]
+    user_id = int(data[1])
+    user_name = data[2]
+
+    if command == "constaints":
+        text = get_user_constraints(user_id)
+
+    if command == "wishes":
+        text = get_wish_list(UserManager().search_user(user_name))
+        if not text:
+            text = f"🎅 {user_name} ne veut rien pour Noël 🫥"
+
+    logger.info("response: %s", text)
     query.edit_message_text(text=text)
 
 
 def register_keyboards(dispatcher: Dispatcher) -> None:
     """Register all inline keyboards."""
-    dispatcher.add_handler(CommandHandler("contraintes", inline_kb))
-    dispatcher.add_handler(CallbackQueryHandler(button))
+    dispatcher.add_handler(CommandHandler("contraintes", contraints_inline_kb))
+    dispatcher.add_handler(CommandHandler("wish", wishes_inline_kb))
+    dispatcher.add_handler(CallbackQueryHandler(user_button))
 
 
 # TODO use callback querry handler
