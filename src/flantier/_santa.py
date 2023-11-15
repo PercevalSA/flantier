@@ -9,7 +9,7 @@ from logging import getLogger
 from apiclient.discovery import build
 
 from flantier._settings import SettingsManager
-from flantier._users import UserManager
+from flantier._users import User, UserManager
 
 logger = getLogger("flantier")
 
@@ -69,9 +69,8 @@ def update_wishes_list() -> None:
         user_manager.update_user(user)
 
 
-def get_wish_list(tg_id: int) -> str:
+def get_wish_list(user: User) -> str:
     """Récupère la liste des souhaits d'un participant avec son nom."""
-    user = UserManager().get_user(tg_id)
     return "\n".join(w for w in user.wishes)
 
 

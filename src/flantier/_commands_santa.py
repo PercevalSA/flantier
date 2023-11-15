@@ -41,7 +41,7 @@ def wishes(update: Update, context: CallbackContext) -> None:
         )
 
     else:
-        text = _santa.get_wish_list(user.tg_id)
+        text = _santa.get_wish_list(user)
         if not text:
             text = f"🎅 {name} ne veut rien pour Noël 🫥"
 
