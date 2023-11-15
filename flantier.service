@@ -4,7 +4,10 @@ After=network-online.target
 
 [Service]
 Type=simple
-ExecStart=flantier
+ExecStart=/usr/bin/python3 -m flantier
+
+User=ubuntu
+Group=ubuntu
 
 Restart=always
 RestartSec=5s
