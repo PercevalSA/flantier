@@ -8,7 +8,7 @@ from telegram import (
     InlineKeyboardButton,
     InlineKeyboardMarkup,
     ReplyKeyboardMarkup,
-    ReplyKeyboardRemove
+    ReplyKeyboardRemove,
     Update,
 )
 from telegram.ext import CallbackContext
@@ -74,6 +74,7 @@ def button(update: Update, context: CallbackContext) -> None:
             f"et à {user_manager.get_user(user.last_giftee).name}"
         )
     query.edit_message_text(text=text)
+
 
 def register_keyboards(dispatcher: Dispatcher) -> None:
     # inline kb
