@@ -209,6 +209,7 @@ def process(update: Update, context: CallbackContext) -> None:
         )
 
 
+# TODO do it automatically evey x time
 def update_wishes_list(update: Update, context: CallbackContext) -> None:
     """Met à jour la liste des cadeaux."""
     _santa.create_missing_users()

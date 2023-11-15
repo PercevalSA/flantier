@@ -4,12 +4,10 @@
 import logging
 
 from telegram import (
-    ReplyKeyboardRemove,
     Update,
 )
 from telegram.ext import (
     CallbackContext,
-    CallbackQueryHandler,
     CommandHandler,
     Dispatcher,
     Filters,
@@ -17,7 +15,6 @@ from telegram.ext import (
     Updater,
 )
 
-from flantier import _keyboards
 from flantier._commands_admin import (
     add_spouse,
     close_registrations,
@@ -26,8 +23,9 @@ from flantier._commands_admin import (
     update_wishes_list,
 )
 from flantier._commands_flantier import hello, quote_oss1, quote_oss2
-from flantier._commands_santa import comments, dont_offer, offer, wishes
+from flantier._commands_santa import wishes
 from flantier._commands_user import get_result, list_users, register, unregister
+from flantier._keyboards import cancel, register_keyboards
 from flantier._settings import SettingsManager
 from flantier._users import UserManager
 
@@ -70,21 +68,19 @@ def help_message(update: Update, context: CallbackContext) -> None:
 /liste - donne la liste des participants
 /resultat - donne le résultat tu tirage au sort en dm
 
-/bonjour - je vous dirai bonjour à ma manière
-/larmina - le caire nid d'espion
-/dolores - rio ne répond plus
-
-Les commandes aussi sont disponibles en anglais:
-/help, /hello, /register, /remove, /list, /result
-
 /cadeaux - donne la liste des voeux de cadeaux
 /commentaires - donne les commentaires associés aux voeux
 /offrir - reserve un cadeau à offrir (pour que personne d'autre ne l'offre)
 /retirer - annule la réservation
 /annuler - annule l'opération en cours
 
-Commandes administrateur:
+/bonjour - je vous dirai bonjour à ma manière
+/larmina - le caire nid d'espion
+/dolores - rio ne répond plus
+
 /start - démarre l'interaction avec le bot
+
+Commandes administrateur:
 /open - ouvre la session d'inscription
 /close - termine la session d'inscription
 /tirage - lance le tirage au sort avec les contraintes
@@ -97,13 +93,14 @@ Commandes administrateur:
     )
 
 
-def cancel(update: Update, context: CallbackContext) -> None:
-    """Cancel current operation and reset flantier state."""
-    reply_del_kb = ReplyKeyboardRemove()
+def unimplemented_command(update: Update, context: CallbackContext) -> None:
+    """Send the help message with all available commands"""
+    help_text = (
+        "Désolé larmina mon p'tit mais cette commande n'est pas encore implémentée."
+    )
     context.bot.send_message(
-        chat_id=update.message.chat_id,
-        text="🙅 Opération annulée.",
-        reply_markup=reply_del_kb,
+        chat_id=update.effective_chat.id,  # type: ignore
+        text=help_text,
     )
 
 
@@ -123,28 +120,22 @@ def register_commands(dispatcher: Dispatcher) -> None:
 
     # users commands
     dispatcher.add_handler(CommandHandler("bonjour", hello))
-    dispatcher.add_handler(CommandHandler("hello", hello))
     dispatcher.add_handler(CommandHandler("larmina", quote_oss1))
     dispatcher.add_handler(CommandHandler("dolores", quote_oss2))
     dispatcher.add_handler(CommandHandler("participer", register))
-    dispatcher.add_handler(CommandHandler("register", register))
     dispatcher.add_handler(CommandHandler("retirer", unregister))
-    dispatcher.add_handler(CommandHandler("remove", unregister))
     dispatcher.add_handler(CommandHandler("liste", list_users))
-    dispatcher.add_handler(CommandHandler("list", list_users))
     dispatcher.add_handler(CommandHandler("resultat", get_result))
-    dispatcher.add_handler(CommandHandler("result", get_result))
     dispatcher.add_handler(CommandHandler("aide", help_message))
     dispatcher.add_handler(CommandHandler("help", help_message))
 
     # remove custom keyboard
     dispatcher.add_handler(CommandHandler("annuler", cancel))
-    dispatcher.add_handler(CommandHandler("cancel", cancel))
 
     dispatcher.add_handler(CommandHandler("cadeaux", wishes))
-    dispatcher.add_handler(CommandHandler("commentaires", comments))
-    dispatcher.add_handler(CommandHandler("offrir", offer))
-    dispatcher.add_handler(CommandHandler("retirer", dont_offer))
+    dispatcher.add_handler(CommandHandler("commentaires", unimplemented_command))
+    dispatcher.add_handler(CommandHandler("offrir", unimplemented_command))
+    dispatcher.add_handler(CommandHandler("retirer", unimplemented_command))
 
     # admin commands
     dispatcher.add_handler(CommandHandler("open", open_registrations))
@@ -153,9 +144,7 @@ def register_commands(dispatcher: Dispatcher) -> None:
     dispatcher.add_handler(CommandHandler("exclude", add_spouse))
     dispatcher.add_handler(CommandHandler("update", update_wishes_list))
 
-    # inline kb
-    dispatcher.add_handler(CommandHandler("contraintes", _keyboards.inline_kb))
-    dispatcher.add_handler(CallbackQueryHandler(_keyboards.button))
+    register_keyboards(dispatcher)
 
     # unkown commands
     dispatcher.add_handler(MessageHandler(Filters.command, unknown_command))

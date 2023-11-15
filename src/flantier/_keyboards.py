@@ -8,6 +8,7 @@ from telegram import (
     InlineKeyboardButton,
     InlineKeyboardMarkup,
     ReplyKeyboardMarkup,
+    ReplyKeyboardRemove
     Update,
 )
 from telegram.ext import CallbackContext
@@ -15,6 +16,16 @@ from telegram.ext import CallbackContext
 from flantier._users import UserManager
 
 logger = logging.getLogger("flantier")
+
+
+def cancel(update: Update, context: CallbackContext) -> None:
+    """Cancel current operation and reset flantier state."""
+    reply_del_kb = ReplyKeyboardRemove()
+    context.bot.send_message(
+        chat_id=update.message.chat_id,
+        text="🙅 Opération annulée.",
+        reply_markup=reply_del_kb,
+    )
 
 
 # pylint: disable=W0613
@@ -40,15 +51,34 @@ def button(update: Update, context: CallbackContext) -> None:
     query.answer()
 
     user_manager = UserManager()
-    logger.info("Query data %s", query.data)
+    logger.debug("Query data %s", query.data)
     user = user_manager.get_user(int(query.data))
-    logger.info("User %s", user)
+    logger.debug("User %s", user)
 
-    if user.spouse == 0 and user.giftee == 0:
+    if user.spouse == 0 and user.last_giftee == 0:
         text = f"{user.name} peut offrir à tout le monde"
+    if user.spouse == 0 or user.last_giftee == 0:
+        try:
+            constraint = user_manager.get_user(user.spouse)
+        except Error:
+            pass
+        try:
+            constraint = user_manager.get_user(user.last_giftee)
+        except Error:
+            pass
+
+        text = f"{user.name} ne peut pas offrir à {constraint.name}"
     else:
-        text = f"{user.name} ne peut pas offrir à {user.spouse} et à {user.last_giftee}"
+        text = (
+            f"{user.name} ne peut pas offrir à {user_manager.get_user(user.spouse).name} "
+            f"et à {user_manager.get_user(user.last_giftee).name}"
+        )
     query.edit_message_text(text=text)
+
+def register_keyboards(dispatcher: Dispatcher) -> None:
+    # inline kb
+    dispatcher.add_handler(CommandHandler("contraintes", inline_kb))
+    dispatcher.add_handler(CallbackQueryHandler(button))
 
 
 # TODO use callback querry handler
