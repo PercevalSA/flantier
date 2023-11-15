@@ -124,8 +124,9 @@ class UserManager:
 
     def update_user(self, user: User) -> bool:
         """Met à jour l'utilisateur dans la base de données"""
-        for i, _user in enumerate(self.users):
-            if _user.tg_id == user.tg_id:
+        for i, u in enumerate(self.users):
+            # some users have tg_id = 0
+            if u.tg_id == user.tg_id and u.name == user.name:
                 self.users[i] = user
                 self.save_users()
                 return True
