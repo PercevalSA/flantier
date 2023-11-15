@@ -15,6 +15,7 @@ OSS2 = (
     "/repliques-cultes-de-films-d-espionnage/phrases-cultes-de-oss-117-rio-ne-repond-plus"
 )
 FILMS = [OSS1, OSS2]
+AUDIO_BASE_FOLDER = Path.home() / ".cache/flantier/"
 
 
 def url_to_soup(url):
@@ -82,3 +83,4 @@ if __name__ == "__main__":
 
     print("listing all quotes done. Go into each folder and run the following command:")
     print('while read p; do open -a Safari "$p"; sleep 5; done <quotes.txt')
+    print(f"please put both folders in {AUDIO_BASE_FOLDER})
