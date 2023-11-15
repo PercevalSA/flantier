@@ -67,7 +67,7 @@ def help_message(update: Update, context: CallbackContext) -> None:
 /retirer - se désinscrire du secret santa
 /liste - donne la liste des participants
 /resultat - donne le résultat tu tirage au sort en dm
-/contrainte - affiche les contraintes prises en compte pour le tirage au sort
+/contraintes - affiche les contraintes du tirage au sort
 
 /cadeaux - donne la liste des voeux de cadeaux
 /commentaires - donne les commentaires associés aux voeux
