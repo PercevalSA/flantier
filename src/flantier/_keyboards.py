@@ -2,7 +2,7 @@
 
 """gestion des claviers interractifs dans telegram"""
 
-import logging
+from logging import getLogger
 
 from telegram import (
     InlineKeyboardButton,
@@ -20,7 +20,7 @@ from telegram.ext import (
 
 from flantier._users import UserManager
 
-logger = logging.getLogger("flantier")
+logger = getLogger("flantier")
 
 
 def cancel(update: Update, context: CallbackContext) -> None:
@@ -39,6 +39,7 @@ def inline_kb(update: Update, context: CallbackContext) -> None:
     keyboard = [
         [InlineKeyboardButton(user.name, callback_data=str(user.tg_id))]
         for user in UserManager().users
+        if user.tg_id
     ]
 
     reply_markup = InlineKeyboardMarkup(keyboard)
