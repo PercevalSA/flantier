@@ -76,6 +76,16 @@ def get_wish_list(user: User) -> str:
     return "\n".join(w for w in user.wishes)
 
 
+# called by the people inline keyboard
+def user_wishes_message(user_name: str) -> str:
+    wishes = get_wish_list(UserManager().search_user(user_name))
+    text = f"🎅 {user_name} voudrait pour Noël:\n" + wishes
+    if not wishes:
+        text = f"🎅 {user_name} ne veut rien pour Noël 🫥"
+
+    return text
+
+
 def update_gifts_background_task(interval_sec: int = 600) -> None:
     """Update gifts list in background. Function to be run in a thread"""
     ticker = threading.Event()

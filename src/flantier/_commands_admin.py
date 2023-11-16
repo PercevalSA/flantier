@@ -11,7 +11,7 @@ from telegram.ext import (
     CallbackContext,
 )
 
-from flantier import _keyboards, _santa
+from flantier import _keyboards
 from flantier._roulette import Roulette
 from flantier._settings import SettingsManager
 from flantier._users import UserManager
@@ -205,13 +205,3 @@ def process(update: Update, context: CallbackContext) -> None:
             user.tg_id,
             text=f"🎅 Youpi tu offres à {giftee.name} 🎁\n",
         )
-
-
-# TODO do it automatically evey x time
-def update_wishes_list(update: Update, context: CallbackContext) -> None:
-    """Met à jour la liste des cadeaux."""
-    _santa.create_missing_users()
-    _santa.update_wishes_list()
-    text = "🎁 liste des cadeaux mise à jour 🎁🎁🎁"
-    context.bot.send_message(chat_id=update.message.chat_id, text=text)
-    logger.info(text)

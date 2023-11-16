@@ -9,6 +9,7 @@ from telegram import (
 )
 from telegram.ext import (
     CallbackContext,
+    CallbackQueryHandler,
     CommandHandler,
     Dispatcher,
     Filters,
@@ -23,8 +24,9 @@ from flantier._commands_admin import (
     process,
 )
 from flantier._commands_flantier import hello, quote_oss1, quote_oss2
+from flantier._commands_santa import update_wishes_list, wishes
 from flantier._commands_user import get_result, list_users, register, unregister
-from flantier._keyboards import cancel, register_keyboards
+from flantier._keyboards import constraints, user_button
 from flantier._santa import update_gifts_background_task
 from flantier._settings import SettingsManager
 from flantier._users import UserManager
@@ -130,20 +132,22 @@ def register_commands(dispatcher: Dispatcher) -> None:
     dispatcher.add_handler(CommandHandler("aide", help_message))
     dispatcher.add_handler(CommandHandler("help", help_message))
 
-    # remove custom keyboard
-    dispatcher.add_handler(CommandHandler("annuler", cancel))
-
     dispatcher.add_handler(CommandHandler("commentaires", unimplemented_command))
     dispatcher.add_handler(CommandHandler("offrir", unimplemented_command))
     dispatcher.add_handler(CommandHandler("retirer", unimplemented_command))
+
+    dispatcher.add_handler(CommandHandler("contraintes", constraints))
+    dispatcher.add_handler(CommandHandler("cadeaux", wishes))
+
+    # handle all inline keyboards responses
+    dispatcher.add_handler(CallbackQueryHandler(user_button))
 
     # admin commands
     dispatcher.add_handler(CommandHandler("open", open_registrations))
     dispatcher.add_handler(CommandHandler("close", close_registrations))
     dispatcher.add_handler(CommandHandler("tirage", process))
     dispatcher.add_handler(CommandHandler("exclude", add_spouse))
-
-    register_keyboards(dispatcher)
+    dispatcher.add_handler(CommandHandler("update", update_wishes_list))
 
     # unkown commands
     dispatcher.add_handler(MessageHandler(Filters.command, unknown_command))

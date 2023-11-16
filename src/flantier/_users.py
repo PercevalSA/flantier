@@ -162,10 +162,37 @@ class UserManager:
                 user.giftee = 0
         self.save_users()
 
+    def get_user_constraints(self, user_id: int) -> str:
+        """Get user constraints as str. Get spouse and last giftee names if any."""
+        user = self.get_user(user_id)
+        logger.debug("searching for %s constraints", user)
+
+        if user.spouse == 0 and user.last_giftee == 0:
+            text = f"{user.name} peut offrir à tout le monde"
+        if user.spouse == 0 or user.last_giftee == 0:
+            try:
+                constraint = self.get_user(user.spouse)
+            except RuntimeError as e:
+                logger.error(e)
+            try:
+                constraint = self.get_user(user.last_giftee)
+            except RuntimeError as e:
+                logger.error(e)
+
+            text = f"{user.name} ne peut pas offrir à {constraint.name}"
+        else:
+            text = (
+                f"{user.name} ne peut pas offrir à"
+                f" {self.get_user(user.spouse).name} et à"
+                f" {self.get_user(user.last_giftee).name}"
+            )
+
+        return text
+
     # manage users file
     def load_users(self, user_file: Path = DEFAULT_USERS_DB) -> None:
         """Charge les utilisateurs enregistrés dans le fichier de sauvegarde."""
-        logger.info("Restauration de l'état de Flantier depuis %s", user_file)
+        logger.debug("Restauration de l'état de Flantier depuis %s", user_file)
 
         try:
             with open(user_file, "r", encoding="utf-8") as file:
@@ -178,7 +205,7 @@ class UserManager:
 
     def save_users(self, users_file: Path = DEFAULT_USERS_DB) -> None:
         """Sauvegarde les utilisateurs dans le fichier de sauvegarde."""
-        logger.info("Sauvegarde de l'état de Flantier: %s", users_file)
+        logger.debug("Sauvegarde de l'état de Flantier: %s", users_file)
         with open(
             users_file,
             "w",

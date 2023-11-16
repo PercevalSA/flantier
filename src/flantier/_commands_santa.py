@@ -11,45 +11,32 @@ from telegram.ext import (
     CallbackContext,
 )
 
-from flantier import _keyboards, _santa
+from flantier import _santa
+from flantier._keyboards import build_people_inline_kb
 from flantier._users import UserManager
 
 logger = getLogger("flantier")
 
 
-def wishes(update: Update, context: CallbackContext) -> None:
-    """Récupère et affiche la liste des souhaits d'un participant avec son nom."""
-    if not context.args:
-        logger.info("no name given, displaying user list as keyboard")
-        people_kb = _keyboards.build_people_keyboard("/cadeaux")
-        context.bot.send_message(
-            chat_id=update.message.chat_id,
-            text="🤷 De qui veux-tu afficher la liste de souhaits ? 🤷",
-            reply_markup=people_kb,
-        )
-        return
-
-    # we join all args in order to search for kids name in db which can have spaces
-    name = " ".join(context.args)
-    logger.info("displaying wishes for %s", name)
-
-    user = UserManager().search_user(name)
-    if not user:
-        text = (
-            "Je n'ai trouvé personne correspondant à ta recherche. N'oublie pas la"
-            " majuscule."
-        )
-
-    else:
-        text = _santa.get_wish_list(user)
-        if not text:
-            text = f"🎅 {name} ne veut rien pour Noël 🫥"
-
-    context.bot.send_message(
-        chat_id=update.message.chat_id,
-        text=text,
-        reply_markup=ReplyKeyboardRemove(),
+def wishes(update: Update, _: CallbackContext) -> None:
+    """Send a message with user wishes as inline buttons attached."""
+    keyboard = build_people_inline_kb("wishes")
+    update.message.reply_text(
+        "🤷 De qui veux tu consulter la liste de souhaits? 🤷", reply_markup=keyboard
     )
+
+
+def update_wishes_list(update: Update, context: CallbackContext) -> None:
+    """Met à jour la liste des cadeaux."""
+    _santa.create_missing_users()
+    _santa.update_wishes_list()
+    text = "🎁 liste des cadeaux mise à jour 🎁"
+    context.bot.send_message(chat_id=update.message.chat_id, text=text)
+    logger.info(text)
+
+
+# LEGACY
+#########
 
 
 def comments(update: Update, context: CallbackContext) -> None:
