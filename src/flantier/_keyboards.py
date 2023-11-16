@@ -42,7 +42,7 @@ def build_people_inline_kb(
         for user in UserManager().users
         if (not filter_registered or user.registered)
     ]
-    keyboard.append(InlineKeyboardButton("cancel", callback_data="cancel 0 cancel"))
+    keyboard.append(InlineKeyboardButton("Annuler", callback_data="cancel 0 cancel"))
     # split keyboard in two columns
     keyboard = [keyboard[i : i + COLUMNS] for i in range(0, len(keyboard), COLUMNS)]
     return InlineKeyboardMarkup(keyboard)
