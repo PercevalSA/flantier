@@ -2,6 +2,7 @@
 """Herr Flantier der Geschenk Manager."""
 
 import logging
+from threading import Thread
 
 from telegram import (
     Update,
@@ -20,11 +21,11 @@ from flantier._commands_admin import (
     close_registrations,
     open_registrations,
     process,
-    update_wishes_list,
 )
 from flantier._commands_flantier import hello, quote_oss1, quote_oss2
 from flantier._commands_user import get_result, list_users, register, unregister
 from flantier._keyboards import cancel, register_keyboards
+from flantier._santa import update_gifts_background_task
 from flantier._settings import SettingsManager
 from flantier._users import UserManager
 
@@ -141,7 +142,6 @@ def register_commands(dispatcher: Dispatcher) -> None:
     dispatcher.add_handler(CommandHandler("close", close_registrations))
     dispatcher.add_handler(CommandHandler("tirage", process))
     dispatcher.add_handler(CommandHandler("exclude", add_spouse))
-    dispatcher.add_handler(CommandHandler("update", update_wishes_list))
 
     register_keyboards(dispatcher)
 
@@ -170,6 +170,10 @@ def main() -> None:
     # init users
     UserManager().load_users()
 
+    # update gifts in database every 10 minutes
+    thread = Thread(target=update_gifts_background_task)
+    thread.start()
+
     # Start the Bot
     updater.start_polling()
 
@@ -177,3 +181,5 @@ def main() -> None:
     # SIGTERM or SIGABRT. This should be used most of the time, since
     # start_polling() is non-blocking and will stop the bot gracefully.
     updater.idle()
+
+    thread.join()

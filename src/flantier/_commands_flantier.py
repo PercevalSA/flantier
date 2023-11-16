@@ -1,8 +1,8 @@
 #!/usr/bin/python3
 """Herr Flantier der Geschenk Manager."""
 
-import logging
 from glob import glob
+from logging import getLogger
 from pathlib import Path
 from random import choice
 
@@ -18,7 +18,7 @@ from flantier._quotes_oss117 import quotes
 
 AUDIO_BASE_FOLDER = Path.home() / ".cache/flantier/"
 
-logger = logging.getLogger("flantier")
+logger = getLogger("flantier")
 
 
 def _send_written_quote(
