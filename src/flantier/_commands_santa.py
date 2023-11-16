@@ -21,7 +21,7 @@ def wishes(update: Update, context: CallbackContext) -> None:
     """Récupère et affiche la liste des souhaits d'un participant avec son nom."""
     if not context.args:
         logger.info("no name given, displaying user list as keyboard")
-        people_kb = _keyboards.build_people_keyboard(update, context, "/cadeaux")
+        people_kb = _keyboards.build_people_keyboard("/cadeaux")
         context.bot.send_message(
             chat_id=update.message.chat_id,
             text="🤷 De qui veux-tu afficher la liste de souhaits ? 🤷",
@@ -65,7 +65,7 @@ def comments(update: Update, context: CallbackContext) -> None:
         )
 
     else:
-        _keyboards.build_people_keyboard(update, context, command="/commentaires")
+        _keyboards.build_people_keyboard("/commentaires")
 
 
 def add_gifter(tg_id: int, message: list) -> str:
@@ -119,7 +119,7 @@ def offer(update: Update, context: CallbackContext) -> None:
     message = update.message.text.split(" ")
     # aucun argument fourni
     if len(message) == 1:
-        _keyboards.build_people_keyboard(update, context, command="/offrir")
+        _keyboards.build_people_keyboard("/offrir")
         return
 
     # fourni que le nom

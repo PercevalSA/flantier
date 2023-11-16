@@ -76,8 +76,8 @@ def get_wish_list(user: User) -> str:
     return "\n".join(w for w in user.wishes)
 
 
-# task that runs at a fixed interval
-def update_gifts_background_task(interval_sec: int = 5) -> None:
+def update_gifts_background_task(interval_sec: int = 600) -> None:
+    """Update gifts list in background. Function to be run in a thread"""
     ticker = threading.Event()
     while not ticker.wait(interval_sec):
         update_wishes_list()

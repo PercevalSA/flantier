@@ -111,9 +111,8 @@ def add_spouse(update: Update, context: CallbackContext) -> None:
             selective=False,
         )
 
-        reply_keyboard = _keyboards.build_people_keyboard(
-            update, context, command="/exclude " + context.args[0]  # type: ignore
-        )
+        # type: ignore
+        reply_keyboard = _keyboards.build_people_keyboard("/exclude " + context.args[0])
 
         context.bot.send_message(
             chat_id=update.message.chat_id,
@@ -134,9 +133,7 @@ def add_spouse(update: Update, context: CallbackContext) -> None:
             selective=False,
         )
 
-        reply_keyboard = _keyboards.build_people_keyboard(
-            update, context, command="/exclude"
-        )
+        reply_keyboard = _keyboards.build_people_keyboard("/exclude")
 
         context.bot.send_message(
             chat_id=update.message.chat_id,

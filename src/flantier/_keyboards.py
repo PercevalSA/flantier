@@ -8,6 +8,7 @@ from telegram import (
     InlineKeyboardButton,
     InlineKeyboardMarkup,
     ReplyKeyboardMarkup,
+    ReplyKeyboardRemove,
     Update,
 )
 from telegram.ext import (
@@ -21,6 +22,8 @@ from flantier._santa import get_wish_list
 from flantier._users import UserManager
 
 logger = getLogger("flantier")
+
+COLUMNS = 2
 
 
 def get_user_constraints(user_id: int) -> str:
@@ -51,7 +54,7 @@ def get_user_constraints(user_id: int) -> str:
 
 
 # call back data allow to identify the command the user wants to execute
-# we set in callback the command and the user id to execute the command on as tuple
+# we set in callback the command and the user id (and name) to execute the command on
 # filter_registered is used as logic implication which is equivalent to (not A or B)
 # https://fr.wikipedia.org/wiki/Table_de_v%C3%A9rit%C3%A9#Implication_logique
 def build_inline_kb(
@@ -60,34 +63,38 @@ def build_inline_kb(
 ) -> InlineKeyboardMarkup:
     """build an inline keyboard based on user names."""
     keyboard = [
-        [
-            InlineKeyboardButton(
-                user.name,
-                callback_data=command + " " + str(user.tg_id) + " " + str(user.name),
-            )
-        ]
+        InlineKeyboardButton(
+            user.name,
+            callback_data=command + " " + str(user.tg_id) + " " + str(user.name),
+        )
         for user in UserManager().users
         if (not filter_registered or user.registered)
     ]
+
+    # split keyboard in two columns
+    keyboard = [keyboard[i : i + COLUMNS] for i in range(0, len(keyboard), COLUMNS)]
     return InlineKeyboardMarkup(keyboard)
 
 
-def contraints_inline_kb(update: Update, context: CallbackContext) -> None:
-    """Send a message with user constraints inline buttons attached."""
+def contraints_inline_kb(update: Update, _: CallbackContext) -> None:
+    """Send a message with user constraints as inline buttons attached."""
     keyboard = build_inline_kb("constaints", filter_registered=True)
+    logger.info("constraints")
     update.message.reply_text(
-        "e qui veux tu afficher les contraintes?", reply_markup=keyboard
+        "De qui veux tu afficher les contraintes?", reply_markup=keyboard
     )
 
 
-def wishes_inline_kb(update: Update, context: CallbackContext) -> None:
+def wishes_inline_kb(update: Update, _: CallbackContext) -> None:
+    """Send a message with user wishes as inline buttons attached."""
     keyboard = build_inline_kb("wishes")
+    logger.info("wishes")
     update.message.reply_text(
         "De qui veux tu consulter la liste de souhaits?", reply_markup=keyboard
     )
 
 
-def user_button(update: Update, context: CallbackContext) -> None:
+def user_button(update: Update, _: CallbackContext) -> None:
     """Parses the CallbackQuery and updates the message text."""
     query = update.callback_query
     # CallbackQueries need to be answered, even if no notification to the user is needed
@@ -133,11 +140,7 @@ def cancel(update: Update, context: CallbackContext) -> None:
 
 # TODO use callback querry handler
 # https://github.com/python-telegram-bot/v13.x-wiki/wiki/Code-snippets#build-a-menu-with-buttons
-def build_exclude_keyboard(
-    update: Update,
-    context: CallbackContext,
-    user_list: list,
-) -> ReplyKeyboardMarkup:
+def build_exclude_keyboard(user_list: list) -> ReplyKeyboardMarkup:
     """Créer le clavier avec les noms des participants."""
     button_list = [f"/exclude {user.name}" for user in user_list]
 
@@ -154,11 +157,7 @@ def build_exclude_keyboard(
     return ReplyKeyboardMarkup(keyboard=menu, one_time_keyboard=True)
 
 
-def build_people_keyboard(
-    update: Update,
-    context: CallbackContext,
-    command: str = "",
-) -> ReplyKeyboardMarkup:
+def build_people_keyboard(command: str = "") -> ReplyKeyboardMarkup:
     """Créer le clavier avec les noms des participants. Ajoute la commande en prefix
     /offrir, /cadeaux, /commentaires, /exclude
     """
