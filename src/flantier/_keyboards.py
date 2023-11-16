@@ -90,6 +90,9 @@ def user_button(update: Update, _: CallbackContext) -> None:
     if command == "wishes":
         text = user_wishes_message(user_name)
 
+    if command == "comments":
+        text = user_comments_message(user_name)
+
     # TODO  "/offrir" text = "À qui veux-tu offrir ?"
     # TODO  "/commentaires, /exclude"
     logger.info("response: %s", text)

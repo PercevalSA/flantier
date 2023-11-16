@@ -10,7 +10,7 @@ from logging import getLogger
 from apiclient.discovery import build
 
 from flantier._settings import SettingsManager
-from flantier._users import User, UserManager
+from flantier._users import User, UserManager, Wish
 
 logger = getLogger("flantier")
 
@@ -62,12 +62,22 @@ def update_wishes_list() -> None:
     for column in range(0, len(values), 2):
         name = values[column][0]
         gifts = values[column][1:]
+        comments = values[column + 1][1:]
         logger.debug("mise à jour des cadeaux de %s", name)
 
         user = user_manager.search_user(name)
         if not user:
             pass
-        user.wishes = gifts
+
+        # user.wishes = list(zip(gifts, comments))
+
+        wishes = []
+        for i, j in zip(gifts, comments):
+            logger.info("adding wish %s and comment %s", i, j)
+            wishes.append(Wish(wish=i, comment=j))
+
+        user.wishes = wishes
+        logger.info(user.wishes)
         user_manager.update_user(user)
 
 
@@ -76,8 +86,22 @@ def get_wish_list(user: User) -> str:
     return "\n".join(w for w in user.wishes)
 
 
+def get_comment_list(user: User) -> str:
+    """Récupère la liste des commentaires d'un participant avec son nom."""
+    return "\n".join(w for w in user.comments)
+
+
 # called by the people inline keyboard
 def user_wishes_message(user_name: str) -> str:
+    wishes = get_wish_list(UserManager().search_user(user_name))
+    text = f"🎅 {user_name} voudrait pour Noël:\n" + wishes
+    if not wishes:
+        text = f"🎅 {user_name} ne veut rien pour Noël 🫥"
+
+    return text
+
+
+def user_comments_message(user_name: str) -> str:
     wishes = get_wish_list(UserManager().search_user(user_name))
     text = f"🎅 {user_name} voudrait pour Noël:\n" + wishes
     if not wishes:

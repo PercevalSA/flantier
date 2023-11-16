@@ -1,5 +1,7 @@
 #!/usr/bin/python3
 """Gère les utilisateurs stockés dans le fichier de configuration users.json
+We are using dataclass to represent Users and wishes (gifts)
+source https://www.delftstack.com/howto/python/dataclass-to-json-in-python/
 """
 
 import json
@@ -12,11 +14,21 @@ DEFAULT_USERS_DB = Path.home() / ".cache/flantier/users.json"
 logger = getLogger("flantier")
 
 
-# @dataclass
-# class Wish:
-#     wish: str  # cadeaux qui viennent du google doc
-#     comment: str  # commentaires qui viennent du google doc
-#     giver: str  # la personne qui offre ce cadeau
+@dataclass
+class Wish:
+    """Represents a wish from a user."""
+
+    wish: str  # cadeaux qui viennent du google doc
+    comment: str  # commentaires qui viennent du google doc
+    giver: int = 0  # la personne qui offre ce cadeau
+
+    @property
+    def __dict__(self):
+        return asdict(self)
+
+    @property
+    def json(self):
+        return json.dumps(self.__dict__)
 
 
 @dataclass
@@ -29,8 +41,9 @@ class User:
     giftee: int = 0  # telegram id of the person to offer a gift
     last_giftee: int = 0  # telegram id of the person who recieved the gift last year
     registered: bool = False  # is the user registered for secret santa
-    # TODO use Wish dataclass instead of dict
-    wishes: list = field(default_factory=list)  # list of wishes as tuple (wish, comment)
+    wishes: list[Wish] = field(
+        default_factory=list[Wish]
+    )  # list of wishes as Wish objects
 
 
 class UserJSONEncoder(json.JSONEncoder):

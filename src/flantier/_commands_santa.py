@@ -26,6 +26,14 @@ def wishes(update: Update, _: CallbackContext) -> None:
     )
 
 
+def comments(update: Update, _: CallbackContext) -> None:
+    """Affiche la liste de cadeaux et les commentaires associés d'une personne."""
+    keyboard = build_people_inline_kb("comments")
+    update.message.reply_text(
+        "🤷 De qui veux tu consulter la liste de souhaits? 🤷", reply_markup=keyboard
+    )
+
+
 def update_wishes_list(update: Update, context: CallbackContext) -> None:
     """Met à jour la liste des cadeaux."""
     _santa.create_missing_users()
@@ -37,22 +45,6 @@ def update_wishes_list(update: Update, context: CallbackContext) -> None:
 
 # LEGACY
 #########
-
-
-def comments(update: Update, context: CallbackContext) -> None:
-    """Affiche la liste de cadeaux et les commentaires associés d'une personne."""
-    if len(update.message.text.split(" ")) > 1:
-        name = update.message.text.split(" ")[1]
-
-        reply_del_kb = ReplyKeyboardRemove()
-        context.bot.send_message(
-            chat_id=update.message.chat_id,
-            text=_santa.find_wishes(update.message.from_user.id, name),
-            reply_markup=reply_del_kb,
-        )
-
-    else:
-        _keyboards.build_people_keyboard("/commentaires")
 
 
 def add_gifter(tg_id: int, message: list) -> str:
