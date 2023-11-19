@@ -22,13 +22,11 @@ class Wish:
     comment: str  # commentaires qui viennent du google doc
     giver: int = 0  # la personne qui offre ce cadeau
 
-    @property
     def __dict__(self):
         return asdict(self)
 
-    @property
-    def json(self):
-        return json.dumps(self.__dict__)
+    def __str__(self):
+        return json.dumps(self.__dict__, ensure_ascii=False)
 
 
 @dataclass
@@ -55,6 +53,13 @@ class UserJSONEncoder(json.JSONEncoder):
         return super().default(o)
 
 
+def UserJSONDecoder(jsonDict):
+    if "tg_id" in jsonDict:
+        return User(**jsonDict)
+    if "wish" in jsonDict:
+        return Wish(**jsonDict)
+
+
 def user_list_to_json(users: list) -> str:
     """Convertit la liste des utilisateurs en JSON."""
     return json.dumps(users, cls=UserJSONEncoder, indent=4, ensure_ascii=False)
@@ -62,7 +67,8 @@ def user_list_to_json(users: list) -> str:
 
 def json_to_user_list(data: str) -> list:
     """Convertit le JSON en liste d'utilisateurs."""
-    return json.loads(data, object_hook=lambda d: User(**d))
+    # return json.loads(data, object_hook=lambda d: User(**d))
+    return json.loads(data, object_hook=UserJSONDecoder)
 
 
 class UserManager:
@@ -123,7 +129,7 @@ class UserManager:
             logger.info("updating user %s: %d", name, tg_id)
             user.tg_id = tg_id
         else:
-            logger.info("Aadding user %s: %d", name, tg_id)
+            logger.info("adding user %s: %d", name, tg_id)
             self.users.append(User(tg_id, name))
 
         logger.debug("users: %s", self.users)

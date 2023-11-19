@@ -73,11 +73,10 @@ def update_wishes_list() -> None:
 
         wishes = []
         for i, j in zip(gifts, comments):
-            logger.info("adding wish %s and comment %s", i, j)
+            logger.info("adding wish \"%s\" with comment \"%s\"", i, j)
             wishes.append(Wish(wish=i, comment=j))
 
         user.wishes = wishes
-        logger.info(user.wishes)
         user_manager.update_user(user)
 
 
