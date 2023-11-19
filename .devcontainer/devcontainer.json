@@ -4,19 +4,39 @@
     "postCreateCommand": "sudo apk add py3-pip && python3 -m pip install .",
     "customizations": {
         "vscode": {
+            "files.eol": "\n",
+            "files.trimTrailingWhitespace": true,
             "editor.formatOnSave": true,
             "editor.rulers": [
                 90,
                 120
             ],
             "extensions": [
+                "aaron-bond.better-comments",
                 "charliermarsh.ruff",
+                "GitHub.copilot",
                 "GitHub.vscode-pull-request-github",
+                "mhutchie.git-graph",
+                "ms-python.black-formatter",
                 "ms-python.mypy-type-checker",
                 "ms-python.pylint",
                 "ms-python.python",
-                "ms-python.vscode-pylance"
-            ]
+                "ms-python.vscode-pylance",
+                "njpwerner.autodocstring",
+                "tamasfe.even-better-toml"
+            ],
+            "files.insertFinalNewline": true,
+            "python.linting.pylintEnabled": false,
+            "python.linting.flake8Enabled": true,
+            "python.formatting.provider": "black",
+            "[python]": {
+                "editor.codeActionsOnSave": {
+                    "source.organizeImports": true
+                },
+                "editor.rulers": [
+                    88
+                ]
+            },
         }
     }
 }
