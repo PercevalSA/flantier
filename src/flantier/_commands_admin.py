@@ -4,14 +4,12 @@
 from logging import getLogger
 
 from telegram import (
-    ForceReply,
     Update,
 )
 from telegram.ext import (
     CallbackContext,
 )
 
-from flantier import _keyboards
 from flantier._roulette import Roulette
 from flantier._settings import SettingsManager
 from flantier._users import UserManager
@@ -79,9 +77,44 @@ def close_registrations(update: Update, context: CallbackContext) -> None:
     )
 
 
-# bot.delete_message(
-#     chat_id=message.chat_id, message_id=message.message_id, *args, **kwargs
-# )
+def process(update: Update, context: CallbackContext) -> None:
+    """Lance le tirage au sort et envoie les réponses en message privé."""
+    if not is_admin(update, context):
+        return
+
+    roulette = Roulette()
+
+    if not roulette.is_ready():
+        context.bot.send_message(
+            chat_id=update.message.chat_id,
+            text="⚠️ Les inscriptions ne sont pas encore terminées. ⚠️",
+        )
+        return
+
+    if roulette.tirage() != 0:
+        context.bot.send_message(
+            chat_id=update.message.chat_id,
+            text="⚠️ Le tirage au sort n'a pas pu être effectué. ⚠️",
+        )
+        return
+
+    # send results to everyone as private message
+    user_manager = UserManager()
+    for user in user_manager.users:
+        if not user.registered:
+            pass
+
+        giftee = user_manager.get_user(user.giftee)
+        logger.info("send result to %s: giftee is %d", user.name, giftee.tg_id)
+
+        context.bot.send_message(
+            user.tg_id,
+            text=f"🎅 Youpi tu offres à {giftee.name} 🎁\n",
+        )
+
+
+# LEGACY
+#########
 
 
 def add_spouse(update: Update, context: CallbackContext) -> None:
@@ -169,39 +202,3 @@ def add_spouse(update: Update, context: CallbackContext) -> None:
         ),
     )
     logger.info("set spouse %s for %s", context.args[0], context.args[1])  # type: ignore
-
-
-def process(update: Update, context: CallbackContext) -> None:
-    """Lance le tirage au sort et envoie les réponses en message privé."""
-    if not is_admin(update, context):
-        return
-
-    roulette = Roulette()
-
-    if not roulette.is_ready():
-        context.bot.send_message(
-            chat_id=update.message.chat_id,
-            text="⚠️ Les inscriptions ne sont pas encore terminées. ⚠️",
-        )
-        return
-
-    if roulette.tirage() != 0:
-        context.bot.send_message(
-            chat_id=update.message.chat_id,
-            text="⚠️ Le tirage au sort n'a pas pu être effectué. ⚠️",
-        )
-        return
-
-    # send results to everyone as private message
-    user_manager = UserManager()
-    for user in user_manager.users:
-        if not user.registered:
-            pass
-
-        giftee = user_manager.get_user(user.giftee)
-        logger.info("send result to %s: giftee is %d", user.name, giftee.tg_id)
-
-        context.bot.send_message(
-            user.tg_id,
-            text=f"🎅 Youpi tu offres à {giftee.name} 🎁\n",
-        )

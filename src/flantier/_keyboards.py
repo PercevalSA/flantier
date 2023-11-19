@@ -14,7 +14,7 @@ from telegram.ext import (
     CallbackContext,
 )
 
-from flantier._santa import user_wishes_message
+from flantier._santa import user_wishes_message,user_comments_message
 from flantier._users import UserManager
 
 logger = getLogger("flantier")
@@ -34,7 +34,7 @@ def build_people_inline_kb(
     Créer le clavier avec les noms des participants. Ajoute la commande en prefix
     /offrir, /cadeaux, /commentaires, /exclude
     """
-    keyboard = [
+    tkeyboard = [
         InlineKeyboardButton(
             user.name,
             callback_data=command + " " + str(user.tg_id) + " " + str(user.name),
@@ -42,9 +42,9 @@ def build_people_inline_kb(
         for user in UserManager().users
         if (not filter_registered or user.registered)
     ]
-    keyboard.append(InlineKeyboardButton("Annuler", callback_data="cancel 0 cancel"))
+    tkeyboard.append(InlineKeyboardButton("Annuler", callback_data="cancel 0 cancel"))
     # split keyboard in two columns
-    keyboard = [keyboard[i : i + COLUMNS] for i in range(0, len(keyboard), COLUMNS)]
+    keyboard = [tkeyboard[i : i + COLUMNS] for i in range(0, len(tkeyboard), COLUMNS)]
     return InlineKeyboardMarkup(keyboard)
 
 
@@ -89,6 +89,9 @@ def user_button(update: Update, _: CallbackContext) -> None:
 
     if command == "wishes":
         text = user_wishes_message(user_name)
+
+    if command == "comments":
+        text = user_comments_message(user_name)
 
     # TODO  "/offrir" text = "À qui veux-tu offrir ?"
     # TODO  "/commentaires, /exclude"

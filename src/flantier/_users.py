@@ -1,22 +1,33 @@
 #!/usr/bin/python3
 """Gère les utilisateurs stockés dans le fichier de configuration users.json
+We are using dataclass to represent Users and wishes (gifts)
+source https://www.delftstack.com/howto/python/dataclass-to-json-in-python/
 """
 
 import json
 from dataclasses import asdict, dataclass, field, is_dataclass
 from logging import getLogger
 from pathlib import Path
+from typing import Any
 
 DEFAULT_USERS_DB = Path.home() / ".cache/flantier/users.json"
 
 logger = getLogger("flantier")
 
 
-# @dataclass
-# class Wish:
-#     wish: str  # cadeaux qui viennent du google doc
-#     comment: str  # commentaires qui viennent du google doc
-#     giver: str  # la personne qui offre ce cadeau
+@dataclass
+class Wish:
+    """Represents a wish from a user."""
+
+    wish: str  # cadeaux qui viennent du google doc
+    comment: str  # commentaires qui viennent du google doc
+    giver: int = 0  # la personne qui offre ce cadeau
+
+    def __dict__(self):
+        return asdict(self)
+
+    def __str__(self):
+        return json.dumps(self.__dict__, ensure_ascii=False)
 
 
 @dataclass
@@ -29,27 +40,37 @@ class User:
     giftee: int = 0  # telegram id of the person to offer a gift
     last_giftee: int = 0  # telegram id of the person who recieved the gift last year
     registered: bool = False  # is the user registered for secret santa
-    # TODO use Wish dataclass instead of dict
-    wishes: list = field(default_factory=list)  # list of wishes as tuple (wish, comment)
+    wishes: list[Wish] = field(
+        default_factory=list[Wish]
+    )  # list of wishes as Wish objects
 
 
 class UserJSONEncoder(json.JSONEncoder):
-    """JSON encoder for User class."""
+    """JSON encoder for User and Wish classes."""
 
     def default(self, o):
         if is_dataclass(o):
             return asdict(o)
         return super().default(o)
 
+# pylint: disable=C0103,R1710
+def UserJSONDecoder(json_dict: dict) -> Any:
+    """JSON decoder function for User and Wish classes."""
+    if "tg_id" in json_dict:
+        return User(**json_dict)
+    if "wish" in json_dict:
+        return Wish(**json_dict)
+
 
 def user_list_to_json(users: list) -> str:
-    """Convertit la liste des utilisateurs en JSON."""
+    """Convert """
     return json.dumps(users, cls=UserJSONEncoder, indent=4, ensure_ascii=False)
 
 
 def json_to_user_list(data: str) -> list:
     """Convertit le JSON en liste d'utilisateurs."""
-    return json.loads(data, object_hook=lambda d: User(**d))
+    # return json.loads(data, object_hook=lambda d: User(**d))
+    return json.loads(data, object_hook=UserJSONDecoder)
 
 
 class UserManager:
@@ -110,7 +131,7 @@ class UserManager:
             logger.info("updating user %s: %d", name, tg_id)
             user.tg_id = tg_id
         else:
-            logger.info("Aadding user %s: %d", name, tg_id)
+            logger.info("adding user %s: %d", name, tg_id)
             self.users.append(User(tg_id, name))
 
         logger.debug("users: %s", self.users)
