@@ -1,0 +1,22 @@
+{
+    "name": "Alpine",
+    "image": "mcr.microsoft.com/devcontainers/base:alpine-3.18",
+    "postCreateCommand": "sudo apk add py3-pip && python3 -m pip install .",
+    "customizations": {
+        "vscode": {
+            "editor.formatOnSave": true,
+            "editor.rulers": [
+                90,
+                120
+            ],
+            "extensions": [
+                "charliermarsh.ruff",
+                "GitHub.vscode-pull-request-github",
+                "ms-python.mypy-type-checker",
+                "ms-python.pylint",
+                "ms-python.python",
+                "ms-python.vscode-pylance"
+            ]
+        }
+    }
+}
