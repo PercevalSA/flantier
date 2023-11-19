@@ -82,16 +82,19 @@ def update_wishes_list() -> None:
 
 def get_wish_list(user: User) -> str:
     """Récupère la liste des souhaits d'un participant avec son nom."""
-    return "\n".join(w for w in user.wishes)
+    return "\n".join(w.wish for w in user.wishes)
 
 
 def get_comment_list(user: User) -> str:
     """Récupère la liste des commentaires d'un participant avec son nom."""
-    return "\n".join(w for w in user.comments)
+    return "\n".join(w.comment for w in user.wishes)
 
 
 # called by the people inline keyboard
 def user_wishes_message(user_name: str) -> str:
+    """Generates the text to send as message with all wishes 
+    from the given user
+    """
     wishes = get_wish_list(UserManager().search_user(user_name))
     text = f"🎅 {user_name} voudrait pour Noël:\n" + wishes
     if not wishes:
@@ -101,6 +104,9 @@ def user_wishes_message(user_name: str) -> str:
 
 
 def user_comments_message(user_name: str) -> str:
+    """Generates the text to send as message with all wishes and associated comments 
+    from the given user
+    """
     wishes = get_wish_list(UserManager().search_user(user_name))
     text = f"🎅 {user_name} voudrait pour Noël:\n" + wishes
     if not wishes:

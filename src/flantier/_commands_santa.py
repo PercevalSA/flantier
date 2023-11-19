@@ -56,7 +56,7 @@ def add_gifter(tg_id: int, message: list) -> str:
 
     # trouve le destinataire dans la liste des participants
     if any(qqun.name == name for qqun in participants):
-        _wishes = _santa.find_wishes(tg_id, name, table=True)
+        _wishes = UserManager().get_user(qqun.tg_id).wishes
 
         if len(_wishes) > 0 and len(_wishes) >= cadeau_index:
             receiver_index = next(

@@ -8,6 +8,7 @@ import json
 from dataclasses import asdict, dataclass, field, is_dataclass
 from logging import getLogger
 from pathlib import Path
+from typing import Any
 
 DEFAULT_USERS_DB = Path.home() / ".cache/flantier/users.json"
 
@@ -45,23 +46,24 @@ class User:
 
 
 class UserJSONEncoder(json.JSONEncoder):
-    """JSON encoder for User class."""
+    """JSON encoder for User and Wish classes."""
 
     def default(self, o):
         if is_dataclass(o):
             return asdict(o)
         return super().default(o)
 
-
-def UserJSONDecoder(jsonDict):
-    if "tg_id" in jsonDict:
-        return User(**jsonDict)
-    if "wish" in jsonDict:
-        return Wish(**jsonDict)
+# pylint: disable=C0103,R1710
+def UserJSONDecoder(json_dict: dict) -> Any:
+    """JSON decoder function for User and Wish classes."""
+    if "tg_id" in json_dict:
+        return User(**json_dict)
+    if "wish" in json_dict:
+        return Wish(**json_dict)
 
 
 def user_list_to_json(users: list) -> str:
-    """Convertit la liste des utilisateurs en JSON."""
+    """Convert """
     return json.dumps(users, cls=UserJSONEncoder, indent=4, ensure_ascii=False)
 
 

@@ -11,9 +11,7 @@ from tqdm import tqdm
 SITE = "https://zonesons.com"
 # pylint: disable=C0301
 OSS1 = "/repliques-cultes-de-films-d-espionnage/phrases-cultes-de-oss-117-le-caire-nid-d-espions"
-OSS2 = (
-    "/repliques-cultes-de-films-d-espionnage/phrases-cultes-de-oss-117-rio-ne-repond-plus"
-)
+OSS2 = "/repliques-cultes-de-films-d-espionnage/phrases-cultes-de-oss-117-rio-ne-repond-plus"
 FILMS = [OSS1, OSS2]
 AUDIO_BASE_FOLDER = Path.home() / ".cache/flantier/"
 
