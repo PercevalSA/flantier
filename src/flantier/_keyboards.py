@@ -48,10 +48,10 @@ def build_people_inline_kb(
     return InlineKeyboardMarkup(keyboard)
 
 
-def constraints(update: Update, _: CallbackContext) -> None:
+def constraints_inline_kb(update: Update, _: CallbackContext) -> None:
     """Send a message with user constraints as inline buttons attached."""
     keyboard = build_people_inline_kb("constaints", filter_registered=True)
-    logger.info("constraints")
+    logger.info("constraints keyboard")
     update.message.reply_text(
         "De qui veux tu afficher les contraintes?", reply_markup=keyboard
     )
@@ -60,10 +60,15 @@ def constraints(update: Update, _: CallbackContext) -> None:
 def spouse_inline_kb(update: Update, _: CallbackContext) -> None:
     """Send a message with user spouse as inline buttons attached."""
     keyboard = build_people_inline_kb("wishes")
-    logger.info("wishes")
+    logger.info("wishes keyboard")
     update.message.reply_text(
         "De qui veux tu configurer le/la partenaire?", reply_markup=keyboard
     )
+
+def giftee_inline_kb(update: Update, _: CallbackContext) -> None:
+    keyboard = build_people_inline_kb("offer")
+    logger.info("giftee keyboard")
+    update.message.reply_text("À qui veux-tu offrir ?", reply_markup=keyboard)
 
 
 def user_button(update: Update, _: CallbackContext) -> None:
@@ -80,6 +85,7 @@ def user_button(update: Update, _: CallbackContext) -> None:
     command = data[0]
     user_id = int(data[1])
     user_name = data[2]
+    markup = None
 
     if command == "cancel":
         text = "🙅 Opération annulée."
@@ -93,10 +99,29 @@ def user_button(update: Update, _: CallbackContext) -> None:
     if command == "comments":
         text = user_comments_message(user_name)
 
-    # TODO  "/offrir" text = "À qui veux-tu offrir ?"
+    if command == "offer":
+        text = "Que veux tu offrir comme cadeau ?"
+        markup = build_wishes_inline_kb(user_name)
+
     # TODO  "/commentaires, /exclude"
     logger.info("response: %s", text)
-    query.edit_message_text(text=text)
+    query.edit_message_text(text=text, reply_markup=markup)
+
+
+def build_wishes_inline_kb(username: str) -> InlineKeyboardMarkup:
+    """build an inline keyboard based on user wishes."""
+    user = UserManager().search_user(username)
+    tkeyboard = [
+        InlineKeyboardButton(
+            wish.wish,
+            callback_data=str(wish.wish) + " " + str(wish.giver),
+        )
+        for wish in user.wishes
+    ]
+    tkeyboard.append(InlineKeyboardButton("Annuler", callback_data="cancel 0 cancel"))
+    # split keyboard in two columns
+    keyboard = [tkeyboard[i : i + COLUMNS] for i in range(0, len(tkeyboard), COLUMNS)]
+    return InlineKeyboardMarkup(keyboard)
 
 
 # LEGACY

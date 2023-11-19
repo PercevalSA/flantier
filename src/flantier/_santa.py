@@ -15,7 +15,7 @@ from flantier._users import User, UserManager, Wish
 logger = getLogger("flantier")
 
 
-def get_gifts() -> list:
+def download_gifts() -> list:
     """Récupère les cadeaux de chaque participant depuis le google doc."""
     google_settings = SettingsManager().get_settings()["google"]
     service = build(
@@ -43,7 +43,7 @@ def get_gifts() -> list:
 
 def create_missing_users() -> None:
     """create users present in google sheet but not in database (no telegram account)."""
-    gifts = get_gifts()
+    gifts = download_gifts()
     user_manager = UserManager()
 
     for user in gifts[0::2]:
@@ -56,7 +56,7 @@ def create_missing_users() -> None:
 def update_wishes_list() -> None:
     """Met à jour la liste des cadeaux de chaque participant."""
     logger.info("updating wishes list")
-    values = get_gifts()
+    values = download_gifts()
     user_manager = UserManager()
 
     for column in range(0, len(values), 2):
@@ -78,7 +78,6 @@ def update_wishes_list() -> None:
 
         user.wishes = wishes
         user_manager.update_user(user)
-
 
 def get_wish_list(user: User) -> str:
     """Récupère la liste des souhaits d'un participant avec son nom."""
