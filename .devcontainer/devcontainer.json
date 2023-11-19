@@ -1,42 +1,67 @@
 {
-    "name": "Alpine",
-    "image": "mcr.microsoft.com/devcontainers/base:alpine-3.18",
-    "postCreateCommand": "sudo apk add py3-pip && python3 -m pip install .",
-    "customizations": {
-        "vscode": {
-            "files.eol": "\n",
-            "files.trimTrailingWhitespace": true,
-            "editor.formatOnSave": true,
-            "editor.rulers": [
-                90,
-                120
-            ],
-            "extensions": [
-                "aaron-bond.better-comments",
-                "charliermarsh.ruff",
-                "GitHub.copilot",
-                "GitHub.vscode-pull-request-github",
-                "mhutchie.git-graph",
-                "ms-python.black-formatter",
-                "ms-python.mypy-type-checker",
-                "ms-python.pylint",
-                "ms-python.python",
-                "ms-python.vscode-pylance",
-                "njpwerner.autodocstring",
-                "tamasfe.even-better-toml"
-            ],
-            "files.insertFinalNewline": true,
-            "python.linting.pylintEnabled": false,
-            "python.linting.flake8Enabled": true,
-            "python.formatting.provider": "black",
-            "[python]": {
-                "editor.codeActionsOnSave": {
-                    "source.organizeImports": true
-                },
-                "editor.rulers": [
-                    88
-                ]
-            },
-        }
-    }
+	"name": "Python 3",
+	// Or use a Dockerfile or Docker Compose file. More info: https://containers.dev/guide/dockerfile
+	"image": "mcr.microsoft.com/devcontainers/python:1-3.8-bullseye",
+	"features": {
+		"ghcr.io/devcontainers-contrib/features/flake8:2": {
+			"version": "latest",
+			"plugins": "flake8-black flake8-isort flake8-print flake8-bandit flake8-pylint flake8-builtins flake8-spellcheck flake8-pytest-style flake8-django flake8-fastapi"
+		},
+		"ghcr.io/devcontainers-contrib/features/flit:2": {
+			"version": "latest"
+		},
+		"ghcr.io/devcontainers-contrib/features/isort:2": {
+			"version": "latest"
+		},
+		"ghcr.io/devcontainers-contrib/features/mypy:2": {
+			"version": "latest"
+		},
+		"ghcr.io/devcontainers-contrib/features/pylint:2": {
+			"version": "latest"
+		},
+		"ghcr.io/devcontainers-contrib/features/ruff:1": {
+			"version": "latest"
+		}
+	},
+	"postCreateCommand": "python3 -m pip install .",
+	"customizations": {
+		"vscode": {
+			"files.associations": {
+				"*.toml": "toml"
+			},
+			"files.eol": "\n",
+			"files.trimTrailingWhitespace": true,
+			"editor.formatOnSave": true,
+			"editor.rulers": [
+				90,
+				120
+			],
+			"extensions": [
+				"aaron-bond.better-comments",
+				"charliermarsh.ruff",
+				"GitHub.copilot",
+				"GitHub.vscode-pull-request-github",
+				"mhutchie.git-graph",
+				"ms-python.black-formatter",
+				"ms-python.mypy-type-checker",
+				"ms-python.pylint",
+				"ms-python.python",
+				"ms-python.vscode-pylance",
+				"njpwerner.autodocstring",
+				"tamasfe.even-better-toml"
+			],
+			"files.insertFinalNewline": true,
+			"python.linting.pylintEnabled": false,
+			"python.linting.flake8Enabled": true,
+			"python.formatting.provider": "black",
+			"[python]": {
+				"editor.codeActionsOnSave": {
+					"source.fixAll": true,
+					"source.organizeImports": true
+				},
+				"editor.defaultFormatter": "ms-python.black-formatter",
+				"editor.formatOnType": true
+			}
+		}
+	}
 }
