@@ -53,6 +53,55 @@ def create_missing_users() -> None:
             user_manager.add_user(name=name, tg_id=0)
 
 
+def compare_gifts(user: User) -> list:
+    """for a given user, compare the wish list from from google sheet
+    with the one already in database.
+    Compareason is based on wish field. We Check if the name of a gift changed slightly
+    in order to only update the wish field while keeping the giver field state in database.
+    Add new wishes and delete removed ones in google sheet."""
+    gifts = download_gifts()
+    wishes = gifts[gifts.index(user.name) + 1]
+    comments = gifts[gifts.index(user.name) + 2]
+    logger.info("comparing gifts for %s", user.name)
+    logger.debug("wishes: %s", wishes)
+    logger.debug("comments: %s", comments)
+
+    # check if only a comment has been changed
+    for wish in user.wishes:
+        if wish.wish in wishes:
+            if wish.comment != comments[wishes.index(wish.wish)]:
+                logger.info(
+                    "comment for %s has been changed: %s",
+                    wish.wish,
+                    wish.comment,
+                )
+                wish.comment = comments[wishes.index(wish.wish)]
+
+    # check if a wish has been modified but is like an existing one
+    # from difflib import SequenceMatcher
+    # s_1 = 'Mohan Mehta'
+    # s_2 = 'Mohan Mehte'
+    # print(SequenceMatcher(a=s_1,b=s_2).ratio())
+    # 0.909090909091
+    # https://docs.python.org/2/library/difflib.html#sequencematcher-objects
+    # https://pypi.org/project/fuzzywuzzy/
+    # https://pypi.org/project/Levenshtein/
+
+    # check if a wish has been removed
+    for wish in user.wishes:
+        if wish.wish not in wishes:
+            logger.info("wish %s has been removed", wish.wish)
+            user.wishes.remove(wish)
+
+    # check if a wish has been added
+    for wish, comment in zip(wishes, comments):
+        if wish not in [w.wish for w in user.wishes]:
+            logger.info("wish %s has been added", wish)
+            user.wishes.append(Wish(wish=wish, comment=comment))
+
+    return user.wishes
+
+
 def update_wishes_list() -> None:
     """Met à jour la liste des cadeaux de chaque participant."""
     logger.info("updating wishes list")
