@@ -43,90 +43,55 @@ def download_gifts() -> list:
     return values
 
 
-def create_missing_users() -> None:
-    """create users present in google sheet but not in database (no telegram account)."""
-    gifts = download_gifts()
-    user_manager = UserManager()
-
-    for user in gifts[0::2]:
-        name = user[0]
-        logger.info("checking if %s is missing", name)
-        if not user_manager.search_user(name):
-            user_manager.add_user(name=name, tg_id=0)
-
-
-def test_wish_compare() -> None:
+# check if a wish has been modified but is like an existing one
+# https://docs.python.org/2/library/difflib.html#sequencematcher-objects
+# https://pypi.org/project/fuzzywuzzy/
+# https://pypi.org/project/Levenshtein/
+def update_user_wishes(user: User, wishes: list, comments: list) -> None:
     """wish compare function"""
-    gifts = download_gifts()
-
-    for user in UserManager().users:
-        logger.info("comparing gifts for %s", user.name)
-
-        heads = [head[0] for head in gifts]
-        wishes = gifts[heads.index(user.name)][1:]
-        comments = gifts[heads.index(user.name) + 1][1:]
-        logger.debug("wishes: %s", wishes)
-        logger.debug("comments: %s", comments)
-
-        for wish in user.wishes:
-            for w in wishes:
-                ratio = SequenceMatcher(a=wish.wish, b=w).ratio()
-                logger.info("ratio is %s between %s and %s", ratio, wish.wish, w)
-                if 1 > ratio >= 0.6:
-                    send_admin_notification(f"ratio {ratio}\n{wish.wish}\n{w}")
-
-
-def compare_gifts(user: User) -> list:
-    """for a given user, compare the wish list from from google sheet
-    with the one already in database.
-    Compareason is based on wish field. We Check if the name of a gift changed slightly
-    in order to only update the wish field while keeping the giver field state in database.
-    Add new wishes and delete removed ones in google sheet."""
-    gifts = download_gifts()
-    wishes = gifts[gifts.index(user.name) + 1]
-    comments = gifts[gifts.index(user.name) + 2]
     logger.info("comparing gifts for %s", user.name)
     logger.debug("wishes: %s", wishes)
     logger.debug("comments: %s", comments)
 
-    # check if only a comment has been changed
-    for wish in user.wishes:
-        if wish.wish in wishes:
-            if wish.comment != comments[wishes.index(wish.wish)]:
-                logger.info(
-                    "comment for %s has been changed: %s",
-                    wish.wish,
-                    wish.comment,
-                )
-                wish.comment = comments[wishes.index(wish.wish)]
+    # FIXME: I'm messed up with naming and order
+    # update the wish with the best match
+    # add new wishes
+    # remove old wishes
+    for db_wish, db_comment in zip_longest(wishes, comments, fillvalue=""):
+        best_ratio: float = 0
+        new_wish = ""
 
-    # check if a wish has been modified but is like an existing one
-    # https://docs.python.org/2/library/difflib.html#sequencematcher-objects
-    # https://pypi.org/project/fuzzywuzzy/
-    # https://pypi.org/project/Levenshtein/
+        # search for best match
+        for gs_wish in wishes:
+            ratio = SequenceMatcher(a=db_wish.wish, b=gs_wish).ratio()
+            if ratio > 0.6 and ratio > best_ratio:  # similar enough
+                best_ratio = ratio
+                new_wish = gs_wish
+
+        # no match found
+        if not new_wish:
+            logger.info("no match found for %s. This is a new one", db_wish.wish)
+            user.wishes.append(Wish(wish=db_wish, comment=c))
+
+            continue
+
+            if 1 > ratio:
+                send_admin_notification(f"ratio {ratio}\n{db_wish.wish}\n{gs_wish}")
+
+    tmp_wishes = []
+    for w, c in zip_longest(gifts, comments, fillvalue=""):
+        logger.info('adding wish "%s" with comment "%s"', w, c)
+        wishes.append(Wish(wish=w, comment=c))
+
+    user.wishes = wishes
+    user_manager.update_user(user)
 
     for wish in user.wishes:
         for w in wishes:
-            logger.info(
-                "ratio %s between %s and %s",
-                SequenceMatcher(a=wish, b=w).ratio(),
-                wish,
-                w,
-            )
-
-    # # check if a wish has been removed
-    # for wish in user.wishes:
-    #     if wish.wish not in wishes:
-    #         logger.info("wish %s has been removed", wish.wish)
-    #         user.wishes.remove(wish)
-
-    # check if a wish has been added
-    for wish, comment in zip(wishes, comments):
-        if wish not in [w.wish for w in user.wishes]:
-            logger.info("wish %s has been added", wish)
-            user.wishes.append(Wish(wish=wish, comment=comment))
-
-    return user.wishes
+            ratio = SequenceMatcher(a=wish.wish, b=w).ratio()
+            logger.info("ratio is %s between %s and %s", ratio, wish.wish, w)
+            if 1 > ratio >= 0.6:
+                send_admin_notification(f"ratio {ratio}\n{wish.wish}\n{w}")
 
 
 def update_wishes_list() -> None:
@@ -146,15 +111,15 @@ def update_wishes_list() -> None:
         if not user:
             logger.error("user %s not found", name)
 
-        # user.wishes = list(zip(gifts, comments))
+        update_user_wishes(user, gifts, comments)
 
-        wishes = []
-        for w, c in zip_longest(gifts, comments, fillvalue=""):
-            logger.info('adding wish "%s" with comment "%s"', w, c)
-            wishes.append(Wish(wish=w, comment=c))
+        # tmp_wishes = []
+        # for w, c in zip_longest(gifts, comments, fillvalue=""):
+        #     logger.info('adding wish "%s" with comment "%s"', w, c)
+        #     wishes.append(Wish(wish=w, comment=c))
 
-        user.wishes = wishes
-        user_manager.update_user(user)
+        # user.wishes = wishes
+        # user_manager.update_user(user)
 
 
 def get_wish_list(user: User) -> str:
@@ -192,8 +157,71 @@ def user_comments_message(user_name: str) -> str:
     return text
 
 
+def create_missing_users() -> None:
+    """create users present in google sheet but not in database (no telegram account)."""
+    gifts = download_gifts()
+    user_manager = UserManager()
+
+    for user in gifts[0::2]:
+        name = user[0]
+        logger.info("checking if %s is missing", name)
+        if not user_manager.search_user(name):
+            user_manager.add_user(name=name, tg_id=0)
+
+
 def update_gifts_background_task(interval_sec: int = 600) -> None:
     """Update gifts list in background. Function to be run in a thread"""
     ticker = threading.Event()
     while not ticker.wait(interval_sec):
         update_wishes_list()
+
+
+# FUTURE
+
+
+def compare_gifts(user: User) -> list:
+    """for a given user, compare the wish list from from google sheet
+    with the one already in database.
+    Compareason is based on wish field. We Check if the name of a gift changed slightly
+    in order to only update the wish field while keeping the giver field state in database.
+    Add new wishes and delete removed ones in google sheet."""
+    gifts = download_gifts()
+    wishes = gifts[gifts.index(user.name) + 1]
+    comments = gifts[gifts.index(user.name) + 2]
+    logger.info("comparing gifts for %s", user.name)
+    logger.debug("wishes: %s", wishes)
+    logger.debug("comments: %s", comments)
+
+    # check if only a comment has been changed
+    for wish in user.wishes:
+        if wish.wish in wishes:
+            if wish.comment != comments[wishes.index(wish.wish)]:
+                logger.info(
+                    "comment for %s has been changed: %s",
+                    wish.wish,
+                    wish.comment,
+                )
+                wish.comment = comments[wishes.index(wish.wish)]
+
+    for wish in user.wishes:
+        for w in wishes:
+            logger.info(
+                "ratio %s between %s and %s",
+                SequenceMatcher(a=wish, b=w).ratio(),
+                wish,
+                w,
+            )
+
+    # # check if a wish has been removed
+    # for wish in user.wishes:
+    #     if wish.wish not in wishes:
+    #         logger.info("wish %s has been removed", wish.wish)
+    #         user.wishes.remove(wish)
+
+    # check if a wish has been added
+    for wish, comment in zip(wishes, comments):
+        if wish not in [w.wish for w in user.wishes]:
+            logger.info("wish %s has been added", wish)
+            user.wishes.append(Wish(wish=wish, comment=comment))
+
+    return user.wishes

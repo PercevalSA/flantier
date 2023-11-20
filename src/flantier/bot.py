@@ -178,8 +178,6 @@ def main() -> None:
     # init users
     UserManager().load_users()
 
-    test_wish_compare()
-
     # update gifts in database every 10 minutes
     thread = Thread(target=update_gifts_background_task)
     thread.start()

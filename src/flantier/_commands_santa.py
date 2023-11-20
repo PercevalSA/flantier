@@ -4,6 +4,7 @@
 from logging import getLogger
 
 from telegram import (
+    Bot,
     ReplyKeyboardRemove,
     Update,
 )
@@ -13,7 +14,8 @@ from telegram.ext import (
 
 from flantier import _santa
 from flantier._keyboards import build_people_inline_kb
-from flantier._users import UserManager
+from flantier._users import UserManager, Wish
+from flantier._settings import SettingsManager
 
 logger = getLogger("flantier")
 
@@ -41,6 +43,21 @@ def update_wishes_list(update: Update, context: CallbackContext) -> None:
     text = "🎁 liste des cadeaux mise à jour 🎁"
     context.bot.send_message(chat_id=update.message.chat_id, text=text)
     logger.info(text)
+
+
+def send_giver_notification(wish: Wish) -> None:
+    """send a notification to the giver of a wish that has been changed or updated
+    in database in order to confirm that it didn't changed completely
+    and that the giver still want to give this gift
+    """
+    if wish.giver:
+        Bot(token=SettingsManager().settings["telegram"]["bot_token"]).send_message(
+            chat_id=wish.giver,
+            text=(
+                "Le cadeau que tu avais prévu d'offrir a changé: {wish.wish}.\nVeux-tu"
+                " toujours l'offir? Si non utilises la commande /offrir"
+            ),
+        )
 
 
 # LEGACY
