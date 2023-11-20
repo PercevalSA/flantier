@@ -4,6 +4,8 @@
 from logging import getLogger
 
 from telegram import (
+    Bot,
+    ForceReply,
     Update,
 )
 from telegram.ext import (
@@ -41,6 +43,18 @@ def is_admin(update: Update, context: CallbackContext) -> bool:
         return False
 
     return True
+
+
+def send_admin_notification(message: str) -> None:
+    administrator = SettingsManager().settings["telegram"]["administrator"]
+    Bot(token=SettingsManager().settings["telegram"]["bot_token"]).send_message(
+        chat_id=administrator,
+        text=(
+            "Changer le monde, changer le monde vous êtes bien sympathiques mais faudrait"
+            " déjà vous levez le matin.\n\n"
+            + message
+        ),
+    )
 
 
 def open_registrations(update: Update, context: CallbackContext) -> None:

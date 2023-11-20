@@ -12,6 +12,7 @@ from apiclient.discovery import build
 from itertools import zip_longest
 from flantier._settings import SettingsManager
 from flantier._users import User, UserManager, Wish
+from flantier._commands_admin import send_admin_notification
 
 logger = getLogger("flantier")
 
@@ -69,7 +70,10 @@ def test_wish_compare() -> None:
 
         for wish in user.wishes:
             for w in wishes:
-                logger.info("diff ratio is %s", SequenceMatcher(a=wish.wish, b=w).ratio())
+                ratio = SequenceMatcher(a=wish.wish, b=w).ratio()
+                logger.info("ratio is %s between %s and %s", ratio, wish.wish, w)
+                if 1 > ratio >= 0.6:
+                    send_admin_notification(f"ratio {ratio}\n{wish.wish}\n{w}")
 
 
 def compare_gifts(user: User) -> list:
@@ -103,7 +107,12 @@ def compare_gifts(user: User) -> list:
 
     for wish in user.wishes:
         for w in wishes:
-            logger.info("diff ratio is %s", SequenceMatcher(a=wish, b=w).ratio())
+            logger.info(
+                "ratio %s between %s and %s",
+                SequenceMatcher(a=wish, b=w).ratio(),
+                wish,
+                w,
+            )
 
     # # check if a wish has been removed
     # for wish in user.wishes:
@@ -140,7 +149,7 @@ def update_wishes_list() -> None:
         # user.wishes = list(zip(gifts, comments))
 
         wishes = []
-        for w, c in zip_longest(gifts, comments):
+        for w, c in zip_longest(gifts, comments, fillvalue=""):
             logger.info('adding wish "%s" with comment "%s"', w, c)
             wishes.append(Wish(wish=w, comment=c))
 
