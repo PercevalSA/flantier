@@ -118,8 +118,10 @@ def gift_button(query: CallbackQuery) -> None:
     giftee = int(data[1])
     wish_index = int(data[2])
 
-    user = UserManager().get_user(giftee)
+    user_manager = UserManager()
+    user = user_manager.get_user(giftee)
     user.wishes[wish_index].giver = query.from_user.id
+    user_manager.update_user(user)
     query.edit_message_text(
         text="Youpi! Tu offres " + user.wishes[wish_index].wish + " à " + user.name
     )
