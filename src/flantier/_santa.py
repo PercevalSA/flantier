@@ -6,9 +6,10 @@ Stores every wishes and who is offering what.
 
 import threading
 from logging import getLogger
+from difflib import SequenceMatcher
 
 from apiclient.discovery import build
-
+from itertools import zip_longest
 from flantier._settings import SettingsManager
 from flantier._users import User, UserManager, Wish
 
@@ -53,6 +54,24 @@ def create_missing_users() -> None:
             user_manager.add_user(name=name, tg_id=0)
 
 
+def test_wish_compare() -> None:
+    """wish compare function"""
+    gifts = download_gifts()
+
+    for user in UserManager().users:
+        logger.info("comparing gifts for %s", user.name)
+
+        heads = [head[0] for head in gifts]
+        wishes = gifts[heads.index(user.name)][1:]
+        comments = gifts[heads.index(user.name) + 1][1:]
+        logger.debug("wishes: %s", wishes)
+        logger.debug("comments: %s", comments)
+
+        for wish in user.wishes:
+            for w in wishes:
+                logger.info("diff ratio is %s", SequenceMatcher(a=wish.wish, b=w).ratio())
+
+
 def compare_gifts(user: User) -> list:
     """for a given user, compare the wish list from from google sheet
     with the one already in database.
@@ -78,20 +97,19 @@ def compare_gifts(user: User) -> list:
                 wish.comment = comments[wishes.index(wish.wish)]
 
     # check if a wish has been modified but is like an existing one
-    # from difflib import SequenceMatcher
-    # s_1 = 'Mohan Mehta'
-    # s_2 = 'Mohan Mehte'
-    # print(SequenceMatcher(a=s_1,b=s_2).ratio())
-    # 0.909090909091
     # https://docs.python.org/2/library/difflib.html#sequencematcher-objects
     # https://pypi.org/project/fuzzywuzzy/
     # https://pypi.org/project/Levenshtein/
 
-    # check if a wish has been removed
     for wish in user.wishes:
-        if wish.wish not in wishes:
-            logger.info("wish %s has been removed", wish.wish)
-            user.wishes.remove(wish)
+        for w in wishes:
+            logger.info("diff ratio is %s", SequenceMatcher(a=wish, b=w).ratio())
+
+    # # check if a wish has been removed
+    # for wish in user.wishes:
+    #     if wish.wish not in wishes:
+    #         logger.info("wish %s has been removed", wish.wish)
+    #         user.wishes.remove(wish)
 
     # check if a wish has been added
     for wish, comment in zip(wishes, comments):
@@ -112,18 +130,19 @@ def update_wishes_list() -> None:
         name = values[column][0]
         gifts = values[column][1:]
         comments = values[column + 1][1:]
-        logger.debug("mise à jour des cadeaux de %s", name)
+        logger.info("mise à jour des cadeaux de %s: %s", name, gifts)
+        logger.info("mise à jour des commentaires de %s: %s", name, comments)
 
         user = user_manager.search_user(name)
         if not user:
-            pass
+            logger.error("user %s not found", name)
 
         # user.wishes = list(zip(gifts, comments))
 
         wishes = []
-        for i, j in zip(gifts, comments):
-            logger.info('adding wish "%s" with comment "%s"', i, j)
-            wishes.append(Wish(wish=i, comment=j))
+        for w, c in zip_longest(gifts, comments):
+            logger.info('adding wish "%s" with comment "%s"', w, c)
+            wishes.append(Wish(wish=w, comment=c))
 
         user.wishes = wishes
         user_manager.update_user(user)
