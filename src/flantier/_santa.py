@@ -73,11 +73,12 @@ def update_wishes_list() -> None:
 
         wishes = []
         for i, j in zip(gifts, comments):
-            logger.info("adding wish \"%s\" with comment \"%s\"", i, j)
+            logger.info('adding wish "%s" with comment "%s"', i, j)
             wishes.append(Wish(wish=i, comment=j))
 
         user.wishes = wishes
         user_manager.update_user(user)
+
 
 def get_wish_list(user: User) -> str:
     """Récupère la liste des souhaits d'un participant avec son nom."""
@@ -91,7 +92,7 @@ def get_comment_list(user: User) -> str:
 
 # called by the people inline keyboard
 def user_wishes_message(user_name: str) -> str:
-    """Generates the text to send as message with all wishes 
+    """Generates the text to send as message with all wishes
     from the given user
     """
     wishes = get_wish_list(UserManager().search_user(user_name))
@@ -103,7 +104,7 @@ def user_wishes_message(user_name: str) -> str:
 
 
 def user_comments_message(user_name: str) -> str:
-    """Generates the text to send as message with all wishes and associated comments 
+    """Generates the text to send as message with all wishes and associated comments
     from the given user
     """
     wishes = get_wish_list(UserManager().search_user(user_name))

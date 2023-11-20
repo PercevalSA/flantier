@@ -51,6 +51,7 @@ class UserJSONEncoder(json.JSONEncoder):
             return asdict(o)
         return super().default(o)
 
+
 # pylint: disable=C0103,R1710
 def UserJSONDecoder(json_dict: dict) -> Any:
     """JSON decoder function for User and Wish classes."""
@@ -61,7 +62,7 @@ def UserJSONDecoder(json_dict: dict) -> Any:
 
 
 def user_list_to_json(users: list) -> str:
-    """Convert """
+    """Convert"""
     return json.dumps(users, cls=UserJSONEncoder, indent=4, ensure_ascii=False)
 
 

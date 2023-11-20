@@ -77,10 +77,7 @@ quotes = [
         "- L'idée est que nous travaillons ensemble d'égal à égal\n- On en reparlera"
         " quand il faudra porter quelque chose de lourd."
     ),
-    (
-        "- Vous confondez les Juifs et les Musulmans !\n- Vous jouez sur les mots,"
-        " Dolorès."
-    ),
+    "- Vous confondez les Juifs et les Musulmans !\n- Vous jouez sur les mots, Dolorès.",
     (
         "Une dictature c'est quand les gens sont communistes, déjà, ils ont froid, avec"
         " des chapeaux gris, et des chaussures à fermeture éclaire."

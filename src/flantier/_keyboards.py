@@ -79,7 +79,6 @@ def giftee_inline_kb(update: Update, _: CallbackContext) -> None:
     update.message.reply_text("À qui veux-tu offrir ?", reply_markup=keyboard)
 
 
-
 def user_button(query: CallbackQuery) -> None:
     """Parses the CallbackQuery and updates the message text from people inline keyboard.
     data is like "user <command> <user_id> <user_name>
@@ -126,6 +125,7 @@ def gift_button(query: CallbackQuery) -> None:
         text="Youpi! Tu offres " + user.wishes[wish_index].wish + " à " + user.name
     )
 
+
 def inline_button_pressed(update: Update, _: CallbackContext) -> None:
     """Parses the CallbackQuery and updates the message text
     from people and wish inline keyboards."""
@@ -144,12 +144,13 @@ def inline_button_pressed(update: Update, _: CallbackContext) -> None:
         return
 
     if keyboard_type == "user":
-        return user_button(query)
+        user_button(query)
+        return
 
     if keyboard_type == "wish":
-        return gift_button(query)
+        gift_button(query)
+        return
 
-    return None
 
 def build_wishes_inline_kb(username: str) -> InlineKeyboardMarkup:
     """build an inline keyboard based on user wishes."""

@@ -26,7 +26,11 @@ from flantier._commands_admin import (
 from flantier._commands_flantier import hello, quote_oss1, quote_oss2
 from flantier._commands_santa import update_wishes_list, wishes
 from flantier._commands_user import get_result, list_users, register, unregister
-from flantier._keyboards import constraints_inline_kb, inline_button_pressed, giftee_inline_kb
+from flantier._keyboards import (
+    constraints_inline_kb,
+    inline_button_pressed,
+    giftee_inline_kb,
+)
 from flantier._santa import update_gifts_background_task
 from flantier._settings import SettingsManager
 from flantier._users import UserManager

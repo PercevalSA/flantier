@@ -37,7 +37,6 @@
             ],
             "extensions": [
                 "aaron-bond.better-comments",
-                "charliermarsh.ruff",
                 "eamodio.gitlens",
                 "GitHub.copilot",
                 "GitHub.vscode-pull-request-github",
