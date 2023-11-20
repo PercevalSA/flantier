@@ -8,7 +8,7 @@ import json
 from dataclasses import asdict, dataclass, field, is_dataclass
 from logging import getLogger
 from pathlib import Path
-from typing import Any
+from typing import Any, List
 
 DEFAULT_USERS_DB = Path.home() / ".cache/flantier/users.json"
 
@@ -40,9 +40,7 @@ class User:
     giftee: int = 0  # telegram id of the person to offer a gift
     last_giftee: int = 0  # telegram id of the person who recieved the gift last year
     registered: bool = False  # is the user registered for secret santa
-    wishes: list[Wish] = field(
-        default_factory=list[Wish]
-    )  # list of wishes as Wish objects
+    wishes: List[Wish] = field(default_factory=list)  # list of wishes as Wish objects
 
 
 class UserJSONEncoder(json.JSONEncoder):
@@ -76,7 +74,7 @@ def json_to_user_list(data: str) -> list:
 class UserManager:
     """Singleton class to store roulette state."""
 
-    users: list[User] = []
+    users: List[User] = []
     # singleton
     __instance = None
 

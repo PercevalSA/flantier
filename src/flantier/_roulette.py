@@ -6,6 +6,7 @@ from logging import getLogger
 from multiprocessing import Process
 from random import choice
 from time import sleep
+from typing import List
 
 from flantier._users import User, UserManager
 
@@ -88,7 +89,7 @@ class Roulette:
         """Vérifie que les conditions sont réunies pour lancer le tirage au sort"""
         return bool(UserManager().users) and not self.registration
 
-    def _roulette(self, participants: list[User]) -> bool:
+    def _roulette(self, participants: List[User]) -> bool:
         """Algorithme de tirage au sort, complète automatique les champs 'giftee'."""
         drawn_users = []
 
