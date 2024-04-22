@@ -7,11 +7,11 @@ readme = "README.md"
 requires-python = ">=3.7"
 
 dependencies = [
-    "google-api-python-client == 2.65.0",
-    "python-telegram-bot == v13.15",
-    "requests-toolbelt == 0.10.1",
+    "google-api-python-client == 2.126.0",
+    "python-telegram-bot ==v21.1.1",
+    "requests-toolbelt == 1.0.0",
     "toml",
-    "urllib3 == 1.26.18",                 # urllib3 fixed version for PTB 13
+    "urllib3 == 2.2.1",                 # urllib3 fixed version for PTB 13
     "tqdm",                               # for audio downloader
     "bs4",                                # for audio downloader
 ]
