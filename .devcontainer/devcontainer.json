@@ -22,6 +22,10 @@
             "version": "latest"
         }
     },
+    "runArgs": [
+        "--userns=keep-id"
+    ],
+    "containerUser": "vscode", // the value needs to match the value of "remoteUser"
     "postCreateCommand": "python3 -m pip install .",
     "customizations": {
         "vscode": {
