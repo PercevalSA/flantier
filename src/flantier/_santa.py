@@ -16,8 +16,8 @@ from flantier._commands_admin import send_admin_notification
 logger = getLogger("flantier")
 
 
-def download_wishes() -> list:
-    """Récupère les cadeaux de chaque participant depuis le google doc."""
+def download_google_sheet() -> list:
+    """Récupère les voeux et les commentaires de chaque participant depuis le google doc."""
     logger.info("gettings wishes from google sheet")
 
     google_settings = SettingsManager().get_settings()["google"]
@@ -49,72 +49,80 @@ def download_wishes() -> list:
 # https://pypi.org/project/fuzzywuzzy/
 # https://pypi.org/project/Levenshtein/
 def update_user_wishes(user: User, wishes: list, comments: list) -> None:
-    """wish compare function"""
-    logger.info("comparing gifts for %s", user.name)
+    """update all wishes and comments of the user in database.
+    Compare currents wishes with the list from google sheet using SequenceMatcher.
+    Add new wishes and remove old ones.
+    Update the wish with the best match, add new wishes then remove old wishes
+
+    Args:
+        user (User): user to update
+        wishes (list): list of wishes from google sheet
+        comments (list): list of comments from google sheet
+    """
+    logger.info("updating wishes for %s", user.name)
     logger.debug("wishes: %s", wishes)
     logger.debug("comments: %s", comments)
 
-    # FIXME: I'm messed up with naming and order
-    # update the wish with the best match
-    # add new wishes
-    # remove old wishes
-    for db_wish, db_comment in zip_longest(wishes, comments, fillvalue=""):
+    for gs_wish, gs_comment in zip_longest(wishes, comments, fillvalue=""):
         best_ratio: float = 0
         new_wish = ""
 
-        # search for best match
-        for gs_wish in wishes:
-            ratio = SequenceMatcher(a=db_wish.wish, b=gs_wish).ratio()
+        if not gs_wish:
+            # empty wish in google sheet
+            continue
+
+        # for each wish received from google sheet we search for best match in database
+        for u_wish in user.wishes:
+            ratio = SequenceMatcher(a=u_wish.wish, b=gs_wish).ratio()
             if ratio > 0.6 and ratio > best_ratio:  # similar enough
                 best_ratio = ratio
                 new_wish = gs_wish
+                new_comment = gs_comment
+                to_replace = u_wish
+
+                logger.debug("ratio: %s / %s: %s\n",
+                             new_wish, to_replace, ratio)
 
         # no match found
         if not new_wish:
-            logger.info(
-                "no match found for %s. This is a new one", db_wish.wish)
-            user.wishes.append(Wish(wish=db_wish, comment=c))
-
+            logger.info("no match found for %s. This is a new one", gs_wish)
+            user.wishes.append(Wish(wish=gs_wish, comment=gs_comment))
             continue
 
-            if 1 > ratio:
-                send_admin_notification(
-                    f"ratio {ratio}\n{db_wish.wish}\n{gs_wish}")
+        # update the wish with the best match
+        logger.info("updating wish %s with %s", to_replace.wish, new_wish)
+        to_replace.wish = new_wish
+        to_replace.comment = new_comment
 
-    tmp_wishes = []
-    for w, c in zip_longest(gifts, comments, fillvalue=""):
-        logger.info('adding wish "%s" with comment "%s"', w, c)
-        wishes.append(Wish(wish=w, comment=c))
+    # find all missing wishes in gs_wishes to remove them from user wishes
+    for u_wish in user.wishes:
+        logger.info("considering wish %s", u_wish.wish)
+        if not u_wish.wish or u_wish.wish not in wishes:
+            logger.info("removing wish %s", u_wish.wish)
+            user.wishes.remove(u_wish)
 
-    user.wishes = wishes
+    user_manager = UserManager()
     user_manager.update_user(user)
-
-    for wish in user.wishes:
-        for w in wishes:
-            ratio = SequenceMatcher(a=wish.wish, b=w).ratio()
-            logger.info("ratio is %s between %s and %s", ratio, wish.wish, w)
-            if 1 > ratio >= 0.6:
-                send_admin_notification(f"ratio {ratio}\n{wish.wish}\n{w}")
 
 
 def update_wishes_list() -> None:
     """Met à jour la liste des cadeaux de chaque participant."""
     logger.info("updating wishes list")
-    values = download_wishes()
+    gifts = download_google_sheet()
     user_manager = UserManager()
 
-    for column in range(0, len(values), 2):
-        name = values[column][0]
-        gifts = values[column][1:]
-        comments = values[column + 1][1:]
-        logger.info("mise à jour des cadeaux de %s: %s", name, gifts)
+    for column in range(0, len(gifts), 2):
+        name = gifts[column][0]
+        wishes = gifts[column][1:]
+        comments = gifts[column + 1][1:]
+        logger.info("mise à jour des cadeaux de %s: %s", name, wishes)
         logger.info("mise à jour des commentaires de %s: %s", name, comments)
 
         user = user_manager.search_user(name)
         if not user:
             logger.error("user %s not found", name)
 
-        update_user_wishes(user, gifts, comments)
+        update_user_wishes(user, wishes, comments)
 
         # tmp_wishes = []
         # for w, c in zip_longest(gifts, comments, fillvalue=""):
@@ -162,7 +170,7 @@ def user_comments_message(user_name: str) -> str:
 
 def create_missing_users() -> None:
     """create users present in google sheet but not in database (no telegram account)."""
-    wishes = download_wishes()
+    wishes = download_google_sheet()
     user_manager = UserManager()
 
     for user in wishes[0::2]:
@@ -188,10 +196,10 @@ def compare_wishes(user: User) -> list:
     Compareason is based on wish field. We Check if the name of a gift changed slightly
     in order to only update the wish field while keeping the giver field state in database.
     Add new wishes and delete removed ones in google sheet."""
-    gifts = download_wishes()
+    gifts = download_google_sheet()
     wishes = gifts[gifts.index(user.name) + 1]
     comments = gifts[gifts.index(user.name) + 2]
-    logger.info("comparing gifts for %s", user.name)
+    logger.info("comparing wishes for %s", user.name)
     logger.debug("wishes: %s", wishes)
     logger.debug("comments: %s", comments)
 

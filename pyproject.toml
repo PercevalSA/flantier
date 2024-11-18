@@ -1,10 +1,10 @@
 [project]
 name = "flantier"
 description = "Flantier der Geschenk Manager"
-version = "0.23.0"
+version = "0.24.0"
 authors = [{ name = "Perceval Arenou", email = "perceval.arenou@gmail.com" }]
 readme = "README.md"
-requires-python = ">=3.7"
+requires-python = ">=3.9"
 
 dependencies = [
     "google-api-python-client == 2.65.0",
