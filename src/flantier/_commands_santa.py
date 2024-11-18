@@ -19,21 +19,21 @@ from flantier._settings import SettingsManager
 logger = getLogger("flantier")
 
 
-def wishes(update: Update, _: CallbackContext) -> None:
+def get_wishes(update: Update, _: CallbackContext) -> None:
     """Send a message with user list as inline buttons attached. 
     Clicking a button returns the user's wish list.
     """
     keyboard = build_people_inline_kb("wishes")
     update.message.reply_text(
-        "🤷 De qui veux tu consulter la liste de souhaits? 🤷", reply_markup=keyboard
+        "🤷 De qui veux tu consulter la liste de souhaits?", reply_markup=keyboard
     )
 
 
-def comments(update: Update, _: CallbackContext) -> None:
+def get_wishes_and_comments(update: Update, _: CallbackContext) -> None:
     """Affiche la liste de cadeaux et les commentaires associés d'une personne."""
     keyboard = build_people_inline_kb("comments")
     update.message.reply_text(
-        "🤷 De qui veux tu consulter la liste de souhaits? 🤷", reply_markup=keyboard
+        "🤷 De qui veux tu consulter la liste de souhaits?", reply_markup=keyboard
     )
 
 
@@ -41,9 +41,19 @@ def update_wishes_list(update: Update, context: CallbackContext) -> None:
     """Met à jour la liste des cadeaux dans le cache du bot depuis le google sheet."""
     _santa.create_missing_users()
     _santa.update_wishes_list()
-    text = "🎁 liste des cadeaux mise à jour"
+    text = "🎁 liste des cadeaux mise à jour."
     context.bot.send_message(chat_id=update.message.chat_id, text=text)
     logger.info(text)
+
+
+def get_constraints(update: Update, context: CallbackContext) -> None:
+    """Send a message with user constraints as inline buttons attached."""
+    user_manager = UserManager()
+    text = "**Contraintes**\n"
+    for user in user_manager.users:
+        text += user_manager.get_user_constraints(user.tg_id) + "\n"
+
+    update.message.reply_text(text)
 
 
 def send_giver_notification(wish: Wish) -> None:
@@ -55,7 +65,7 @@ def send_giver_notification(wish: Wish) -> None:
         Bot(token=SettingsManager().settings["telegram"]["bot_token"]).send_message(
             chat_id=wish.giver,
             text=(
-                "Le cadeau que tu avais prévu d'offrir a changé: {wish.wish}.\nVeux-tu"
+                "🔄 Le cadeau que tu avais prévu d'offrir a changé: {wish.wish}.\nVeux-tu"
                 " toujours l'offir? Si non utilises la commande /offrir"
             ),
         )

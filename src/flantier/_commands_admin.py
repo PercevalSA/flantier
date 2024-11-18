@@ -45,6 +45,11 @@ def is_admin(update: Update, context: CallbackContext) -> bool:
 
 
 def send_admin_notification(message: str) -> None:
+    """send a telegram message to the bot administrator
+
+    Args:
+        message (str): message content to send
+    """
     administrator = SettingsManager().settings["telegram"]["administrator"]
     Bot(token=SettingsManager().settings["telegram"]["bot_token"]).send_message(
         chat_id=administrator,
@@ -158,7 +163,8 @@ def add_spouse(update: Update, context: CallbackContext) -> None:
         )
 
         # type: ignore
-        reply_keyboard = _keyboards.build_people_keyboard("/exclude " + context.args[0])
+        reply_keyboard = _keyboards.build_people_keyboard(
+            "/exclude " + context.args[0])
 
         context.bot.send_message(
             chat_id=update.message.chat_id,
@@ -168,7 +174,8 @@ def add_spouse(update: Update, context: CallbackContext) -> None:
         )
         context.bot.send_message(
             chat_id=update.message.chat_id,
-            text=f"Selectionne le ou la conjoint.e de {context.args[0]}",  # type: ignore
+            # type: ignore
+            text=f"Selectionne le ou la conjoint.e de {context.args[0]}",
             reply_markup=reply_keyboard,
         )
         return
@@ -199,7 +206,8 @@ def add_spouse(update: Update, context: CallbackContext) -> None:
     giver = user_manager.search_user(context.args[0])  # type: ignore
     spouse = user_manager.search_user(context.args[1])  # type: ignore
     if spouse.tg_id == giver.tg_id:
-        context.bot.send_message(chat_id=update.message.chat_id, text="❌ impossibru")
+        context.bot.send_message(
+            chat_id=update.message.chat_id, text="❌ impossibru")
         logger.info(
             "giver (%s) and spouse (%s) are the same person.", giver.name, spouse.name
         )
@@ -214,4 +222,5 @@ def add_spouse(update: Update, context: CallbackContext) -> None:
             f"de {context.args[0]}"  # type: ignore
         ),
     )
-    logger.info("set spouse %s for %s", context.args[0], context.args[1])  # type: ignore
+    logger.info("set spouse %s for %s",
+                context.args[0], context.args[1])  # type: ignore

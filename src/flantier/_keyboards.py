@@ -46,19 +46,12 @@ def build_people_inline_kb(
         for user in UserManager().users
         if (not filter_registered or user.registered)
     ]
-    tkeyboard.append(InlineKeyboardButton("Annuler", callback_data="cancel 0 cancel"))
+    tkeyboard.append(InlineKeyboardButton(
+        "Annuler", callback_data="cancel 0 cancel"))
     # split keyboard in two columns
-    keyboard = [tkeyboard[i : i + COLUMNS] for i in range(0, len(tkeyboard), COLUMNS)]
+    keyboard = [tkeyboard[i: i + COLUMNS]
+                for i in range(0, len(tkeyboard), COLUMNS)]
     return InlineKeyboardMarkup(keyboard)
-
-
-def constraints_inline_kb(update: Update, _: CallbackContext) -> None:
-    """Send a message with user constraints as inline buttons attached."""
-    keyboard = build_people_inline_kb("constaints", filter_registered=True)
-    logger.info("constraints keyboard")
-    update.message.reply_text(
-        "De qui veux tu afficher les contraintes?", reply_markup=keyboard
-    )
 
 
 def spouse_inline_kb(update: Update, _: CallbackContext) -> None:
@@ -120,7 +113,8 @@ def gift_button(query: CallbackQuery) -> None:
     user.wishes[wish_index].giver = query.from_user.id
     user_manager.update_user(user)
     query.edit_message_text(
-        text="Youpi! Tu offres " + user.wishes[wish_index].wish + " à " + user.name
+        text="Youpi! Tu offres " +
+        user.wishes[wish_index].wish + " à " + user.name
     )
 
 
@@ -160,9 +154,11 @@ def build_wishes_inline_kb(username: str) -> InlineKeyboardMarkup:
         )
         for index, wish in enumerate(user.wishes)
     ]
-    tkeyboard.append(InlineKeyboardButton("Annuler", callback_data="cancel 0 cancel"))
+    tkeyboard.append(InlineKeyboardButton(
+        "Annuler", callback_data="cancel 0 cancel"))
     # split keyboard in two columns
-    keyboard = [tkeyboard[i : i + COLUMNS] for i in range(0, len(tkeyboard), COLUMNS)]
+    keyboard = [tkeyboard[i: i + COLUMNS]
+                for i in range(0, len(tkeyboard), COLUMNS)]
     return InlineKeyboardMarkup(keyboard)
 
 
@@ -172,7 +168,8 @@ def build_present_keyboard(update: Update, context: CallbackContext) -> None:
     """Affiche le clavier des cadeau que l'on souhaite offrir."""
     users = UserManager().users
 
-    offrant = next(qqun for qqun in users if qqun.tg_id == update.message.from_user.id)
+    offrant = next(qqun for qqun in users if qqun.tg_id ==
+                   update.message.from_user.id)
 
     text = ""
     button_list = []
@@ -187,7 +184,8 @@ def build_present_keyboard(update: Update, context: CallbackContext) -> None:
     for i, _ in enumerate(offrant.offer_to):
         text += str(offrant.offer_to[i][0]) + " " + str(offrant.offer_to[i][1])
         text += " [" + users[offrant.offer_to[i][0]].name + "] : "
-        text += users[offrant.offer_to[i][0]].wishes[offrant.offer_to[i][1]] + "\n"
+        text += users[offrant.offer_to[i][0]
+                      ].wishes[offrant.offer_to[i][1]] + "\n"
         button_list.append(
             f"/retirer {str(offrant.offer_to[i][0])} {str(offrant.offer_to[i][1])}"
         )
@@ -196,13 +194,15 @@ def build_present_keyboard(update: Update, context: CallbackContext) -> None:
         footer_buttons = ["/annuler"]
         n_cols = 2
 
-        menu = [button_list[i : i + n_cols] for i in range(0, len(button_list), n_cols)]
+        menu = [button_list[i: i + n_cols]
+                for i in range(0, len(button_list), n_cols)]
         if header_buttons:
             menu.insert(0, header_buttons)
         if footer_buttons:
             menu.append(footer_buttons)
 
-        reply_keyboard = ReplyKeyboardMarkup(keyboard=menu, one_time_keyboard=True)
+        reply_keyboard = ReplyKeyboardMarkup(
+            keyboard=menu, one_time_keyboard=True)
 
         context.bot.send_message(
             chat_id=update.message.chat_id, text=text, reply_markup=reply_keyboard
