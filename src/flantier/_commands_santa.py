@@ -4,6 +4,7 @@ from logging import getLogger
 
 from telegram import (
     Bot,
+    ParseMode,
     ReplyKeyboardRemove,
     Update,
 )
@@ -49,11 +50,11 @@ def update_wishes_list(update: Update, context: CallbackContext) -> None:
 def get_constraints(update: Update, context: CallbackContext) -> None:
     """Send a message with user constraints as inline buttons attached."""
     user_manager = UserManager()
-    text = "**Contraintes**\n"
+    text = "*Contraintes*\n"
     for user in user_manager.users:
         text += user_manager.get_user_constraints(user.tg_id) + "\n"
 
-    update.message.reply_text(text)
+    update.message.reply_text(text, parse_mode=ParseMode.MARKDOWN_V2)
 
 
 def send_giver_notification(wish: Wish) -> None:

@@ -3,9 +3,7 @@
 import logging
 from threading import Thread
 
-from telegram import (
-    Update,
-)
+from telegram import Update, ParseMode
 from telegram.ext import (
     CallbackContext,
     CallbackQueryHandler,
@@ -23,10 +21,9 @@ from flantier._commands_admin import (
     process,
 )
 from flantier._commands_flantier import hello, quote_oss1, quote_oss2
-from flantier._commands_santa import update_wishes_list, wishes
+from flantier._commands_santa import update_wishes_list, get_wishes, get_wishes_and_comments, get_constraints
 from flantier._commands_user import get_result, list_users, register, unregister
 from flantier._keyboards import (
-    constraints_inline_kb,
     inline_button_pressed,
     giftee_inline_kb,
 )
@@ -66,7 +63,8 @@ def start(update: Update, context: CallbackContext) -> None:
 
 def help_message(update: Update, context: CallbackContext) -> None:
     """Send the help message with all available commands"""
-    help_text = """Voici les commandes disponibles:
+    help_text = """
+<b>🤵‍♂️ Commandes Utilisateur.ice.s</b>
 /aide - affiche cette aide
 /participer - s'inscrire pour le secret santa
 /retirer - se désinscrire du secret santa
@@ -86,7 +84,7 @@ def help_message(update: Update, context: CallbackContext) -> None:
 
 /start - démarre l'interaction avec le bot
 
-Commandes administrateur:
+<b>👮‍♀️ Commandes administrateur.ice</b>
 /open - ouvre la session d'inscription
 /close - termine la session d'inscription
 /tirage - lance le tirage au sort avec les contraintes
@@ -96,6 +94,7 @@ Commandes administrateur:
     context.bot.send_message(
         chat_id=update.effective_chat.id,  # type: ignore
         text=help_text,
+        parse_mode=ParseMode.HTML,
     )
 
 
@@ -135,12 +134,14 @@ def register_commands(dispatcher: Dispatcher) -> None:
     dispatcher.add_handler(CommandHandler("aide", help_message))
     dispatcher.add_handler(CommandHandler("help", help_message))
 
-    dispatcher.add_handler(CommandHandler("commentaires", unimplemented_command))
+    dispatcher.add_handler(CommandHandler(
+        "commentaires", get_wishes_and_comments))
     dispatcher.add_handler(CommandHandler("offrir", giftee_inline_kb))
     dispatcher.add_handler(CommandHandler("retirer", unimplemented_command))
 
-    dispatcher.add_handler(CommandHandler("contraintes", constraints_inline_kb))
-    dispatcher.add_handler(CommandHandler("cadeaux", wishes))
+    dispatcher.add_handler(CommandHandler(
+        "contraintes", get_constraints))
+    dispatcher.add_handler(CommandHandler("cadeaux", get_wishes))
 
     # handle all inline keyboards responses
     dispatcher.add_handler(CallbackQueryHandler(inline_button_pressed))
