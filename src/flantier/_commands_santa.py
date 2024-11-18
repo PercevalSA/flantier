@@ -20,7 +20,9 @@ logger = getLogger("flantier")
 
 
 def wishes(update: Update, _: CallbackContext) -> None:
-    """Send a message with user wishes as inline buttons attached."""
+    """Send a message with user list as inline buttons attached. 
+    Clicking a button returns the user's wish list.
+    """
     keyboard = build_people_inline_kb("wishes")
     update.message.reply_text(
         "🤷 De qui veux tu consulter la liste de souhaits? 🤷", reply_markup=keyboard
@@ -36,7 +38,7 @@ def comments(update: Update, _: CallbackContext) -> None:
 
 
 def update_wishes_list(update: Update, context: CallbackContext) -> None:
-    """Met à jour la liste des cadeaux."""
+    """Met à jour la liste des cadeaux dans le cache du bot depuis le google sheet."""
     _santa.create_missing_users()
     _santa.update_wishes_list()
     text = "🎁 liste des cadeaux mise à jour 🎁"
@@ -81,7 +83,8 @@ def add_gifter(tg_id: int, message: list) -> str:
             )
 
             if participants[receiver_index].donor[cadeau_index] is None:
-                text = "Tu offres désormais " + _wishes[cadeau_index - 1] + " à " + name
+                text = "Tu offres désormais " + \
+                    _wishes[cadeau_index - 1] + " à " + name
                 # ajoute l'id de l'offrant dans la liste des souhaits du destinataire
                 participants[receiver_index].donor[cadeau_index] = tg_id
 
@@ -91,7 +94,8 @@ def add_gifter(tg_id: int, message: list) -> str:
                     (i for i, qqun in enumerate(participants) if qqun.tg_id == tg_id),
                     -1,
                 )
-                participants[donor_index].offer_to.append((receiver_index, cadeau_index))
+                participants[donor_index].offer_to.append(
+                    (receiver_index, cadeau_index))
 
             elif participants[receiver_index].donor[cadeau_index] == tg_id:
                 text = f"Tu offres déjà {_wishes[cadeau_index - 1]} à {name}"

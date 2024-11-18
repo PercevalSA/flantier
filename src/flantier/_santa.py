@@ -16,8 +16,10 @@ from flantier._commands_admin import send_admin_notification
 logger = getLogger("flantier")
 
 
-def download_gifts() -> list:
+def download_wishes() -> list:
     """Récupère les cadeaux de chaque participant depuis le google doc."""
+    logger.info("gettings wishes from google sheet")
+
     google_settings = SettingsManager().get_settings()["google"]
     service = build(
         "sheets",
@@ -37,7 +39,7 @@ def download_gifts() -> list:
     spreadsheet = request.execute()
     values = spreadsheet.get("values")
 
-    logger.info("gettings gifts from google sheet")
+    logger.info("whishes downloaded")
     logger.debug(values)
     return values
 
@@ -69,13 +71,15 @@ def update_user_wishes(user: User, wishes: list, comments: list) -> None:
 
         # no match found
         if not new_wish:
-            logger.info("no match found for %s. This is a new one", db_wish.wish)
+            logger.info(
+                "no match found for %s. This is a new one", db_wish.wish)
             user.wishes.append(Wish(wish=db_wish, comment=c))
 
             continue
 
             if 1 > ratio:
-                send_admin_notification(f"ratio {ratio}\n{db_wish.wish}\n{gs_wish}")
+                send_admin_notification(
+                    f"ratio {ratio}\n{db_wish.wish}\n{gs_wish}")
 
     tmp_wishes = []
     for w, c in zip_longest(gifts, comments, fillvalue=""):
@@ -96,7 +100,7 @@ def update_user_wishes(user: User, wishes: list, comments: list) -> None:
 def update_wishes_list() -> None:
     """Met à jour la liste des cadeaux de chaque participant."""
     logger.info("updating wishes list")
-    values = download_gifts()
+    values = download_wishes()
     user_manager = UserManager()
 
     for column in range(0, len(values), 2):
@@ -158,10 +162,10 @@ def user_comments_message(user_name: str) -> str:
 
 def create_missing_users() -> None:
     """create users present in google sheet but not in database (no telegram account)."""
-    gifts = download_gifts()
+    wishes = download_wishes()
     user_manager = UserManager()
 
-    for user in gifts[0::2]:
+    for user in wishes[0::2]:
         name = user[0]
         logger.info("checking if %s is missing", name)
         if not user_manager.search_user(name):
@@ -178,13 +182,13 @@ def update_gifts_background_task(interval_sec: int = 600) -> None:
 # FUTURE
 
 
-def compare_gifts(user: User) -> list:
+def compare_wishes(user: User) -> list:
     """for a given user, compare the wish list from from google sheet
     with the one already in database.
     Compareason is based on wish field. We Check if the name of a gift changed slightly
     in order to only update the wish field while keeping the giver field state in database.
     Add new wishes and delete removed ones in google sheet."""
-    gifts = download_gifts()
+    gifts = download_wishes()
     wishes = gifts[gifts.index(user.name) + 1]
     comments = gifts[gifts.index(user.name) + 2]
     logger.info("comparing gifts for %s", user.name)
