@@ -30,7 +30,7 @@ from flantier._keyboards import (
     inline_button_pressed,
     giftee_inline_kb,
 )
-from flantier._santa import update_gifts_background_task, test_wish_compare
+from flantier._santa import update_gifts_background_task
 from flantier._settings import SettingsManager
 from flantier._users import UserManager
 
