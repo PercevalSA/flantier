@@ -63,43 +63,66 @@ def update_user_wishes(user: User, wishes: list, comments: list) -> None:
     logger.debug("wishes: %s", wishes)
     logger.debug("comments: %s", comments)
 
+    # keep track in order not to update the same wish multiple times
+    # if multiple matches are found
+    updated_wishes_indices = set()
+
     for gs_wish, gs_comment in zip_longest(wishes, comments, fillvalue=""):
+        logger.debug("wish: %s", gs_wish)
+
         best_ratio: float = 0
         new_wish = ""
+        new_comment = ""
+        to_replace = None
 
         if not gs_wish:
+            logger.debug("empty wish in google sheet: %s %s",
+                         gs_wish, gs_comment)
             # empty wish in google sheet
             continue
 
         # for each wish received from google sheet we search for best match in database
-        for u_wish in user.wishes:
+        for idx, u_wish in enumerate(user.wishes):
             ratio = SequenceMatcher(a=u_wish.wish, b=gs_wish).ratio()
-            if ratio > 0.6 and ratio > best_ratio:  # similar enough
+            # similar enough and not already updated
+            if ratio > 0.6 and ratio > best_ratio and idx not in updated_wishes_indices:
                 best_ratio = ratio
                 new_wish = gs_wish
                 new_comment = gs_comment
                 to_replace = u_wish
+                to_replace_idx = idx
 
-                logger.debug("ratio: %s / %s: %s\n",
-                             new_wish, to_replace, ratio)
+                logger.debug("ratio: \"%s\" / \"%s\": %i",
+                             new_wish, to_replace.wish, ratio)
 
-        # no match found
-        if not new_wish:
-            logger.info("no match found for %s. This is a new one", gs_wish)
+        # if a match is found and it hasn't been updated yet
+        if new_wish and to_replace is not None:
+            logger.info("updating wish \"%s\" with \"%s\"",
+                        to_replace.wish, new_wish)
+            user.wishes[to_replace_idx].wish = new_wish
+            user.wishes[to_replace_idx].comment = new_comment
+            updated_wishes_indices.add(to_replace_idx)
+        else:
+            # no match found or wish already updated
+            logger.info(
+                "no match found for %s. This is a new one", gs_wish)
             user.wishes.append(Wish(wish=gs_wish, comment=gs_comment))
-            continue
-
-        # update the wish with the best match
-        logger.info("updating wish %s with %s", to_replace.wish, new_wish)
-        to_replace.wish = new_wish
-        to_replace.comment = new_comment
 
     # find all missing wishes in gs_wishes to remove them from user wishes
+    # updated_wishes_indices = set()
     for u_wish in user.wishes:
-        logger.info("considering wish %s", u_wish.wish)
+        logger.info("cleaning wish %s", u_wish.wish)
         if not u_wish.wish or u_wish.wish not in wishes:
             logger.info("removing wish %s", u_wish.wish)
             user.wishes.remove(u_wish)
+
+    # detect if we have wishes in double in database
+    for wish in user.wishes:
+        if user.wishes.count(wish) > 1:
+            logger.warning("duplicated wish %s", wish.wish)
+            user.wishes.remove(wish)
+
+    logger.debug(user.wishes)
 
     user_manager = UserManager()
     user_manager.update_user(user)
