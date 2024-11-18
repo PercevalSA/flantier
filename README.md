@@ -10,7 +10,7 @@ based on https://python-telegram-bot.org and Google Doc API
 1. create a bot and get eh API key from the [botfather](https://telegram.me/BotFather)
 
 ### Install flantier directly with pip
-1. install flantier `python3 -m pip install "flantier @ git+https://github.com/PercevalSA/flantier`
+1. install flantier `python3 -m pip install "flantier @ git+https://github.com/PercevalSA/flantier"`
 1. install service `sudo wget -O /etc/systemd/system/flantier.service https://raw.githubusercontent.com/PercevalSA/flantier/main/flantier.service`
 1. edit service to have your username correctly set `sudo vim /etc/systemd/system/flantier.service`
 1. start the service `sudo systemctl daemon-reload && sudo systemctl enable flantier && sudo systemctl start flantier`
