@@ -1,4 +1,3 @@
-#!/usr/bin/python3
 """
 Manage wishes and gifts from google sheets.
 Stores every wishes and who is offering what.

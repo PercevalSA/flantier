@@ -1,4 +1,3 @@
-#!/usr/bin/python3
 """Gère les utilisateurs stockés dans le fichier de configuration users.json
 We are using dataclass to represent Users and wishes (gifts)
 source https://www.delftstack.com/howto/python/dataclass-to-json-in-python/

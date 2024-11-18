@@ -1,5 +1,4 @@
-#!/usr/bin/python3
-"""COMMANDES ADMINISTRATEUR"""
+"""Admin Commands"""
 
 from logging import getLogger
 

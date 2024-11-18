@@ -1,5 +1,4 @@
-#!/usr/bin/python3
-"""User commands."""
+"""User commands"""
 
 from logging import getLogger
 

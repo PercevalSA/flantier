@@ -1,5 +1,3 @@
-#!/usr/bin/env python3
-
 """All written quotes from OSS117"""
 
 quotes = [

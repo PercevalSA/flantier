@@ -1,5 +1,3 @@
-#!/usr/bin/python3
-
 """gestion des claviers interractifs dans telegram"""
 
 from logging import getLogger

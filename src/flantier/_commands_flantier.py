@@ -1,4 +1,3 @@
-#!/usr/bin/python3
 """Herr Flantier der Geschenk Manager."""
 
 from glob import glob
