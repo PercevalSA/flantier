@@ -21,8 +21,7 @@ class Roulette:
 
     def __new__(cls, *args, **kwargs):
         if Roulette.__instance is None:
-            Roulette.__instance = super(
-                Roulette, cls).__new__(cls, *args, **kwargs)
+            Roulette.__instance = super(Roulette, cls).__new__(cls, *args, **kwargs)
         return Roulette.__instance
 
     #
@@ -123,8 +122,7 @@ class Roulette:
             logger.debug("%s offers to %s", one.name, giftee.name)
             drawn_users.append(one.giftee)
 
-        logger.info(
-            "the roulette just finished. Results will be send to every user")
+        logger.info("the roulette just finished. Results will be send to every user")
         return True
 
     def roulette(self):
@@ -132,10 +130,11 @@ class Roulette:
         # tant que le tirage ne fonctionne pas on relance
         user_manager = UserManager()
         participants = [user for user in user_manager.users if user.registered]
+        logger.debug("participants: %s", participants)
 
         if len(participants) < 2:
-            logger.warning("not enough registered users: canceling tirage")
-            sys.exit(None)
+            logger.warning("not enough registered users: canceling draw")
+            sys.exit(1)
 
         while not self._roulette(participants):
             sleep(0.1)
@@ -143,7 +142,7 @@ class Roulette:
 
         user_manager.save_users()
 
-    def tirage(self):
+    def tirage(self) -> int:
         """Lance le tirage au sort dans un processus séparé."""
         roulette_process = Process(target=self.roulette, name="spin_the_wheel")
         roulette_process.start()
@@ -152,6 +151,5 @@ class Roulette:
         if roulette_process.exitcode is None:
             logger.warning("roulette process timed out")
             return 1
-        logger.info("roulette process terminated: %d",
-                    roulette_process.exitcode)
+        logger.info("roulette process terminated with code %d", roulette_process.exitcode)
         return roulette_process.exitcode

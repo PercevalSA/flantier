@@ -42,12 +42,13 @@ def _register_user(user_id: int, user_name: str) -> str:
     if roulette.register_user(tg_id=user_id, name=user_name):
         return f"🎉 Bravo {user_name} 🎉\nTu es bien enregistré.e pour le tirage au sort"
 
+    logger.error("registration failed for user %s: %d", user_name, user_id)
     return f"❌ désolé {user_name}, il y'a eu un problème lors de ton inscription 😢"
 
 
 def self_register(update: Update, context: CallbackContext) -> None:
     """Permet de s'inscrire au tirage au sort."""
-    logger.info("register: %s", update.message.from_user)
+    logger.debug("register: %s", update.message.from_user)
     text = _register_user(
         update.message.from_user.id, update.message.from_user.first_name
     )
