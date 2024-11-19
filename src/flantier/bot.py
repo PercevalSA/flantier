@@ -166,7 +166,7 @@ def error(update: Update, context: CallbackContext) -> None:
 def main() -> None:
     """Start the bot."""
     settings = SettingsManager().load_settings()
-    logger.info(settings)
+    logger.debug("Settings: %s", settings)
     # Create the EventHandler and pass it your bot's token
     updater = Updater(token=settings["telegram"]["bot_token"])
 
