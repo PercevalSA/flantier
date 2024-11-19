@@ -6,7 +6,6 @@ from threading import Thread
 from telegram import ParseMode, Update
 from telegram.ext import (
     CallbackContext,
-    CallbackQueryHandler,
     CommandHandler,
     Dispatcher,
     Filters,
@@ -14,29 +13,16 @@ from telegram.ext import (
     Updater,
 )
 
-from flantier._commands_admin import (
-    add_spouse,
-    close_registrations,
-    open_registrations,
-    process,
-)
-from flantier._commands_santa import (
-    get_constraints,
-    get_wishes,
-    get_wishes_and_comments,
-    update_wishes_list,
-)
-from flantier._commands_user import get_result, list_users
-from flantier._keyboards import (
-    giftee_inline_kb,
-    inline_button_pressed,
-)
+from flantier._commands_flantier import register_flantier_commands
+from flantier._commands_santa import register_santa_commands
+from flantier._commands_user import register_user_commands
+from flantier._keyboards import register_keyboards
 from flantier._santa import update_gifts_background_task
 from flantier._settings import SettingsManager
 from flantier._users import UserManager
 
 # Enable logging, we do not need "%(asctime)s - %(name)s as it is already printed by ptb
-logging.basicConfig(format="%(levelname)s - %(message)s", level=logging.INFO)
+logging.basicConfig(format="%(levelname)s - %(message)s", level=logging.DEBUG)
 logger = logging.getLogger("flantier")
 
 
@@ -130,29 +116,12 @@ def register_commands(dispatcher: Dispatcher) -> None:
     dispatcher.add_handler(CommandHandler("aide", help_message))
     dispatcher.add_handler(CommandHandler("help", help_message))
 
-    dispatcher.add_handler(CommandHandler("participer", self_register))
-    dispatcher.add_handler(CommandHandler("exclure", self_unregister))
-    dispatcher.add_handler(CommandHandler("liste", list_users))
-    dispatcher.add_handler(CommandHandler("resultat", get_result))
+    register_keyboards(dispatcher)
+    register_user_commands(dispatcher)
+    register_santa_commands(dispatcher)
+    register_flantier_commands(dispatcher)
 
-    dispatcher.add_handler(CommandHandler("commentaires", get_wishes_and_comments))
-    dispatcher.add_handler(CommandHandler("offrir", giftee_inline_kb))
-    dispatcher.add_handler(CommandHandler("retirer", unimplemented_command))
-
-    dispatcher.add_handler(CommandHandler("contraintes", get_constraints))
-    dispatcher.add_handler(CommandHandler("cadeaux", get_wishes))
-
-    # handle all inline keyboards responses
-    dispatcher.add_handler(CallbackQueryHandler(inline_button_pressed))
-
-    # admin commands
-    dispatcher.add_handler(CommandHandler("open", open_registrations))
-    dispatcher.add_handler(CommandHandler("close", close_registrations))
-    dispatcher.add_handler(CommandHandler("tirage", process))
-    dispatcher.add_handler(CommandHandler("exclude", add_spouse))
-    dispatcher.add_handler(CommandHandler("update", update_wishes_list))
-
-    # unkown commands
+    # handle all unkown commands
     dispatcher.add_handler(MessageHandler(Filters.command, unknown_command))
 
 

@@ -10,6 +10,8 @@ from telegram import (
 )
 from telegram.ext import (
     CallbackContext,
+    CommandHandler,
+    Dispatcher,
 )
 
 from flantier import _santa
@@ -21,7 +23,7 @@ logger = getLogger("flantier")
 
 
 def get_wishes(update: Update, _: CallbackContext) -> None:
-    """Send a message with user list as inline buttons attached. 
+    """Send a message with user list as inline buttons attached.
     Clicking a button returns the user's wish list.
     """
     keyboard = build_people_inline_kb("wishes")
@@ -83,7 +85,10 @@ def set_wish_giver(user_id: int, wish_index: int, giver: int) -> str:
         return "Tu ne peux pas t'offrir un cadeau à toi même. Si tu es Geoffroy contact l'admin."
 
     if user.wishes[wish_index].giver:
-        return "Ce cadeau est déjà offert par " + user_manager.get_user(user.wishes[wish_index].giver).name
+        return (
+            "Ce cadeau est déjà offert par "
+            + user_manager.get_user(user.wishes[wish_index].giver).name
+        )
 
     user.wishes[wish_index].giver = giver
     user_manager.update_user(user)
@@ -103,6 +108,7 @@ def unset_wish_giver(user_id: int, wish_index: int) -> str:
             return "Cadeau supprimé"
 
     return "Cadeau non trouvé"
+
 
 # LEGACY
 #########
@@ -126,8 +132,7 @@ def add_gifter(tg_id: int, message: list) -> str:
             )
 
             if participants[receiver_index].donor[cadeau_index] is None:
-                text = "Tu offres désormais " + \
-                    _wishes[cadeau_index - 1] + " à " + name
+                text = "Tu offres désormais " + _wishes[cadeau_index - 1] + " à " + name
                 # ajoute l'id de l'offrant dans la liste des souhaits du destinataire
                 participants[receiver_index].donor[cadeau_index] = tg_id
 
@@ -137,8 +142,7 @@ def add_gifter(tg_id: int, message: list) -> str:
                     (i for i, qqun in enumerate(participants) if qqun.tg_id == tg_id),
                     -1,
                 )
-                participants[donor_index].offer_to.append(
-                    (receiver_index, cadeau_index))
+                participants[donor_index].offer_to.append((receiver_index, cadeau_index))
 
             elif participants[receiver_index].donor[cadeau_index] == tg_id:
                 text = f"Tu offres déjà {_wishes[cadeau_index - 1]} à {name}"
@@ -243,3 +247,11 @@ def dont_offer(update: Update, context: CallbackContext) -> None:
                 text="Impossible de trouver le cadeau spécifié...",
                 reply_markup=reply_del_kb,
             )
+
+
+def register_santa_commands(dispatcher: Dispatcher) -> None:
+    dispatcher.add_handler(CommandHandler("cadeaux", get_wishes))
+    dispatcher.add_handler(CommandHandler("commentaires", get_wishes_and_comments))
+    dispatcher.add_handler(CommandHandler("contraintes", get_constraints))
+    # admin only
+    dispatcher.add_handler(CommandHandler("update", update_wishes_list))

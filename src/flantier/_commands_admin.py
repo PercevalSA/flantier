@@ -9,6 +9,8 @@ from telegram import (
 )
 from telegram.ext import (
     CallbackContext,
+    CommandHandler,
+    Dispatcher,
 )
 
 from flantier._roulette import Roulette
@@ -55,8 +57,7 @@ def send_admin_notification(message: str) -> None:
         chat_id=administrator,
         text=(
             "Changer le monde, changer le monde vous êtes bien sympathiques mais faudrait"
-            " déjà vous levez le matin.\n\n"
-            + message
+            " déjà vous levez le matin.\n\n" + message
         ),
     )
 
@@ -89,9 +90,7 @@ def close_registrations(update: Update, context: CallbackContext) -> None:
 
     context.bot.send_message(
         chat_id=update.message.chat_id,
-        text=(
-            "🙅 Les inscriptions sont fermées\n⏰ C'est bientôt l'heure des résultats"
-        ),
+        text=("🙅 Les inscriptions sont fermées\n⏰ C'est bientôt l'heure des résultats"),
     )
 
 
@@ -165,8 +164,7 @@ def add_spouse(update: Update, context: CallbackContext) -> None:
         )
 
         # type: ignore
-        reply_keyboard = _keyboards.build_people_keyboard(
-            "/exclude " + context.args[0])
+        reply_keyboard = _keyboards.build_people_keyboard("/exclude " + context.args[0])
 
         context.bot.send_message(
             chat_id=update.message.chat_id,
@@ -208,8 +206,7 @@ def add_spouse(update: Update, context: CallbackContext) -> None:
     giver = user_manager.search_user(context.args[0])  # type: ignore
     spouse = user_manager.search_user(context.args[1])  # type: ignore
     if spouse.tg_id == giver.tg_id:
-        context.bot.send_message(
-            chat_id=update.message.chat_id, text="❌ impossibru")
+        context.bot.send_message(chat_id=update.message.chat_id, text="❌ impossibru")
         logger.info(
             "giver (%s) and spouse (%s) are the same person.", giver.name, spouse.name
         )
@@ -224,5 +221,12 @@ def add_spouse(update: Update, context: CallbackContext) -> None:
             f"de {context.args[0]}"  # type: ignore
         ),
     )
-    logger.info("set spouse %s for %s",
-                context.args[0], context.args[1])  # type: ignore
+    logger.info("set spouse %s for %s", context.args[0], context.args[1])  # type: ignore
+
+
+def register_admin_commands(dispatcher: Dispatcher) -> None:
+    """Register all admin commands."""
+    dispatcher.add_handler(CommandHandler("open", open_registrations))
+    dispatcher.add_handler(CommandHandler("close", close_registrations))
+    dispatcher.add_handler(CommandHandler("tirage", process))
+    dispatcher.add_handler(CommandHandler("exclude", add_spouse))

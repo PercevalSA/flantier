@@ -7,6 +7,8 @@ from telegram import (
 )
 from telegram.ext import (
     CallbackContext,
+    CommandHandler,
+    Dispatcher,
 )
 
 from flantier._roulette import Roulette
@@ -89,3 +91,11 @@ def get_result(update: Update, context: CallbackContext) -> None:
         chat_id=update.message.from_user.id,
         text=f"🎅 Youpi tu offres à : {receiver.name} 🎁\n",
     )
+
+
+def register_user_commands(dispatcher: Dispatcher) -> None:
+    """Register user commands to the dispatcher."""
+    dispatcher.add_handler(CommandHandler("participer", self_register))
+    dispatcher.add_handler(CommandHandler("exclure", self_unregister))
+    dispatcher.add_handler(CommandHandler("liste", list_users))
+    dispatcher.add_handler(CommandHandler("resultat", get_result))
