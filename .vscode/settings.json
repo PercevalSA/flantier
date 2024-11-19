@@ -1,0 +1,24 @@
+{
+    "files.associations": {
+        "*.toml": "toml"
+    },
+    "files.eol": "\n",
+    "files.trimTrailingWhitespace": true,
+    "editor.formatOnSave": true,
+    "editor.rulers": [
+        90,
+        120
+    ],
+    "files.insertFinalNewline": true,
+    "python.linting.pylintEnabled": false,
+    "python.linting.flake8Enabled": false,
+    "python.formatting.provider": "ruff",
+    "[python]": {
+        "editor.codeActionsOnSave": {
+            "source.fixAll": "explicit",
+            "source.organizeImports": "explicit"
+        },
+        "editor.defaultFormatter": "charliermarsh.ruff",
+        "editor.formatOnSave": true
+    }
+}
