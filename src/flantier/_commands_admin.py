@@ -74,7 +74,7 @@ def open_registrations(update: Update, context: CallbackContext) -> None:
     context.bot.send_message(
         chat_id=update.message.chat_id,
         text=(
-            "🎉 Les inscriptions sont ouvertes 🎉\n"
+            "🎉 Les inscriptions sont ouvertes\n"
             "🎅 Vous pouvez désormais vous inscrire en envoyant /participer"
         ),
     )
@@ -90,7 +90,7 @@ def close_registrations(update: Update, context: CallbackContext) -> None:
     context.bot.send_message(
         chat_id=update.message.chat_id,
         text=(
-            "🙅 Les inscriptions sont fermées 🙅\n⏰ C'est bientôt l'heure des résultats"
+            "🙅 Les inscriptions sont fermées\n⏰ C'est bientôt l'heure des résultats"
         ),
     )
 
@@ -105,14 +105,14 @@ def process(update: Update, context: CallbackContext) -> None:
     if not roulette.is_ready():
         context.bot.send_message(
             chat_id=update.message.chat_id,
-            text="⚠️ Les inscriptions ne sont pas encore terminées. ⚠️",
+            text="⚠️ Les inscriptions ne sont pas encore terminées.",
         )
         return
 
     if roulette.tirage() != 0:
         context.bot.send_message(
             chat_id=update.message.chat_id,
-            text="⚠️ Le tirage au sort n'a pas pu être effectué. ⚠️",
+            text="⚠️ Le tirage au sort n'a pas pu être effectué.",
         )
         return
 
@@ -127,7 +127,7 @@ def process(update: Update, context: CallbackContext) -> None:
 
         context.bot.send_message(
             user.tg_id,
-            text=f"🎅 Youpi tu offres à {giftee.name} 🎁\n",
+            text=f"🎅 Youpi tu offres à {giftee.name}\n",
         )
 
 
@@ -144,7 +144,9 @@ def add_spouse(update: Update, context: CallbackContext) -> None:
 
     user_manager = UserManager()
 
-    for name in context.args:  # type: ignore
+    assert context.args
+
+    for name in context.args:
         user = user_manager.search_user(name)
         logger.info("searching for %s", name)
 

@@ -61,4 +61,5 @@ class SettingsManager:
         try:
             copyfile(template, settings_file)
         except IOError:
-            logger.info("Settings file already in place at %s", DEFAULT_SETTINGS)
+            logger.info("Settings file already in place at %s",
+                        DEFAULT_SETTINGS)

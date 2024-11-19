@@ -4,14 +4,14 @@ Stores every wishes and who is offering what.
 """
 
 import threading
-from logging import getLogger
 from difflib import SequenceMatcher
+from itertools import zip_longest
+from logging import getLogger
 
 from apiclient.discovery import build
-from itertools import zip_longest
+
 from flantier._settings import SettingsManager
 from flantier._users import User, UserManager, Wish
-from flantier._commands_admin import send_admin_notification
 
 logger = getLogger("flantier")
 
@@ -76,8 +76,7 @@ def update_user_wishes(user: User, wishes: list, comments: list) -> None:
         to_replace = None
 
         if not gs_wish:
-            logger.debug("empty wish in google sheet: %s %s",
-                         gs_wish, gs_comment)
+            logger.debug("empty wish in google sheet: %s %s", gs_wish, gs_comment)
             # empty wish in google sheet
             continue
 
@@ -92,20 +91,17 @@ def update_user_wishes(user: User, wishes: list, comments: list) -> None:
                 to_replace = u_wish
                 to_replace_idx = idx
 
-                logger.debug("ratio: \"%s\" / \"%s\": %i",
-                             new_wish, to_replace.wish, ratio)
+                logger.debug('ratio: "%s" / "%s": %i', new_wish, to_replace.wish, ratio)
 
         # if a match is found and it hasn't been updated yet
         if new_wish and to_replace is not None:
-            logger.info("updating wish \"%s\" with \"%s\"",
-                        to_replace.wish, new_wish)
+            logger.info('updating wish "%s" with "%s"', to_replace.wish, new_wish)
             user.wishes[to_replace_idx].wish = new_wish
             user.wishes[to_replace_idx].comment = new_comment
             updated_wishes_indices.add(to_replace_idx)
         else:
             # no match found or wish already updated
-            logger.info(
-                "no match found for %s. This is a new one", gs_wish)
+            logger.info("no match found for %s. This is a new one", gs_wish)
             user.wishes.append(Wish(wish=gs_wish, comment=gs_comment))
 
     # find all missing wishes in gs_wishes to remove them from user wishes

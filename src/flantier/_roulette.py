@@ -21,7 +21,8 @@ class Roulette:
 
     def __new__(cls, *args, **kwargs):
         if Roulette.__instance is None:
-            Roulette.__instance = super(Roulette, cls).__new__(cls, *args, **kwargs)
+            Roulette.__instance = super(
+                Roulette, cls).__new__(cls, *args, **kwargs)
         return Roulette.__instance
 
     #
@@ -122,7 +123,8 @@ class Roulette:
             logger.debug("%s offers to %s", one.name, giftee.name)
             drawn_users.append(one.giftee)
 
-        logger.info("the roulette just finished. Results will be send to every user")
+        logger.info(
+            "the roulette just finished. Results will be send to every user")
         return True
 
     def roulette(self):
@@ -150,5 +152,6 @@ class Roulette:
         if roulette_process.exitcode is None:
             logger.warning("roulette process timed out")
             return 1
-        logger.info("roulette process terminated: %d", roulette_process.exitcode)
+        logger.info("roulette process terminated: %d",
+                    roulette_process.exitcode)
         return roulette_process.exitcode

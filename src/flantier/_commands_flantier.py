@@ -11,6 +11,8 @@ from telegram import (
 )
 from telegram.ext import (
     CallbackContext,
+    CommandHandler,
+    Dispatcher,
 )
 
 from flantier._quotes_oss117 import quotes
@@ -37,7 +39,8 @@ def _send_audio_quote(chat_id: int, context: CallbackContext, folder: Path) -> N
         return
 
     audio = folder / Path(choice(audio_files))
-    context.bot.send_chat_action(chat_id=chat_id, action=ChatAction.RECORD_AUDIO)
+    context.bot.send_chat_action(
+        chat_id=chat_id, action=ChatAction.RECORD_AUDIO)
     with open(audio, "rb") as audio_file:
         context.bot.send_audio(
             chat_id=chat_id, audio=audio_file, disable_notification=True
@@ -65,3 +68,10 @@ def quote_oss2(update: Update, context: CallbackContext) -> None:
         context,
         AUDIO_BASE_FOLDER / "phrases-cultes-de-oss-117-rio-ne-repond-plus",
     )
+
+
+def register_commands(dispatcher: Dispatcher):
+    # users commands
+    dispatcher.add_handler(CommandHandler("bonjour", hello))
+    dispatcher.add_handler(CommandHandler("larmina", quote_oss1))
+    dispatcher.add_handler(CommandHandler("dolores", quote_oss2))

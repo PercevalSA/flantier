@@ -43,7 +43,7 @@ def _register_user(user_id: int, user_name: str) -> str:
     return f"❌ désolé {user_name}, il y'a eu un problème lors de ton inscription 😢"
 
 
-def register(update: Update, context: CallbackContext) -> None:
+def self_register(update: Update, context: CallbackContext) -> None:
     """Permet de s'inscrire au tirage au sort."""
     logger.info("register: %s", update.message.from_user)
     text = _register_user(
@@ -52,7 +52,7 @@ def register(update: Update, context: CallbackContext) -> None:
     context.bot.send_message(chat_id=update.message.chat_id, text=text)
 
 
-def unregister(update: Update, context: CallbackContext) -> None:
+def self_unregister(update: Update, context: CallbackContext) -> None:
     """Permet de se désinscrire du tirage au sort."""
     if Roulette().unregister_user(update.message.from_user.id):
         text = (

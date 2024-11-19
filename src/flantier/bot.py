@@ -3,7 +3,7 @@
 import logging
 from threading import Thread
 
-from telegram import Update, ParseMode
+from telegram import ParseMode, Update
 from telegram.ext import (
     CallbackContext,
     CallbackQueryHandler,
@@ -20,12 +20,16 @@ from flantier._commands_admin import (
     open_registrations,
     process,
 )
-from flantier._commands_flantier import hello, quote_oss1, quote_oss2
-from flantier._commands_santa import update_wishes_list, get_wishes, get_wishes_and_comments, get_constraints
-from flantier._commands_user import get_result, list_users, register, unregister
+from flantier._commands_santa import (
+    get_constraints,
+    get_wishes,
+    get_wishes_and_comments,
+    update_wishes_list,
+)
+from flantier._commands_user import get_result, list_users
 from flantier._keyboards import (
-    inline_button_pressed,
     giftee_inline_kb,
+    inline_button_pressed,
 )
 from flantier._santa import update_gifts_background_task
 from flantier._settings import SettingsManager
@@ -123,25 +127,19 @@ def register_commands(dispatcher: Dispatcher) -> None:
 
     # generic bot commands
     dispatcher.add_handler(CommandHandler("start", start))
-
-    # users commands
-    dispatcher.add_handler(CommandHandler("bonjour", hello))
-    dispatcher.add_handler(CommandHandler("larmina", quote_oss1))
-    dispatcher.add_handler(CommandHandler("dolores", quote_oss2))
-    dispatcher.add_handler(CommandHandler("participer", register))
-    dispatcher.add_handler(CommandHandler("exclure", unregister))
-    dispatcher.add_handler(CommandHandler("liste", list_users))
-    dispatcher.add_handler(CommandHandler("resultat", get_result))
     dispatcher.add_handler(CommandHandler("aide", help_message))
     dispatcher.add_handler(CommandHandler("help", help_message))
 
-    dispatcher.add_handler(CommandHandler(
-        "commentaires", get_wishes_and_comments))
+    dispatcher.add_handler(CommandHandler("participer", self_register))
+    dispatcher.add_handler(CommandHandler("exclure", self_unregister))
+    dispatcher.add_handler(CommandHandler("liste", list_users))
+    dispatcher.add_handler(CommandHandler("resultat", get_result))
+
+    dispatcher.add_handler(CommandHandler("commentaires", get_wishes_and_comments))
     dispatcher.add_handler(CommandHandler("offrir", giftee_inline_kb))
     dispatcher.add_handler(CommandHandler("retirer", unimplemented_command))
 
-    dispatcher.add_handler(CommandHandler(
-        "contraintes", get_constraints))
+    dispatcher.add_handler(CommandHandler("contraintes", get_constraints))
     dispatcher.add_handler(CommandHandler("cadeaux", get_wishes))
 
     # handle all inline keyboards responses

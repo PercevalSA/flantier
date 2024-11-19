@@ -14,8 +14,8 @@ from telegram.ext import (
 
 from flantier import _santa
 from flantier._keyboards import build_people_inline_kb
-from flantier._users import UserManager, Wish
 from flantier._settings import SettingsManager
+from flantier._users import UserManager, Wish
 
 logger = getLogger("flantier")
 
