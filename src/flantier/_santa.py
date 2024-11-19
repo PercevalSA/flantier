@@ -207,7 +207,7 @@ def create_missing_users() -> None:
         name = user[0]
         logger.info("checking if %s is missing", name)
         if not user_manager.search_user(name):
-            user_manager.add_user(name=name, tg_id=0)
+            user_manager.add_user(name=name)
 
 
 def update_gifts_background_task(interval_sec: int = 600) -> None:

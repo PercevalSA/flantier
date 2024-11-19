@@ -67,7 +67,7 @@ def help_message(update: Update, context: CallbackContext) -> None:
 <b>🤵‍♂️ Commandes Utilisateur.ice.s</b>
 /aide - affiche cette aide
 /participer - s'inscrire pour le secret santa
-/retirer - se désinscrire du secret santa
+/exclure - se désinscrire du secret santa
 /liste - donne la liste des participants
 /resultat - donne le résultat tu tirage au sort en dm
 /contraintes - affiche les contraintes du tirage au sort
@@ -75,7 +75,7 @@ def help_message(update: Update, context: CallbackContext) -> None:
 /cadeaux - donne la liste des voeux de cadeaux
 /commentaires - donne les commentaires associés aux voeux
 /offrir - reserve un cadeau à offrir (pour que personne d'autre ne l'offre)
-/retirer - annule la réservation
+/retirer - annule la réservation du cadeau
 /annuler - annule l'opération en cours
 
 /bonjour - je vous dirai bonjour à ma manière
@@ -89,6 +89,7 @@ def help_message(update: Update, context: CallbackContext) -> None:
 /close - termine la session d'inscription
 /tirage - lance le tirage au sort avec les contraintes
 /exclude - ajoute une contrainte de destinataire (conjoint)
+/update - met à jour la liste des souhaits depuis google sheets
 """
 
     context.bot.send_message(
@@ -128,7 +129,7 @@ def register_commands(dispatcher: Dispatcher) -> None:
     dispatcher.add_handler(CommandHandler("larmina", quote_oss1))
     dispatcher.add_handler(CommandHandler("dolores", quote_oss2))
     dispatcher.add_handler(CommandHandler("participer", register))
-    dispatcher.add_handler(CommandHandler("retirer", unregister))
+    dispatcher.add_handler(CommandHandler("exclure", unregister))
     dispatcher.add_handler(CommandHandler("liste", list_users))
     dispatcher.add_handler(CommandHandler("resultat", get_result))
     dispatcher.add_handler(CommandHandler("aide", help_message))

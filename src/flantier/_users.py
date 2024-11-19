@@ -7,7 +7,8 @@ import json
 from dataclasses import asdict, dataclass, field, is_dataclass
 from logging import getLogger
 from pathlib import Path
-from typing import Any, List
+from random import randint
+from typing import Any, List, Optional
 
 DEFAULT_USERS_DB = Path.home() / ".cache/flantier/users.json"
 
@@ -22,7 +23,7 @@ class Wish:
     comment: str  # commentaires qui viennent du google doc
     giver: int = 0  # la personne qui offre ce cadeau
 
-    def __dict__(self):
+    def __dict__(self):  # type: ignore
         return asdict(self)
 
     def __str__(self):
@@ -33,13 +34,14 @@ class Wish:
 class User:
     """Represents a person registered for secret santa."""
 
-    tg_id: int  # telegram id of the new user
+    tg_id: int  # telegram id of the new user; positive integer; if negative integer the user has no telegram account
     name: str  # name of the user used to filter gifts column in Google Sheets
     spouse: int = 0  # telegram id of the spouse
     giftee: int = 0  # telegram id of the person to offer a gift
     last_giftee: int = 0  # telegram id of the person who recieved the gift last year
     registered: bool = False  # is the user registered for secret santa
-    wishes: List[Wish] = field(default_factory=list)  # list of wishes as Wish objects
+    # list of wishes as Wish objects
+    wishes: List[Wish] = field(default_factory=list)
 
 
 class UserJSONEncoder(json.JSONEncoder):
@@ -80,14 +82,15 @@ class UserManager:
 
     def __new__(cls, *args, **kwargs):
         if UserManager.__instance is None:
-            UserManager.__instance = super(UserManager, cls).__new__(cls, *args, **kwargs)
+            UserManager.__instance = super(
+                UserManager, cls).__new__(cls, *args, **kwargs)
         return UserManager.__instance
 
     #
     # user management
     #
 
-    def get_user(self, tg_id: int) -> User:
+    def get_user(self, tg_id: int) -> Optional[User]:
         """Récupère un utilisateur par son tg_id. Si registered est True,
         ne renvoie que les utilisateurs inscrits pour le tirage au sort.
         """
@@ -95,33 +98,46 @@ class UserManager:
             if user.tg_id == tg_id:
                 return user
 
-        return None  # type: ignore
+        return None
 
-    def search_user(self, name: str) -> User:
+    def search_user(self, name: str) -> Optional[User]:
         """Récupère un utilisateur par son nom"""
         for user in self.users:
             if user.name == name:
                 return user
 
-        return None  # type: ignore
+        return None
 
     def is_registered(self, tg_id: int) -> bool:
         """Renvoie True si l'utilisateur est inscrit au tirage au sort."""
-        return self.get_user(tg_id).registered
+        user = self.get_user(tg_id)
+        if user:
+            return user.registered
+        return False
 
-    def add_user(self, tg_id: int, name: str) -> bool:
-        """récupère l'id telegram et ajoute l'utilisateur au fichier.
+    def add_user(self, name: str, tg_id: Optional[int] = None) -> bool:
+        """récupère l'id telegram et ajoute l'utilisateur au fichier. 
+        Si aucun id n'est fourni, un id négatif est généré pour indiquer que l'utilisateur 
+        n'a pas de compte telegram.    
 
         Args:
-            tg_id (int): telegram id of the new user
+            tg_id (Optional[int]): telegram id of the new user
             name (str): Name of the user used to filter gifts column in Google Sheets
 
         Returns:
             bool: true on success, false on error
         """
 
-        if self.get_user(tg_id) and tg_id != 0:
-            logger.info("user %s is already known from flantier bot: %d", name, tg_id)
+        # the user has no telegram account so we generate a random negative id
+        if tg_id is None:
+            while True:
+                tg_id = randint(-99999999, -10000000)
+                if not self.get_user(tg_id):
+                    break
+
+        if self.get_user(tg_id):
+            logger.info(
+                "user %s is already known from flantier bot: %d", name, tg_id)
             return False
 
         user = self.search_user(name)
