@@ -200,31 +200,36 @@ class UserManager:
     def get_user_constraints(self, user_id: int) -> str:
         """Get user constraints as str. Get spouse and last giftee names if any."""
         user = self.get_user(user_id)
+        if user is None:
+            logger.error("user %s not found", user_id)
+
         logger.debug("searching for %s constraints", user)
 
         if user.spouse == 0 and user.last_giftee == 0:
-            text = f"{user.name} peut offrir à tout le monde"
-        if user.spouse == 0 or user.last_giftee == 0:
-            try:
-                constraint = self.get_user(user.spouse)
-            except RuntimeError as e:
-                logger.error(e)
-            try:
-                constraint = self.get_user(user.last_giftee)
-            except RuntimeError as e:
-                logger.error(e)
+            return f"{user.name} peut offrir à tout le monde"
 
-            text = f"{user.name} ne peut pas offrir à {constraint.name}"
-        else:
-            text = (
+        if user.spouse != 0 and user.last_giftee != 0:
+            return (
                 f"{user.name} ne peut pas offrir à"
                 f" {self.get_user(user.spouse).name} et à"
                 f" {self.get_user(user.last_giftee).name}"
             )
 
-        return text
+        if user.spouse != 0:
+            try:
+                constraint = self.get_user(user.spouse)
+            except RuntimeError as e:
+                logger.error(e)
+        if user.last_giftee != 0:
+            try:
+                constraint = self.get_user(user.last_giftee)
+            except RuntimeError as e:
+                logger.error(e)
 
-    # manage users file
+        return f"{user.name} ne peut pas offrir à {constraint.name}"
+
+# manage users file
+
     def load_users(self, user_file: Path = DEFAULT_USERS_DB) -> None:
         """Charge les utilisateurs enregistrés dans le fichier de sauvegarde."""
         logger.debug("Restauration de l'état de Flantier depuis %s", user_file)

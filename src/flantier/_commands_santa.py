@@ -50,11 +50,12 @@ def update_wishes_list(update: Update, context: CallbackContext) -> None:
 def get_constraints(update: Update, context: CallbackContext) -> None:
     """Send a message with user constraints as inline buttons attached."""
     user_manager = UserManager()
-    text = "*Contraintes*\n"
+    text = "<b>Contraintes</b>\n"
     for user in user_manager.users:
-        text += user_manager.get_user_constraints(user.tg_id) + "\n"
+        if user.registered:
+            text += user_manager.get_user_constraints(user.tg_id) + "\n"
 
-    update.message.reply_text(text, parse_mode=ParseMode.MARKDOWN_V2)
+    update.message.reply_text(text, parse_mode=ParseMode.HTML)
 
 
 def send_giver_notification(wish: Wish) -> None:
@@ -89,9 +90,8 @@ def set_wish_giver(user_id: int, wish_index: int, giver: int) -> str:
 
     return "Youpi! Tu offres " + user.wishes[wish_index].wish + " à " + user.name
 
+
 # WIP
-
-
 def unset_wish_giver(user_id: int, wish_index: int) -> str:
     gifts = []
     for user in UserManager().users:
@@ -99,8 +99,10 @@ def unset_wish_giver(user_id: int, wish_index: int) -> str:
             pass
 
         if user.wishes[wish_index].giver == user_id:
-            gifts.append()
+            gifts.append("plop")
             return "Cadeau supprimé"
+
+    return "Cadeau non trouvé"
 
 # LEGACY
 #########
