@@ -143,14 +143,6 @@ def update_wishes_list() -> None:
 
         update_user_wishes(user, wishes, comments)
 
-        # tmp_wishes = []
-        # for w, c in zip_longest(gifts, comments, fillvalue=""):
-        #     logger.info('adding wish "%s" with comment "%s"', w, c)
-        #     wishes.append(Wish(wish=w, comment=c))
-
-        # user.wishes = wishes
-        # user_manager.update_user(user)
-
 
 def get_wish_list(user: User) -> str:
     """Récupère la liste des souhaits d'un participant avec son nom."""
@@ -213,9 +205,7 @@ def update_gifts_background_task(interval_sec: int = 600) -> None:
         update_wishes_list()
 
 
-# FUTURE
-
-
+# TODO use or remove that function
 def compare_wishes(user: User) -> list:
     """for a given user, compare the wish list from from google sheet
     with the one already in database.

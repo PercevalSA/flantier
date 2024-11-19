@@ -13,6 +13,7 @@ from telegram.ext import (
     Updater,
 )
 
+from flantier._commands_admin import register_admin_commands
 from flantier._commands_flantier import register_flantier_commands
 from flantier._commands_santa import register_santa_commands
 from flantier._commands_user import register_user_commands
@@ -22,7 +23,7 @@ from flantier._settings import SettingsManager
 from flantier._users import UserManager
 
 # Enable logging, we do not need "%(asctime)s - %(name)s as it is already printed by ptb
-logging.basicConfig(format="%(levelname)s - %(message)s", level=logging.DEBUG)
+logging.basicConfig(format="%(levelname)s - %(message)s", level=logging.INFO)
 logger = logging.getLogger("flantier")
 
 
@@ -120,6 +121,7 @@ def register_commands(dispatcher: Dispatcher) -> None:
     register_user_commands(dispatcher)
     register_santa_commands(dispatcher)
     register_flantier_commands(dispatcher)
+    register_admin_commands(dispatcher)
 
     # handle all unkown commands
     dispatcher.add_handler(MessageHandler(Filters.command, unknown_command))

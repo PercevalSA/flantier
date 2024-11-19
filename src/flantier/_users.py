@@ -82,8 +82,7 @@ class UserManager:
 
     def __new__(cls, *args, **kwargs):
         if UserManager.__instance is None:
-            UserManager.__instance = super(
-                UserManager, cls).__new__(cls, *args, **kwargs)
+            UserManager.__instance = super(UserManager, cls).__new__(cls, *args, **kwargs)
         return UserManager.__instance
 
     #
@@ -116,9 +115,9 @@ class UserManager:
         return False
 
     def add_user(self, name: str, tg_id: Optional[int] = None) -> bool:
-        """récupère l'id telegram et ajoute l'utilisateur au fichier. 
-        Si aucun id n'est fourni, un id négatif est généré pour indiquer que l'utilisateur 
-        n'a pas de compte telegram.    
+        """récupère l'id telegram et ajoute l'utilisateur au fichier.
+        Si aucun id n'est fourni, un id négatif est généré pour indiquer que l'utilisateur
+        n'a pas de compte telegram.
 
         Args:
             tg_id (Optional[int]): telegram id of the new user
@@ -136,8 +135,7 @@ class UserManager:
                     break
 
         if self.get_user(tg_id):
-            logger.info(
-                "user %s is already known from flantier bot: %d", name, tg_id)
+            logger.info("user %s is already known from flantier bot: %d", name, tg_id)
             return False
 
         user = self.search_user(name)
@@ -233,7 +231,7 @@ class UserManager:
 
         return f"{user.name} ne peut pas offrir à {' et à '.join(constraints)}"
 
-# manage users file
+    # manage users file
 
     def load_users(self, user_file: Path = DEFAULT_USERS_DB) -> None:
         """Charge les utilisateurs enregistrés dans le fichier de sauvegarde."""
