@@ -198,35 +198,40 @@ class UserManager:
         self.save_users()
 
     def get_user_constraints(self, user_id: int) -> str:
-        """Get user constraints as str. Get spouse and last giftee names if any."""
+        """Get user constraints as str. Get spouse and last giftee names if any.
+
+        Args:
+            user_id (int): telegram id of the user
+
+        Returns:
+            str: user constraints as message to display
+        """
+
         user = self.get_user(user_id)
         if user is None:
-            logger.error("user %s not found", user_id)
+            error = f"Utilisateur {user_id} non trouvé"
+            logger.error(error)
+            return error
 
         logger.debug("searching for %s constraints", user)
 
         if user.spouse == 0 and user.last_giftee == 0:
             return f"{user.name} peut offrir à tout le monde"
 
-        if user.spouse != 0 and user.last_giftee != 0:
-            return (
-                f"{user.name} ne peut pas offrir à"
-                f" {self.get_user(user.spouse).name} et à"
-                f" {self.get_user(user.last_giftee).name}"
-            )
-
+        constraints = []
         if user.spouse != 0:
             try:
-                constraint = self.get_user(user.spouse)
-            except RuntimeError as e:
-                logger.error(e)
-        if user.last_giftee != 0:
-            try:
-                constraint = self.get_user(user.last_giftee)
+                constraints.append(self.get_user(user.spouse).name)
             except RuntimeError as e:
                 logger.error(e)
 
-        return f"{user.name} ne peut pas offrir à {constraint.name}"
+        if user.last_giftee != 0:
+            try:
+                constraints.append(self.get_user(user.last_giftee).name)
+            except RuntimeError as e:
+                logger.error(e)
+
+        return f"{user.name} ne peut pas offrir à {' et à '.join(constraints)}"
 
 # manage users file
 
