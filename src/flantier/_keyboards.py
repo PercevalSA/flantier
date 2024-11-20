@@ -1,6 +1,7 @@
 """gestion des claviers interractifs dans telegram"""
 
 from logging import getLogger
+from typing import Any
 
 from telegram import (
     CallbackQuery,
@@ -16,6 +17,8 @@ from telegram.ext import (
     Dispatcher,
 )
 
+from flantier._commands_admin import is_admin
+from flantier._roulette import UserManager
 from flantier._santa import user_comments_message, user_wishes_message
 from flantier._users import UserManager
 
@@ -30,6 +33,7 @@ COLUMNS = 2
 # https://fr.wikipedia.org/wiki/Table_de_v%C3%A9rit%C3%A9#Implication_logique
 def build_people_inline_kb(
     command: str,
+    extra_data: Any = None,
     filter_registered: bool = False,
 ) -> InlineKeyboardMarkup:
     """build an inline keyboard based on user names.
@@ -39,12 +43,8 @@ def build_people_inline_kb(
     tkeyboard = [
         InlineKeyboardButton(
             user.name,
-            callback_data="user "
-            + command
-            + " "
-            + str(user.tg_id)
-            + " "
-            + str(user.name),
+            callback_data=f"user {command} { str(user.tg_id)}"
+            + (f" {str(extra_data)}" if extra_data is not None else ""),
         )
         for user in UserManager().users
         if (not filter_registered or user.registered)
@@ -55,19 +55,23 @@ def build_people_inline_kb(
     return InlineKeyboardMarkup(keyboard)
 
 
-def spouse_inline_kb(update: Update, _: CallbackContext) -> None:
+def spouse_inline_kb(update: Update, context: CallbackContext) -> None:
     """Send a message with user spouse as inline buttons attached."""
-    keyboard = build_people_inline_kb("wishes")
-    logger.info("wishes keyboard")
+    if not is_admin(update, context):
+        update.message.reply_text("Tu n'as pas les droits pour cette commande.")
+        return
+
+    keyboard = build_people_inline_kb("spouse", filter_registered=True)
+    logger.info("spouse keyboard built")
     update.message.reply_text(
-        "De qui veux tu configurer le/la partenaire?", reply_markup=keyboard
+        "De qui veux tu configurer le ou la partenaire?", reply_markup=keyboard
     )
 
 
 def giftee_inline_kb(update: Update, _: CallbackContext) -> None:
     """Send a message with user wishes as inline buttons attached."""
     keyboard = build_people_inline_kb("offer")
-    logger.info("giftee keyboard")
+    logger.info("giftee keyboard built")
     update.message.reply_text("À qui veux-tu offrir ?", reply_markup=keyboard)
 
 
@@ -75,15 +79,12 @@ def user_button(query: CallbackQuery) -> None:
     """Parses the CallbackQuery and updates the message text from people inline keyboard.
     data is like "user <command> <user_id> <user_name>
     """
-    data = query.data.split(" ", 3)
+    data = query.data.split(" ")
     logger.info("keyboard query data: %s", data)
     command = data[1]
     user_id = int(data[2])
-    user_name = data[3]
+    user_name = UserManager().get_user(user_id).name
     markup = None
-
-    if command == "constaints":
-        text = UserManager().get_user_constraints(user_id)
 
     if command == "wishes":
         text = user_wishes_message(user_name)
@@ -95,7 +96,22 @@ def user_button(query: CallbackQuery) -> None:
         text = "Que veux tu offrir comme cadeau ?"
         markup = build_wishes_inline_kb(user_name)
 
-    # TODO  "/commentaires, /exclude"
+    if command == "spouse":
+        text = (
+            f"Qui est le ou la partenaire de {user_name}? Iel ne pourra pas lui offrir."
+        )
+        markup = build_people_inline_kb(
+            "exclude", extra_data=user_id, filter_registered=True
+        )
+
+    if command == "exclude":
+        spouse_user_id = int(data[3])
+        user_manager = UserManager()
+        spouse_name = user_manager.get_user(spouse_user_id).name
+        text = f"{user_name} est le ou la partenaire de {spouse_name}"
+        markup = None
+        user_manager.set_spouse(user_id, spouse_user_id)
+
     logger.info("response: %s", text)
     query.edit_message_text(text=text, reply_markup=markup)
 

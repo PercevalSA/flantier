@@ -161,6 +161,22 @@ class UserManager:
 
         return False
 
+    def set_spouse(self, tg_id: int, spouse_id: int) -> None:
+        """Définit le conjoint d'un participant."""
+        logger.info(
+            "Set %s and %s as spouses",
+            self.get_user(spouse_id),
+            self.get_user(tg_id),
+        )
+
+        for user in self.users:
+            if user.tg_id == tg_id:
+                user.spouse = spouse_id
+            if user.tg_id == spouse_id:
+                user.spouse = tg_id
+
+        self.save_users()
+
     def update_user(self, user: User) -> bool:
         """Met à jour l'utilisateur dans la base de données"""
         for i, u in enumerate(self.users):
