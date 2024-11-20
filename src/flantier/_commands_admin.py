@@ -147,10 +147,13 @@ def send_result_to_all_users(update: Update, context: CallbackContext) -> None:
 
         logger.info("send result to %s: giftee is %d", user.name, giftee.tg_id)
 
-        context.bot.send_message(
-            user.tg_id,
-            text=f"🎅 Youpi tu offres à {giftee.name}\n",
-        )
+        try:
+            context.bot.send_message(
+                user.tg_id,
+                text=f"🎅 Youpi tu offres à {giftee.name}\n",
+            )
+        except Exception as e:
+            logger.error("error sending message to %s: %s", user.name, e)
 
 
 def register_admin_commands(dispatcher: Dispatcher) -> None:
