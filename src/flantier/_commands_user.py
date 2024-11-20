@@ -2,9 +2,7 @@
 
 from logging import getLogger
 
-from telegram import (
-    Update,
-)
+from telegram import ParseMode, Update
 from telegram.ext import (
     CallbackContext,
     CommandHandler,
