@@ -36,14 +36,15 @@ class Roulette:
         """Termine la campagne d'inscription."""
         self.registration = False
 
-    def register_user(self, tg_id: int, name: str) -> bool:
+    def register_user(self, tg_id: int) -> bool:
         """Inscrit un utilisateur au tirage au sort."""
+        user_manager = UserManager()
+        name = user_manager.get_user(tg_id).name
+
         logger.info("Inscription de %s: %d", name, tg_id)
         if not self.registration:
             logger.info("Les inscriptions ne sont pas ouvertes")
             return False
-
-        user_manager = UserManager()
 
         if user_manager.is_registered(tg_id):
             logger.info("%s is already registered: %d", name, tg_id)
@@ -125,8 +126,8 @@ class Roulette:
         logger.info("the roulette just finished. Results will be send to every user")
         return True
 
-    def roulette(self):
-        """Lance le tirage au sort."""
+    def roulette_process(self):
+        """execute le tirage au sort."""
         # tant que le tirage ne fonctionne pas on relance
         user_manager = UserManager()
         participants = [user for user in user_manager.users if user.registered]
@@ -144,7 +145,7 @@ class Roulette:
 
     def tirage(self) -> int:
         """Lance le tirage au sort dans un processus séparé."""
-        roulette_process = Process(target=self.roulette, name="spin_the_wheel")
+        roulette_process = Process(target=self.roulette_process, name="spin_the_wheel")
         roulette_process.start()
         roulette_process.join(timeout=5)
         roulette_process.terminate()  # exitcode = None

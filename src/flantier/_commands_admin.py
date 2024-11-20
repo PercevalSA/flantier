@@ -100,6 +100,9 @@ def process(update: Update, context: CallbackContext) -> None:
         return
 
     roulette = Roulette()
+    message = context.bot.send_message(
+        chat_id=update.message.chat_id, text="🎡 Tirage au sort en cours..."
+    )
 
     if not roulette.is_ready():
         context.bot.send_message(
@@ -115,11 +118,17 @@ def process(update: Update, context: CallbackContext) -> None:
         )
         return
 
+    context.bot.edit_message_text(
+        message_id=message.message_id,
+        chat_id=message.chat.id,
+        text="🎡 Tirage au sort terminé ✅",
+    )
     # send results to everyone as private message
     user_manager = UserManager()
     for user in user_manager.users:
-        if not user.registered:
-            pass
+        if not user.registered or user.tg_id <= 0:
+            logger.debug("skip user %s: %d", user.name, user.tg_id)
+            continue
 
         giftee = user_manager.get_user(user.giftee)
         logger.info("send result to %s: giftee is %d", user.name, giftee.tg_id)

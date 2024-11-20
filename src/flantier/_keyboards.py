@@ -18,7 +18,7 @@ from telegram.ext import (
 )
 
 from flantier._commands_admin import is_admin
-from flantier._roulette import UserManager
+from flantier._roulette import Roulette
 from flantier._santa import user_comments_message, user_wishes_message
 from flantier._users import UserManager
 
@@ -58,13 +58,13 @@ def build_people_inline_kb(
 def spouse_inline_kb(update: Update, context: CallbackContext) -> None:
     """Send a message with user spouse as inline buttons attached."""
     if not is_admin(update, context):
-        update.message.reply_text("Tu n'as pas les droits pour cette commande.")
+        update.message.reply_text("🙅 Tu n'as pas les droits pour cette commande.")
         return
 
     keyboard = build_people_inline_kb("spouse", filter_registered=True)
     logger.info("spouse keyboard built")
     update.message.reply_text(
-        "De qui veux tu configurer le ou la partenaire?", reply_markup=keyboard
+        "👬 De qui veux tu configurer le ou la partenaire?", reply_markup=keyboard
     )
 
 
@@ -72,7 +72,14 @@ def giftee_inline_kb(update: Update, _: CallbackContext) -> None:
     """Send a message with user wishes as inline buttons attached."""
     keyboard = build_people_inline_kb("offer")
     logger.info("giftee keyboard built")
-    update.message.reply_text("À qui veux-tu offrir ?", reply_markup=keyboard)
+    update.message.reply_text("🎁 À qui veux-tu offrir ?", reply_markup=keyboard)
+
+
+def register_inline_kb(update: Update, _: CallbackContext) -> None:
+    """Send a message with user names as inline buttons attached."""
+    keyboard = build_people_inline_kb("register")
+    logger.info("register keyboard built")
+    update.message.reply_text("✍️ Qui veux-tu inscrire ?", reply_markup=keyboard)
 
 
 def user_button(query: CallbackQuery) -> None:
@@ -83,9 +90,17 @@ def user_button(query: CallbackQuery) -> None:
     logger.info("keyboard query data: %s", data)
     command = data[1]
     user_id = int(data[2])
-    user_name = UserManager().get_user(user_id).name
-    markup = None
 
+    text = ""
+    markup = None
+    user_manager = UserManager()
+    user_name = user_manager.get_user(user_id).name
+
+    if command == "register":
+        if Roulette().register_user(user_id):
+            text = f"🎡 {user_name} est bien enregistré.e pour le tirage au sort."
+        else:
+            text = f"❌ impossible d'inscrire {user_name} au tirage au sort. Vérifiez que les inscriptions sont ouvertes."
     if command == "wishes":
         text = user_wishes_message(user_name)
 
@@ -93,23 +108,19 @@ def user_button(query: CallbackQuery) -> None:
         text = user_comments_message(user_name)
 
     if command == "offer":
-        text = "Que veux tu offrir comme cadeau ?"
+        text = "🎁 Que veux tu offrir comme cadeau ?"
         markup = build_wishes_inline_kb(user_name)
 
     if command == "spouse":
-        text = (
-            f"Qui est le ou la partenaire de {user_name}? Iel ne pourra pas lui offrir."
-        )
+        text = f"💁 Qui est le ou la partenaire de {user_name}? Iel ne pourra pas lui offrir."
         markup = build_people_inline_kb(
             "exclude", extra_data=user_id, filter_registered=True
         )
 
     if command == "exclude":
         spouse_user_id = int(data[3])
-        user_manager = UserManager()
         spouse_name = user_manager.get_user(spouse_user_id).name
-        text = f"{user_name} est le ou la partenaire de {spouse_name}"
-        markup = None
+        text = f"👭 {user_name} et {spouse_name} sont partenaires"
         user_manager.set_spouse(user_id, spouse_user_id)
 
     logger.info("response: %s", text)
@@ -179,6 +190,7 @@ def register_keyboards(dispatcher: Dispatcher) -> None:
     """Register all the keyboards in the dispatcher."""
     dispatcher.add_handler(CommandHandler("partenaire", spouse_inline_kb))
     dispatcher.add_handler(CommandHandler("offrir", giftee_inline_kb))
+    dispatcher.add_handler(CommandHandler("register", register_inline_kb))
     # dispatcher.add_handler(CommandHandler("retirer", gift_inline_kb))
 
     # handle all inline keyboards responses
