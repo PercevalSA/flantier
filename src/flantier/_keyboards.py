@@ -85,6 +85,13 @@ def register_inline_kb(update: Update, _: CallbackContext) -> None:
     update.message.reply_text("✍️ Qui veux-tu inscrire ?", reply_markup=keyboard)
 
 
+def unregister_inline_kb(update: Update, _: CallbackContext) -> None:
+    """Send a message with user names as inline buttons attached."""
+    keyboard = build_people_inline_kb("unregister", filter_registered=True)
+    logger.info("unregister keyboard built")
+    update.message.reply_text("✍️ Qui veux-tu désinscrire ?", reply_markup=keyboard)
+
+
 def user_button(query: CallbackQuery) -> None:
     """Parses the CallbackQuery and updates the message text from people inline keyboard.
     data is like "user <command> <user_id> <user_name>
@@ -104,6 +111,12 @@ def user_button(query: CallbackQuery) -> None:
             text = f"🎡 {user_name} est bien enregistré.e pour le tirage au sort."
         else:
             text = f"❌ impossible d'inscrire {user_name} au tirage au sort. Vérifiez que les inscriptions sont ouvertes."
+
+    if command == "unregister":
+        if Roulette().unregister_user(user_id):
+            text = f"🗑 {user_name} a bien été retiré.e du tirage au sort."
+        else:
+            text = f"🤷 {user_name} n'a jamais été inscrit.e au tirage au sort..."
     if command == "wishes":
         text = user_wishes_message(user_name)
 
@@ -191,6 +204,7 @@ def build_wishes_inline_kb(username: str) -> InlineKeyboardMarkup:
 def register_keyboards(dispatcher: Dispatcher) -> None:
     """Register all the keyboards in the dispatcher."""
     dispatcher.add_handler(CommandHandler("register", register_inline_kb))
+    dispatcher.add_handler(CommandHandler("unregister", register_inline_kb))
     dispatcher.add_handler(CommandHandler("spouse", spouse_inline_kb))
     dispatcher.add_handler(CommandHandler("offrir", giftee_inline_kb))
     # TODO: implement this command

@@ -81,6 +81,8 @@ def help_message(update: Update, context: CallbackContext) -> None:
 <b>👮‍♀️ Commandes administrateur.ice</b>
 /open - ouvre la session d'inscription
 /close - termine la session d'inscription
+/register - inscrit un.e participant.e
+/unregister - désinscrit un.e participant.e
 /spouse - ajoute une contrainte de destinataire (conjoint.e)
 /tirage - lance le tirage au sort avec les contraintes
 💡 La liste des souhaits est mise à jour automatiquement toutes les 10 minutes.
