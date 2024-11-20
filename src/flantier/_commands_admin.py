@@ -99,9 +99,6 @@ def process(update: Update, context: CallbackContext) -> None:
         return
 
     roulette = Roulette()
-    message = context.bot.send_message(
-        chat_id=update.message.chat_id, text="🎡 Tirage au sort en cours..."
-    )
 
     if not roulette.is_ready():
         context.bot.send_message(
@@ -110,6 +107,9 @@ def process(update: Update, context: CallbackContext) -> None:
         )
         return
 
+    message = context.bot.send_message(
+        chat_id=update.message.chat_id, text="🎡 Tirage au sort en cours..."
+    )
     if roulette.tirage() != 0:
         context.bot.send_message(
             chat_id=update.message.chat_id,
