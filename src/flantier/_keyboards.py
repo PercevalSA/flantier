@@ -7,7 +7,6 @@ from telegram import (
     CallbackQuery,
     InlineKeyboardButton,
     InlineKeyboardMarkup,
-    ReplyKeyboardMarkup,
     Update,
 )
 from telegram.ext import (
@@ -188,53 +187,11 @@ def build_wishes_inline_kb(username: str) -> InlineKeyboardMarkup:
 
 def register_keyboards(dispatcher: Dispatcher) -> None:
     """Register all the keyboards in the dispatcher."""
-    dispatcher.add_handler(CommandHandler("partenaire", spouse_inline_kb))
-    dispatcher.add_handler(CommandHandler("offrir", giftee_inline_kb))
     dispatcher.add_handler(CommandHandler("register", register_inline_kb))
+    dispatcher.add_handler(CommandHandler("spouse", spouse_inline_kb))
+    dispatcher.add_handler(CommandHandler("offrir", giftee_inline_kb))
+    # TODO: implement this command
     # dispatcher.add_handler(CommandHandler("retirer", gift_inline_kb))
 
     # handle all inline keyboards responses
     dispatcher.add_handler(CallbackQueryHandler(inline_button_pressed))
-
-
-# LEGACY
-#########
-def build_present_keyboard(update: Update, context: CallbackContext) -> None:
-    """Affiche le clavier des cadeau que l'on souhaite offrir."""
-    users = UserManager().users
-
-    offrant = next(qqun for qqun in users if qqun.tg_id == update.message.from_user.id)
-
-    text = ""
-    button_list = []
-
-    if (len(offrant.offer_to)) == 0:
-        context.bot.send_message(
-            chat_id=update.message.chat_id,
-            text="Tu n'offres encore aucun cadeau, égoïste !",
-        )
-        return
-
-    for i, _ in enumerate(offrant.offer_to):
-        text += str(offrant.offer_to[i][0]) + " " + str(offrant.offer_to[i][1])
-        text += " [" + users[offrant.offer_to[i][0]].name + "] : "
-        text += users[offrant.offer_to[i][0]].wishes[offrant.offer_to[i][1]] + "\n"
-        button_list.append(
-            f"/retirer {str(offrant.offer_to[i][0])} {str(offrant.offer_to[i][1])}"
-        )
-
-        header_buttons = None
-        footer_buttons = ["/annuler"]
-        n_cols = 2
-
-        menu = [button_list[i : i + n_cols] for i in range(0, len(button_list), n_cols)]
-        if header_buttons:
-            menu.insert(0, header_buttons)
-        if footer_buttons:
-            menu.append(footer_buttons)
-
-        reply_keyboard = ReplyKeyboardMarkup(keyboard=menu, one_time_keyboard=True)
-
-        context.bot.send_message(
-            chat_id=update.message.chat_id, text=text, reply_markup=reply_keyboard
-        )

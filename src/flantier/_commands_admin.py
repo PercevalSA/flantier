@@ -143,4 +143,3 @@ def register_admin_commands(dispatcher: Dispatcher) -> None:
     dispatcher.add_handler(CommandHandler("open", open_registrations))
     dispatcher.add_handler(CommandHandler("close", close_registrations))
     dispatcher.add_handler(CommandHandler("tirage", process))
-    dispatcher.add_handler(CommandHandler("exclude", add_spouse))

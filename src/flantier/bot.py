@@ -69,9 +69,8 @@ def help_message(update: Update, context: CallbackContext) -> None:
 <b>🎁 Cadeaux</b>
 /cadeaux - donne la liste des voeux de cadeaux d'un.e participant.e
 /commentaires - donne les commentaires associés aux voeux
-/offrir - reserve un cadeau à offrir (pour que personne d'autre ne l'offre)
-/retirer - annule la réservation du cadeau
-/annuler - annule l'opération en cours
+/offrir - reserve un cadeau à offrir (pour que personne d'autre ne l'offre) [🅱️ETA]
+/retirer - annule la réservation du cadeau [☕️TODO]
 
 <b>🕵️ OSS 117</b>
 /bonjour - je vous dirai bonjour à ma manière
@@ -81,8 +80,8 @@ def help_message(update: Update, context: CallbackContext) -> None:
 <b>👮‍♀️ Commandes administrateur.ice</b>
 /open - ouvre la session d'inscription
 /close - termine la session d'inscription
+/spouse - ajoute une contrainte de destinataire (conjoint.e)
 /tirage - lance le tirage au sort avec les contraintes
-/exclude - ajoute une contrainte de destinataire (conjoint)
 /update - met à jour la liste des souhaits depuis google sheets
 💡 La liste des souhaits est mise à jour automatiquement toutes les 10 minutes.
 """
@@ -126,6 +125,8 @@ def register_commands(dispatcher: Dispatcher) -> None:
     register_santa_commands(dispatcher)
     register_flantier_commands(dispatcher)
     register_admin_commands(dispatcher)
+
+    dispatcher.add_handler(CommandHandler("retirer", unimplemented_command))
 
     # handle all unkown commands
     dispatcher.add_handler(MessageHandler(Filters.command, unknown_command))
