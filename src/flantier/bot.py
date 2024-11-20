@@ -31,7 +31,7 @@ def start(update: Update, context: CallbackContext) -> None:
     """Start the interaction with the bot. Enable the bot to talk to user."""
     context.bot.send_message(
         chat_id=update.effective_chat.id,  # type: ignore
-        text=(los
+        text=(
             "🧑‍🎄 C'est bientôt Noël! "
             "Je suis là pour vous aider à organiser tout ça Larmina mon p'tit. "
             "Je tire au sort les cadeaux et vous nous faites une jolie table "
