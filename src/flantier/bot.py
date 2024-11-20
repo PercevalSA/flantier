@@ -31,7 +31,7 @@ def start(update: Update, context: CallbackContext) -> None:
     """Start the interaction with the bot. Enable the bot to talk to user."""
     context.bot.send_message(
         chat_id=update.effective_chat.id,  # type: ignore
-        text=(
+        text=(los
             "🧑‍🎄 C'est bientôt Noël! "
             "Je suis là pour vous aider à organiser tout ça Larmina mon p'tit. "
             "Je tire au sort les cadeaux et vous nous faites une jolie table "
@@ -84,7 +84,9 @@ def help_message(update: Update, context: CallbackContext) -> None:
 /register - inscrit un.e participant.e
 /unregister - désinscrit un.e participant.e
 /spouse - ajoute une contrainte de destinataire (conjoint.e)
+/newyear - utilise les résultats de l'année dernière comme contraintes de tirage
 /tirage - lance le tirage au sort avec les contraintes
+/results - envoie les résultats à tous les utilisateurices en message privé
 💡 La liste des souhaits est mise à jour automatiquement toutes les 10 minutes.
 """
 

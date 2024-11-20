@@ -61,6 +61,13 @@ def send_admin_notification(message: str) -> None:
     )
 
 
+def update_last_year_giftees(update: Update, context: CallbackContext) -> None:
+    if not is_admin(update, context):
+        return
+    logger.info("updating last year giftees for all users")
+    UserManager().update_with_last_year_results()
+
+
 def open_registrations(update: Update, context: CallbackContext) -> None:
     """Lance la campagne d'inscription. Récupère les résultats de l'année précédente
     comme nouvelles conditions de tirage au sort.
@@ -69,7 +76,6 @@ def open_registrations(update: Update, context: CallbackContext) -> None:
         return
 
     Roulette().open_registrations()
-    UserManager().update_with_last_year_results()
 
     context.bot.send_message(
         chat_id=update.message.chat_id,
@@ -93,7 +99,7 @@ def close_registrations(update: Update, context: CallbackContext) -> None:
     )
 
 
-def process(update: Update, context: CallbackContext) -> None:
+def draw_secret_santas(update: Update, context: CallbackContext) -> None:
     """Lance le tirage au sort et envoie les réponses en message privé."""
     if not is_admin(update, context):
         return
@@ -122,7 +128,12 @@ def process(update: Update, context: CallbackContext) -> None:
         chat_id=message.chat.id,
         text="🎡 Tirage au sort terminé ✅",
     )
-    # send results to everyone as private message
+
+
+def send_result_to_all_users(update: Update, context: CallbackContext) -> None:
+    """send results to everyone as private message"""
+    if not is_admin(update, context):
+        return
     user_manager = UserManager()
     for user in user_manager.users:
         if not user.registered or user.tg_id <= 0:
@@ -130,6 +141,10 @@ def process(update: Update, context: CallbackContext) -> None:
             continue
 
         giftee = user_manager.get_user(user.giftee)
+        if giftee is None:
+            logger.error("giftee not found for %s: %d", user.name, user.giftee)
+            continue
+
         logger.info("send result to %s: giftee is %d", user.name, giftee.tg_id)
 
         context.bot.send_message(
@@ -142,4 +157,6 @@ def register_admin_commands(dispatcher: Dispatcher) -> None:
     """Register all admin commands."""
     dispatcher.add_handler(CommandHandler("open", open_registrations))
     dispatcher.add_handler(CommandHandler("close", close_registrations))
-    dispatcher.add_handler(CommandHandler("tirage", process))
+    dispatcher.add_handler(CommandHandler("tirage", draw_secret_santas))
+    dispatcher.add_handler(CommandHandler("results", send_result_to_all_users))
+    dispatcher.add_handler(CommandHandler("newyear", update_last_year_giftees))

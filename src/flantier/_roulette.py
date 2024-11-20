@@ -115,7 +115,7 @@ class Roulette:
 
             # no solutions
             if len(possibilities) == 0:
-                logger.info("Pas de solution, on recommence le tirage.")
+                logger.info("No solution found, let's draw again.")
                 return False
 
             giftee = choice(possibilities)
@@ -123,7 +123,7 @@ class Roulette:
             logger.debug("%s offers to %s", one.name, giftee.name)
             drawn_users.append(one.giftee)
 
-        logger.info("the roulette just finished. Results will be send to every user")
+        logger.info("the roulette just finished.")
         return True
 
     def roulette_process(self):

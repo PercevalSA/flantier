@@ -97,10 +97,11 @@ def get_result(update: Update, context: CallbackContext) -> None:
     supplier = user_manager.get_user(update.message.from_user.id)
     receiver = user_manager.get_user(supplier.giftee)
 
-    context.bot.send_message(
-        chat_id=update.message.from_user.id,
-        text=f"🎅 Youpi tu offres à : {receiver.name} 🎁\n",
-    )
+    if receiver is None:
+        text = "🚫 Il y'a eu une erreur, tu n'offres à personne pour l'instant"
+    else:
+        text=f"🎅 Youpi tu offres à : {receiver.name} 🎁\n"
+    context.bot.send_message(chat_id=update.message.from_user.id, text=text)
 
 
 def register_user_commands(dispatcher: Dispatcher) -> None:
