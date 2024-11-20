@@ -71,6 +71,7 @@ def help_message(update: Update, context: CallbackContext) -> None:
 /commentaires - donne les commentaires associés aux voeux
 /offrir - reserve un cadeau à offrir (pour que personne d'autre ne l'offre) [🅱️ETA]
 /retirer - annule la réservation du cadeau [☕️TODO]
+/update - met à jour la liste des souhaits depuis google sheets
 
 <b>🕵️ OSS 117</b>
 /bonjour - je vous dirai bonjour à ma manière
@@ -82,7 +83,6 @@ def help_message(update: Update, context: CallbackContext) -> None:
 /close - termine la session d'inscription
 /spouse - ajoute une contrainte de destinataire (conjoint.e)
 /tirage - lance le tirage au sort avec les contraintes
-/update - met à jour la liste des souhaits depuis google sheets
 💡 La liste des souhaits est mise à jour automatiquement toutes les 10 minutes.
 """
 
