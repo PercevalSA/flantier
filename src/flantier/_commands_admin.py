@@ -66,6 +66,9 @@ def update_last_year_giftees(update: Update, context: CallbackContext) -> None:
         return
     logger.info("updating last year giftees for all users")
     UserManager().update_with_last_year_results()
+    update.message.reply_text(
+        "🎅 Les résultats de l'année dernière ont été utilisés en tant que contraintes pour cette année."
+    )
 
 
 def open_registrations(update: Update, context: CallbackContext) -> None:
@@ -134,6 +137,7 @@ def send_result_to_all_users(update: Update, context: CallbackContext) -> None:
     """send results to everyone as private message"""
     if not is_admin(update, context):
         return
+
     user_manager = UserManager()
     for user in user_manager.users:
         if not user.registered or user.tg_id <= 0:
@@ -150,10 +154,15 @@ def send_result_to_all_users(update: Update, context: CallbackContext) -> None:
         try:
             context.bot.send_message(
                 user.tg_id,
-                text=f"🎅 Youpi tu offres à {giftee.name}\n",
+                text=f"🎅 Youpi tu offres à {giftee.name}",
             )
         except Exception as e:
             logger.error("error sending message to %s: %s", user.name, e)
+
+        context.bot.send_message(
+            update.message.chat_id,
+            text="🦹‍♂️ tous les parents Noël secrets ont été envoyés aux interessé.e.s",
+        )
 
 
 def register_admin_commands(dispatcher: Dispatcher) -> None:
