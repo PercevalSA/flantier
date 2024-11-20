@@ -70,7 +70,7 @@ def help_message(update: Update, context: CallbackContext) -> None:
 /cadeaux - donne la liste des voeux de cadeaux d'un.e participant.e
 /commentaires - donne les commentaires associés aux voeux
 /offrir - reserve un cadeau à offrir (pour que personne d'autre ne l'offre) [🅱️ETA]
-/retirer - annule la réservation du cadeau [☕️TODO]
+/reprendre - annule la réservation du cadeau [☕️TODO] (donner c'est donner, reprendre c'est voler - comme la propriété privée)
 /update - met à jour la liste des souhaits depuis google sheets
 
 <b>🕵️ OSS 117</b>

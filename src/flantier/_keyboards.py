@@ -117,6 +117,7 @@ def user_button(query: CallbackQuery) -> None:
             text = f"🗑 {user_name} a bien été retiré.e du tirage au sort."
         else:
             text = f"🤷 {user_name} n'a jamais été inscrit.e au tirage au sort..."
+
     if command == "wishes":
         text = user_wishes_message(user_name)
 
@@ -204,11 +205,11 @@ def build_wishes_inline_kb(username: str) -> InlineKeyboardMarkup:
 def register_keyboards(dispatcher: Dispatcher) -> None:
     """Register all the keyboards in the dispatcher."""
     dispatcher.add_handler(CommandHandler("register", register_inline_kb))
-    dispatcher.add_handler(CommandHandler("unregister", register_inline_kb))
+    dispatcher.add_handler(CommandHandler("unregister", unregister_inline_kb))
     dispatcher.add_handler(CommandHandler("spouse", spouse_inline_kb))
     dispatcher.add_handler(CommandHandler("offrir", giftee_inline_kb))
     # TODO: implement this command
-    # dispatcher.add_handler(CommandHandler("retirer", gift_inline_kb))
+    # dispatcher.add_handler(CommandHandler("reprendre", gift_inline_kb))
 
     # handle all inline keyboards responses
     dispatcher.add_handler(CallbackQueryHandler(inline_button_pressed))
