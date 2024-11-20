@@ -56,24 +56,27 @@ def help_message(update: Update, context: CallbackContext) -> None:
     """Send the help message with all available commands"""
     help_text = """
 <b>🤵‍♂️ Commandes Utilisateur.ice.s</b>
+/start - démarre l'interaction avec le bot
 /aide - affiche cette aide
-/participer - s'inscrire pour le secret santa
-/exclure - se désinscrire du secret santa
-/liste - donne la liste des participants
-/resultat - donne le résultat tu tirage au sort en dm
-/contraintes - affiche les contraintes du tirage au sort
 
-/cadeaux - donne la liste des voeux de cadeaux
+<b>🎡 Tirage au sort</b>
+/participer - s'inscrire pour le secret santa
+/retirer - se désinscrire du secret santa
+/liste - affiche la liste des participants
+/contraintes - affiche les contraintes du tirage au sort (conjoint et tirage de l'an dernier)
+/resultat - envoie le résultat tu tirage au sort en message privé
+
+<b>🎁 Cadeaux</b>
+/cadeaux - donne la liste des voeux de cadeaux d'un.e participant.e
 /commentaires - donne les commentaires associés aux voeux
 /offrir - reserve un cadeau à offrir (pour que personne d'autre ne l'offre)
 /retirer - annule la réservation du cadeau
 /annuler - annule l'opération en cours
 
+<b>🕵️ OSS 117</b>
 /bonjour - je vous dirai bonjour à ma manière
 /larmina - le caire nid d'espion
 /dolores - rio ne répond plus
-
-/start - démarre l'interaction avec le bot
 
 <b>👮‍♀️ Commandes administrateur.ice</b>
 /open - ouvre la session d'inscription
@@ -81,6 +84,7 @@ def help_message(update: Update, context: CallbackContext) -> None:
 /tirage - lance le tirage au sort avec les contraintes
 /exclude - ajoute une contrainte de destinataire (conjoint)
 /update - met à jour la liste des souhaits depuis google sheets
+💡 La liste des souhaits est mise à jour automatiquement toutes les 10 minutes.
 """
 
     context.bot.send_message(

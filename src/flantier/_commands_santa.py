@@ -4,7 +4,6 @@ from logging import getLogger
 
 from telegram import (
     Bot,
-    ParseMode,
     ReplyKeyboardRemove,
     Update,
 )
@@ -47,17 +46,6 @@ def update_wishes_list(update: Update, context: CallbackContext) -> None:
     text = "🎁 liste des cadeaux mise à jour."
     context.bot.send_message(chat_id=update.message.chat_id, text=text)
     logger.info(text)
-
-
-def get_constraints(update: Update, context: CallbackContext) -> None:
-    """Send a message with user constraints as inline buttons attached."""
-    user_manager = UserManager()
-    text = "<b>Contraintes</b>\n"
-    for user in user_manager.users:
-        if user.registered:
-            text += user_manager.get_user_constraints(user.tg_id) + "\n"
-
-    update.message.reply_text(text, parse_mode=ParseMode.HTML)
 
 
 def send_giver_notification(wish: Wish) -> None:
@@ -252,6 +240,5 @@ def dont_offer(update: Update, context: CallbackContext) -> None:
 def register_santa_commands(dispatcher: Dispatcher) -> None:
     dispatcher.add_handler(CommandHandler("cadeaux", get_wishes))
     dispatcher.add_handler(CommandHandler("commentaires", get_wishes_and_comments))
-    dispatcher.add_handler(CommandHandler("contraintes", get_constraints))
     # admin only
     dispatcher.add_handler(CommandHandler("update", update_wishes_list))

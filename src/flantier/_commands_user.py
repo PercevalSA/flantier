@@ -82,6 +82,17 @@ def list_users(update: Update, context: CallbackContext) -> None:
     context.bot.send_message(chat_id=update.message.chat_id, text=text)
 
 
+def get_constraints(update: Update, context: CallbackContext) -> None:
+    """Send a message with user constraints as inline buttons attached."""
+    user_manager = UserManager()
+    text = "<b>Contraintes</b>\n"
+    for user in user_manager.users:
+        if user.registered:
+            text += user_manager.get_user_constraints(user.tg_id) + "\n"
+
+    update.message.reply_text(text, parse_mode=ParseMode.HTML)
+
+
 def get_result(update: Update, context: CallbackContext) -> None:
     """Affiche le résultat du tirage au sort en message privé."""
     user_manager = UserManager()
@@ -97,6 +108,7 @@ def get_result(update: Update, context: CallbackContext) -> None:
 def register_user_commands(dispatcher: Dispatcher) -> None:
     """Register user commands to the dispatcher."""
     dispatcher.add_handler(CommandHandler("participer", self_register))
-    dispatcher.add_handler(CommandHandler("exclure", self_unregister))
+    dispatcher.add_handler(CommandHandler("retirer", self_unregister))
     dispatcher.add_handler(CommandHandler("liste", list_users))
     dispatcher.add_handler(CommandHandler("resultat", get_result))
+    dispatcher.add_handler(CommandHandler("contraintes", get_constraints))
