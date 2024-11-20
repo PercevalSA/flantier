@@ -237,8 +237,9 @@ def create_missing_users() -> None:
 def update_gifts_background_task(interval_sec: int = 600) -> None:
     """Update gifts list in background. Function to be run in a thread"""
     ticker = threading.Event()
-    while not ticker.wait(interval_sec):
+    while True:
         update_wishes_list()
+        ticker.wait(interval_sec)
 
 
 # TODO use or remove that function
