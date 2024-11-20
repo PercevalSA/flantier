@@ -153,4 +153,6 @@ class Roulette:
             logger.warning("roulette process timed out")
             return 1
         logger.info("roulette process terminated with code %d", roulette_process.exitcode)
+        # we need to reload data from the file as draw has been done in a separate process
+        UserManager().load_users()
         return roulette_process.exitcode
