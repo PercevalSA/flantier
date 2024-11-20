@@ -39,7 +39,7 @@ def _register_user(user_id: int, user_name: str) -> str:
             "tu peux te faire un auto-cadeau 🤷🔄🎁"
         )
 
-    if roulette.register_user(tg_id=user_id, name=user_name):
+    if roulette.register_user(tg_id=user_id):
         return f"🎉 Bravo {user_name} 🎉\nTu es bien enregistré.e pour le tirage au sort"
 
     logger.error("registration failed for user %s: %d", user_name, user_id)
