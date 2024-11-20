@@ -59,10 +59,9 @@ def update_user_wishes(user: User, wishes: list, comments: list) -> None:
         wishes (list): list of wishes from google sheet
         comments (list): list of comments from google sheet
     """
-    logger.info("updating wishes for %s", user.name)
-    logger.debug("wishes: %s", wishes)
-    logger.debug("comments: %s", comments)
-
+    logger.debug(
+        "updating wishes and comments for %s: %s %s", user.name, wishes, comments
+    )
     # keep track in order not to update the same wish multiple times
     # if multiple matches are found
     updated_wishes_indices = set()
@@ -134,14 +133,13 @@ def update_wishes_list() -> None:
         name = gifts[column][0]
         wishes = gifts[column][1:]
         comments = gifts[column + 1][1:]
-        logger.info("mise à jour des cadeaux de %s: %s", name, wishes)
-        logger.info("mise à jour des commentaires de %s: %s", name, comments)
 
         user = user_manager.search_user(name)
         if not user:
             logger.error("user %s not found", name)
 
         update_user_wishes(user, wishes, comments)
+    logger.info("wishes list updated")
 
 
 def get_wish_list(user: User) -> str:

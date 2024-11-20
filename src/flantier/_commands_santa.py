@@ -45,7 +45,6 @@ def update_wishes_list(update: Update, context: CallbackContext) -> None:
     _santa.update_wishes_list()
     text = "🎁 liste des cadeaux mise à jour."
     context.bot.send_message(chat_id=update.message.chat_id, text=text)
-    logger.info(text)
 
 
 def send_giver_notification(wish: Wish) -> None:

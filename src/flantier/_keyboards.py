@@ -126,7 +126,6 @@ def user_button(query: CallbackQuery) -> None:
         text = f"👭 {user_name} et {spouse_name} sont partenaires. Iels ne peuvent pas s'offrir de cadeaux mutuellement."
         user_manager.set_spouse(user_id, spouse_user_id)
 
-    logger.info("response: %s", text)
     query.edit_message_text(text=text, reply_markup=markup)
 
 
