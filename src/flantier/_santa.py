@@ -186,6 +186,42 @@ def user_comments_message(user_name: str) -> str:
     return text
 
 
+# Commands called from keyboards
+def set_wish_giver(user_id: int, wish_index: int, giver: int) -> str:
+    logger.info("set wish giver: %s %s %s", user_id, wish_index, giver)
+    """Set the giver of a wish. Returns the text to reply"""
+    user_manager = UserManager()
+    user = user_manager.get_user(user_id)
+
+    if user_id == giver:
+        return "Tu ne peux pas t'offrir un cadeau à toi même. Si tu es Geoffroy contact l'admin."
+
+    if user.wishes[wish_index].giver:
+        return (
+            "Ce cadeau est déjà offert par "
+            + user_manager.get_user(user.wishes[wish_index].giver).name
+        )
+
+    user.wishes[wish_index].giver = giver
+    user_manager.update_user(user)
+
+    return "Youpi! Tu offres " + user.wishes[wish_index].wish + " à " + user.name
+
+
+# WIP
+def unset_wish_giver(user_id: int, wish_index: int) -> str:
+    gifts = []
+    for user in UserManager().users:
+        if user.tg_id == user_id:
+            pass
+
+        if user.wishes[wish_index].giver == user_id:
+            gifts.append("plop")
+            return "Cadeau supprimé"
+
+    return "Cadeau non trouvé"
+
+
 def create_missing_users() -> None:
     """create users present in google sheet but not in database (no telegram account)."""
     wishes = download_google_sheet()

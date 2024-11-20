@@ -18,7 +18,11 @@ from telegram.ext import (
 
 from flantier._commands_admin import is_admin
 from flantier._roulette import Roulette
-from flantier._santa import user_comments_message, user_wishes_message
+from flantier._santa import (
+    set_wish_giver,
+    user_comments_message,
+    user_wishes_message,
+)
 from flantier._users import UserManager
 
 logger = getLogger("flantier")
@@ -119,7 +123,7 @@ def user_button(query: CallbackQuery) -> None:
     if command == "exclude":
         spouse_user_id = int(data[3])
         spouse_name = user_manager.get_user(spouse_user_id).name
-        text = f"👭 {user_name} et {spouse_name} sont partenaires"
+        text = f"👭 {user_name} et {spouse_name} sont partenaires. Iels ne peuvent pas s'offrir de cadeaux mutuellement."
         user_manager.set_spouse(user_id, spouse_user_id)
 
     logger.info("response: %s", text)

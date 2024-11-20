@@ -90,9 +90,7 @@ class UserManager:
     #
 
     def get_user(self, tg_id: int) -> Optional[User]:
-        """Récupère un utilisateur par son tg_id. Si registered est True,
-        ne renvoie que les utilisateurs inscrits pour le tirage au sort.
-        """
+        """Récupère un utilisateur par son tg_id"""
         for user in self.users:
             if user.tg_id == tg_id:
                 return user
@@ -188,20 +186,11 @@ class UserManager:
         return False
 
     def list_users(self) -> str:
-        """Liste les users inscrits"""
+        """Liste tous les utilisateurs"""
         _users = ""
         for user in self.users:
             _users += f"{user.name}\n"
         return _users
-
-    def set_spouse(self, tg_id: int, spouse: int) -> bool:
-        """Ajoute un conjoint à un participant."""
-        for user in self.users:
-            if user.tg_id == tg_id:
-                user.spouse = spouse
-                self.save_users()
-                return True
-        return False
 
     def update_with_last_year_results(self) -> None:
         """update each user last_giftee with the result of last year and reset giftee."""
