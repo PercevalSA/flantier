@@ -97,8 +97,19 @@ async def user_button(query: CallbackQuery) -> None:
     """Parses the CallbackQuery and updates the message text from people inline keyboard.
     data is like "user <command> <user_id> <user_name>
     """
-    data = await query.data.split(" ")
-    logger.info("keyboard query data: %s", data)
+    logger.debug("user button pressed")
+    query = update.callback_query
+
+    # CallbackQueries need to be answered, even if no notification to the user is needed
+    # Some clients may have trouble otherwise. See https://core.telegram.org/bots/api#callbackquery
+    await query.answer()
+    await query.edit_message_text(text=f"Selected option: {query.data}")
+
+    # if query.data is None:
+    #     query.get_bot().answer_callback_query(query.id, "🤷‍♂️")
+
+    # data = query.data.split(" ")
+
     command = data[1]
     user_id = int(data[2])
 
@@ -157,6 +168,12 @@ async def gift_button(query: CallbackQuery) -> None:
     """Parses the CallbackQuery and updates the message text from wish inline keyboard.
     data is like 'wish <giftee_id> <wish_index>'
     """
+    logger.debug("gift button pressed")
+    query = update.callback_query
+    # CallbackQueries need to be answered, even if no notification to the user is needed
+    # Some clients may have trouble otherwise. See https://core.telegram.org/bots/api#callbackquery
+    await query.answer()
+
     data = await query.data.split(" ", 2)
     logger.info("gift query data: %s", data)
     giftee = int(data[1])
@@ -170,16 +187,29 @@ async def gift_button(query: CallbackQuery) -> None:
     await query.edit_message_text(text=reply)
 
 
+# TODO rework all of that with ConversationHandler and CallbackQueryHandler
 async def inline_button_pressed(update: Update, _: ContextTypes.DEFAULT_TYPE) -> None:
     """Parses the CallbackQuery and updates the message text
     from people and wish inline keyboards."""
+    logger.debug("inline button pressed")
     query = update.callback_query
     # CallbackQueries need to be answered, even if no notification to the user is needed
-    # Some clients may have trouble otherwise.
-    # See https://core.telegram.org/bots/api#callbackquery
-    await query.answer()
+    # Some clients may have trouble otherwise. See https://core.telegram.org/bots/api#callbackquery
+    logger.debug("await for query answer")
+    await query.answer(text="PROUT")
 
-    keyboard_type = await query.data.split(" ")[0]
+    if query.data is None:
+        query.get_bot().answer_callback_query(query.id, "🤷‍♂️")
+        return
+    from telegram import Bot
+
+    Bot.answer_callback_query
+    logger.debug("after await query answer: %s", query.data)
+    # logger.debug("query data: %s", query.data)
+
+    keyboard_type = query.data
+    keyboard_type = keyboard_type.split(" ")[0]
+    logger.debug("keybord prout")
     logger.info("keyboard query data: %s", keyboard_type)
 
     if keyboard_type == "cancel":
