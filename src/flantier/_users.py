@@ -91,7 +91,14 @@ class UserManager:
     #
 
     def get_user(self, tg_id: int) -> User:
-        """Récupère un utilisateur par son tg_id"""
+        """Get the user object using its telegram id to find in database
+
+        Args:
+            tg_id (int): telegram id of the user
+
+        Raises:
+            NameError: if the user is not found
+        """
         for user in self.users:
             if user.tg_id == tg_id:
                 return user

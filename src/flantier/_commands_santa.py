@@ -7,9 +7,9 @@ from telegram import (
     Update,
 )
 from telegram.ext import (
-    CallbackContext,
+    Application,
     CommandHandler,
-    Dispatcher,
+    ContextTypes,
 )
 
 from flantier import _santa
@@ -20,30 +20,30 @@ from flantier._users import Wish
 logger = getLogger("flantier")
 
 
-def get_wishes(update: Update, _: CallbackContext) -> None:
+async def get_wishes(update: Update, _: ContextTypes.DEFAULT_TYPE) -> None:
     """Send a message with user list as inline buttons attached.
     Clicking a button returns the user's wish list.
     """
     keyboard = build_people_inline_kb("wishes")
-    update.message.reply_text(
+    await update.message.reply_text(
         "🤷 De qui veux tu consulter la liste de souhaits?", reply_markup=keyboard
     )
 
 
-def get_wishes_and_comments(update: Update, _: CallbackContext) -> None:
+async def get_wishes_and_comments(update: Update, _: ContextTypes.DEFAULT_TYPE) -> None:
     """Affiche la liste de cadeaux et les commentaires associés d'une personne."""
     keyboard = build_people_inline_kb("comments")
-    update.message.reply_text(
+    await update.message.reply_text(
         "🤷 De qui veux tu consulter la liste de souhaits?", reply_markup=keyboard
     )
 
 
-def update_wishes_list(update: Update, context: CallbackContext) -> None:
+async def update_wishes_list(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Met à jour la liste des cadeaux dans le cache du bot depuis le google sheet."""
     _santa.create_missing_users()
     _santa.update_wishes_list()
     text = "🎁 liste des cadeaux mise à jour."
-    context.bot.send_message(chat_id=update.message.chat_id, text=text)
+    await context.bot.send_message(chat_id=update.message.chat_id, text=text)
 
 
 def send_giver_notification(wish: Wish) -> None:
@@ -61,8 +61,8 @@ def send_giver_notification(wish: Wish) -> None:
         )
 
 
-def register_santa_commands(dispatcher: Dispatcher) -> None:
+def register_santa_commands(application: Application) -> None:
     """Register all the santa commands: specific to gifts and wishess management"""
-    dispatcher.add_handler(CommandHandler("cadeaux", get_wishes))
-    dispatcher.add_handler(CommandHandler("commentaires", get_wishes_and_comments))
-    dispatcher.add_handler(CommandHandler("update", update_wishes_list))
+    application.add_handler(CommandHandler("cadeaux", get_wishes))
+    application.add_handler(CommandHandler("commentaires", get_wishes_and_comments))
+    application.add_handler(CommandHandler("update", update_wishes_list))

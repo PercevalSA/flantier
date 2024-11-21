@@ -3,14 +3,13 @@
 import logging
 from threading import Thread
 
-from telegram import ParseMode, Update
+from telegram import Update
+from telegram.constants import ParseMode
 from telegram.ext import (
-    CallbackContext,
+    Application,
     CommandHandler,
-    Dispatcher,
-    Filters,
+    ContextTypes,
     MessageHandler,
-    Updater,
 )
 
 from flantier._commands_admin import register_admin_commands
@@ -27,9 +26,9 @@ logging.basicConfig(format="%(levelname)s - %(message)s", level=logging.INFO)
 logger = logging.getLogger("flantier")
 
 
-def start(update: Update, context: CallbackContext) -> None:
+async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Start the interaction with the bot. Enable the bot to talk to user."""
-    context.bot.send_message(
+    await context.bot.send_message(
         chat_id=update.effective_chat.id,  # type: ignore
         text=(
             "🧑‍🎄 C'est bientôt Noël! "
@@ -52,7 +51,7 @@ def start(update: Update, context: CallbackContext) -> None:
     )
 
 
-def help_message(update: Update, context: CallbackContext) -> None:
+async def help_message(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Send the help message with all available commands"""
     help_text = """
 <b>🤵‍♂️ Commandes Utilisateur.ice.s</b>
@@ -90,53 +89,55 @@ def help_message(update: Update, context: CallbackContext) -> None:
 💡 La liste des souhaits est mise à jour automatiquement toutes les 10 minutes.
 """
 
-    context.bot.send_message(
+    await context.bot.send_message(
         chat_id=update.effective_chat.id,  # type: ignore
         text=help_text,
         parse_mode=ParseMode.HTML,
     )
 
 
-def unimplemented_command(update: Update, context: CallbackContext) -> None:
+async def unimplemented_command(
+    update: Update, context: ContextTypes.DEFAULT_TYPE
+) -> None:
     """Send the help message with all available commands"""
     help_text = (
         "Désolé larmina mon p'tit mais cette commande n'est pas encore implémentée."
     )
-    context.bot.send_message(
+    await context.bot.send_message(
         chat_id=update.effective_chat.id,  # type: ignore
         text=help_text,
     )
 
 
-def unknown_command(update: Update, context: CallbackContext) -> None:
+async def unknown_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Gère les commandes inconues ou incorrectes"""
-    context.bot.send_message(
+    await context.bot.send_message(
         chat_id=update.effective_chat.id,  # type: ignore
         text="Le Mue... quoi? Je n'ai pas compris cette commande.",
     )
 
 
-def register_commands(dispatcher: Dispatcher) -> None:
+def register_commands(application: Application) -> None:
     """Register all commands."""
 
     # generic bot commands
-    dispatcher.add_handler(CommandHandler("start", start))
-    dispatcher.add_handler(CommandHandler("aide", help_message))
-    dispatcher.add_handler(CommandHandler("help", help_message))
+    application.add_handler(CommandHandler("start", start))
+    application.add_handler(CommandHandler("aide", help_message))
+    application.add_handler(CommandHandler("help", help_message))
 
-    register_keyboards(dispatcher)
-    register_user_commands(dispatcher)
-    register_santa_commands(dispatcher)
-    register_flantier_commands(dispatcher)
-    register_admin_commands(dispatcher)
+    register_keyboards(application)
+    register_user_commands(application)
+    register_santa_commands(application)
+    register_flantier_commands(application)
+    register_admin_commands(application)
 
-    dispatcher.add_handler(CommandHandler("retirer", unimplemented_command))
+    application.add_handler(CommandHandler("retirer", unimplemented_command))
 
     # handle all unkown commands
-    dispatcher.add_handler(MessageHandler(Filters.command, unknown_command))
+    application.add_handler(MessageHandler(filters.COMMAND, unknown_command))
 
 
-def error(update: Update, context: CallbackContext) -> None:
+async def error(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Bot error handler."""
     logger.warning('Update "%s" caused error "%s"', update, context.error)
 
@@ -146,13 +147,13 @@ def main() -> None:
     settings = SettingsManager().load_settings()
     logger.debug("Settings: %s", settings)
     # Create the EventHandler and pass it your bot's token
-    updater = Updater(token=settings["telegram"]["bot_token"])
+    application = ApplicationBuilder().token(settings["telegram"]["bot_token"]).build()
 
     # answer in Telegram on different commands
-    register_commands(updater.dispatcher)  # type: ignore
+    register_commands(application)  # type: ignore
 
     # log all errors
-    updater.dispatcher.add_error_handler(error)  # type: ignore
+    application.add_error_handler(error)  # type: ignore
 
     # init users
     UserManager().load_users()
@@ -162,11 +163,4 @@ def main() -> None:
     thread.start()
 
     # Start the Bot
-    updater.start_polling()
-
-    # Run the bot until you press Ctrl-C or the process receives SIGINT,
-    # SIGTERM or SIGABRT. This should be used most of the time, since
-    # start_polling() is non-blocking and will stop the bot gracefully.
-    updater.idle()
-
-    thread.join()
+    application.run_polling()
