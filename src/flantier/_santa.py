@@ -121,7 +121,7 @@ def update_user_wishes(user: User, wishes: list, comments: list) -> None:
     # find all missing wishes in gs_wishes to remove them from user wishes
     # updated_wishes_indices = set()
     for u_wish in user.wishes:
-        logger.info("cleaning wish %s", u_wish.wish)
+        logger.debug("cleaning wish %s", u_wish.wish)
         if not u_wish.wish or u_wish.wish not in wishes:
             logger.info("removing wish %s", u_wish.wish)
             user.wishes.remove(u_wish)
