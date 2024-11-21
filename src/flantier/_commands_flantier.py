@@ -16,14 +16,14 @@ AUDIO_BASE_FOLDER = Path.home() / ".cache/flantier/"
 logger = getLogger("flantier")
 
 
-def _send_written_quote(
+async def _send_written_quote(
     chat_id: int,
     context: CallbackContext,
 ) -> None:
     await context.bot.send_message(chat_id=chat_id, text=choice(quotes))
 
 
-def _send_audio_quote(chat_id: int, context: CallbackContext, folder: Path) -> None:
+async def _send_audio_quote(chat_id: int, context: CallbackContext, folder: Path) -> None:
     """Petit Comique."""
     audio_files = glob(f"{folder}/*.mp3")
 
