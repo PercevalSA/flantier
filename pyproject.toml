@@ -8,8 +8,8 @@ requires-python = ">=3.9"
 
 dependencies = [
     "bs4",                                 # for audio downloader
-    "google-api-python-client == 2.134.0", # for wishlist
-    "python-telegram-bot ==v21.3",
+    "google-api-python-client == 2.154.0", # for wishlist
+    "python-telegram-bot ==v21.7",
     "toml",                                # for config file
     "tqdm",                                # for audio downloader
 ]
