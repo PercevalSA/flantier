@@ -101,7 +101,9 @@ def update_user_wishes(user: User, wishes: list, comments: list) -> None:
                 )
 
         # if a match is found and it hasn't been updated yet
-        if new_wish_with_comment and wish_to_replace_id is not None:
+        if wish_to_replace_id is not None:
+            assert new_wish_with_comment[0] is not None
+            assert new_wish_with_comment[1] is not None
             logger.info(
                 'updating wish "%i" with "%s"',
                 wish_to_replace_id,
