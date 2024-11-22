@@ -110,7 +110,10 @@ def user_button(query: CallbackQuery) -> None:
         if Roulette().register_user(user_id):
             text = f"🎡 {user_name} est bien enregistré.e pour le tirage au sort."
         else:
-            text = f"❌ impossible d'inscrire {user_name} au tirage au sort. Vérifiez que les inscriptions sont ouvertes."
+            text = (
+                f"❌ impossible d'inscrire {user_name} au tirage au sort. "
+                "Vérifiez que les inscriptions sont ouvertes."
+            )
 
     if command == "unregister":
         if Roulette().unregister_user(user_id):
@@ -129,7 +132,10 @@ def user_button(query: CallbackQuery) -> None:
         markup = build_wishes_inline_kb(user_name)
 
     if command == "spouse":
-        text = f"💁 Qui est le ou la partenaire de {user_name}? Iel ne pourra pas lui offrir."
+        text = (
+            f"💁 Qui est le ou la partenaire de {user_name}? "
+            "Iel ne pourra pas lui offrir."
+        )
         markup = build_people_inline_kb(
             "exclude", extra_data=user_id, filter_registered=True
         )
@@ -137,7 +143,10 @@ def user_button(query: CallbackQuery) -> None:
     if command == "exclude":
         spouse_user_id = int(data[3])
         spouse_name = user_manager.get_user(spouse_user_id).name
-        text = f"👭 {user_name} et {spouse_name} sont partenaires. Iels ne peuvent pas s'offrir de cadeaux mutuellement."
+        text = (
+            f"👭 {user_name} et {spouse_name} sont partenaires. "
+            "Iels ne peuvent pas s'offrir de cadeaux mutuellement."
+        )
         user_manager.set_spouse(user_id, spouse_user_id)
 
     query.edit_message_text(text=text, reply_markup=markup)

@@ -80,7 +80,7 @@ def list_users(update: Update, context: CallbackContext) -> None:
     context.bot.send_message(chat_id=update.message.chat_id, text=text)
 
 
-def get_constraints(update: Update, context: CallbackContext) -> None:
+def get_constraints(update: Update, _: CallbackContext) -> None:
     """Send a message with user constraints as inline buttons attached."""
     user_manager = UserManager()
     text = "<b>Contraintes</b>\n"

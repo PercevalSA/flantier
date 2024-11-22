@@ -70,6 +70,7 @@ def quote_oss2(update: Update, context: CallbackContext) -> None:
 
 
 def register_flantier_commands(dispatcher: Dispatcher) -> None:
+    """Register Flantier commands: specific to the Flantier bot for fun only"""
     dispatcher.add_handler(CommandHandler("bonjour", hello))
     dispatcher.add_handler(CommandHandler("larmina", quote_oss1))
     dispatcher.add_handler(CommandHandler("dolores", quote_oss2))
