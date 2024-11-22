@@ -101,7 +101,8 @@ async def user_button(query: CallbackQuery) -> None:
     query = update.callback_query
 
     # CallbackQueries need to be answered, even if no notification to the user is needed
-    # Some clients may have trouble otherwise. See https://core.telegram.org/bots/api#callbackquery
+    # Some clients may have trouble otherwise.
+    # See https://core.telegram.org/bots/api#callbackquery
     await query.answer()
     await query.edit_message_text(text=f"Selected option: {query.data}")
 
@@ -171,7 +172,8 @@ async def gift_button(query: CallbackQuery) -> None:
     logger.debug("gift button pressed")
     query = update.callback_query
     # CallbackQueries need to be answered, even if no notification to the user is needed
-    # Some clients may have trouble otherwise. See https://core.telegram.org/bots/api#callbackquery
+    # Some clients may have trouble otherwise.
+    # See https://core.telegram.org/bots/api#callbackquery
     await query.answer()
 
     data = await query.data.split(" ", 2)
@@ -194,26 +196,22 @@ async def inline_button_pressed(update: Update, _: ContextTypes.DEFAULT_TYPE) ->
     logger.debug("inline button pressed")
     query = update.callback_query
     # CallbackQueries need to be answered, even if no notification to the user is needed
-    # Some clients may have trouble otherwise. See https://core.telegram.org/bots/api#callbackquery
+    # Some clients may have trouble otherwise.
+    # See https://core.telegram.org/bots/api#callbackquery
     logger.debug("await for query answer")
     await query.answer(text="PROUT")
 
     if query.data is None:
         query.get_bot().answer_callback_query(query.id, "🤷‍♂️")
         return
-    from telegram import Bot
 
-    Bot.answer_callback_query
     logger.debug("after await query answer: %s", query.data)
-    # logger.debug("query data: %s", query.data)
-
-    keyboard_type = query.data
-    keyboard_type = keyboard_type.split(" ")[0]
-    logger.debug("keybord prout")
+    keyboard_type = query.data.split(" ")[0]
     logger.info("keyboard query data: %s", keyboard_type)
 
     if keyboard_type == "cancel":
         text = "🙅 Opération annulée."
+        query.edit_message_text
         await query.edit_message_text(text=text)
         return
 

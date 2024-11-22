@@ -5,12 +5,13 @@
 """Simple inline keyboard bot with multiple CallbackQueryHandlers.
 
 This Bot uses the Application class to handle the bot.
-First, a few callback functions are defined as callback query handler. Then, those functions are
-passed to the Application and registered at their respective places.
+First, a few callback functions are defined as callback query handler.
+Then, those functions are passed to the Application
+and registered at their respective places.
 Then, the bot is started and runs until we press Ctrl-C on the command line.
 Usage:
-Example of a bot that uses inline keyboard that has multiple CallbackQueryHandlers arranged in a
-ConversationHandler.
+Example of a bot that uses inline keyboard that has multiple CallbackQueryHandlers
+arranged in a ConversationHandler.
 Send /start to initiate the conversation.
 Press Ctrl-C on the command line to stop the bot.
 """
@@ -72,7 +73,8 @@ async def start_over(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     # Get CallbackQuery from Update
     query = update.callback_query
     # CallbackQueries need to be answered, even if no notification to the user is needed
-    # Some clients may have trouble otherwise. See https://core.telegram.org/bots/api#callbackquery
+    # Some clients may have trouble otherwise.
+    # See https://core.telegram.org/bots/api#callbackquery
     await query.answer()
     keyboard = [
         [
