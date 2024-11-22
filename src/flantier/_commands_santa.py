@@ -202,6 +202,7 @@ def dont_offer(update: Update, context: CallbackContext) -> None:
 
 
 def register_santa_commands(dispatcher: Dispatcher) -> None:
+    """Register all the santa commands: specific to gifts and wishess management"""
     dispatcher.add_handler(CommandHandler("cadeaux", get_wishes))
     dispatcher.add_handler(CommandHandler("commentaires", get_wishes_and_comments))
     dispatcher.add_handler(CommandHandler("update", update_wishes_list))

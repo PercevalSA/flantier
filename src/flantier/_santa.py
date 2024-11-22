@@ -7,6 +7,7 @@ import threading
 from difflib import SequenceMatcher
 from itertools import zip_longest
 from logging import getLogger
+from typing import Optional, Tuple
 
 from apiclient.discovery import build
 
@@ -17,7 +18,7 @@ logger = getLogger("flantier")
 
 
 def download_google_sheet() -> list:
-    """Récupère les voeux et les commentaires de chaque participant depuis le google doc."""
+    """Fetch wishes and comments for all users in the google sheets"""
     logger.info("gettings wishes from google sheet")
 
     google_settings = SettingsManager().get_settings()["google"]
@@ -44,35 +45,35 @@ def download_google_sheet() -> list:
     return values
 
 
-# check if a wish has been modified but is like an existing one
-# https://docs.python.org/2/library/difflib.html#sequencematcher-objects
-# https://pypi.org/project/fuzzywuzzy/
-# https://pypi.org/project/Levenshtein/
 def update_user_wishes(user: User, wishes: list, comments: list) -> None:
     """update all wishes and comments of the user in database.
     Compare currents wishes with the list from google sheet using SequenceMatcher.
     Add new wishes and remove old ones.
     Update the wish with the best match, add new wishes then remove old wishes
 
+    we are using
+    https://docs.python.org/2/library/difflib.html#sequencematcher-objects
+    but we could use fuzzywuzzy or Levenshtein
+    https://pypi.org/project/fuzzywuzzy/
+    https://pypi.org/project/Levenshtein/
+
     Args:
         user (User): user to update
         wishes (list): list of wishes from google sheet
         comments (list): list of comments from google sheet
     """
-    logger.debug(
-        "updating wishes and comments for %s: %s %s", user.name, wishes, comments
-    )
-    # keep track in order not to update the same wish multiple times
-    # if multiple matches are found
+    logger.debug("updating wishes and comments for %s", user.name)
+    logger.debug("content: %s %s", wishes, comments)
+
+    # keep track not to update the same wish multiple times in case of multiple matches
     updated_wishes_indices = set()
 
     for gs_wish, gs_comment in zip_longest(wishes, comments, fillvalue=""):
         logger.debug("wish: %s", gs_wish)
 
         best_ratio: float = 0
-        new_wish = ""
-        new_comment = ""
-        to_replace = None
+        new_wish_with_comment: Tuple[Optional[str], Optional[str]] = (None, None)
+        wish_to_replace_id = None
 
         if not gs_wish:
             logger.debug("empty wish in google sheet: %s %s", gs_wish, gs_comment)
@@ -80,24 +81,38 @@ def update_user_wishes(user: User, wishes: list, comments: list) -> None:
             continue
 
         # for each wish received from google sheet we search for best match in database
-        for idx, u_wish in enumerate(user.wishes):
+        for wish_id, u_wish in enumerate(user.wishes):
             ratio = SequenceMatcher(a=u_wish.wish, b=gs_wish).ratio()
             # similar enough and not already updated
-            if ratio > 0.6 and ratio > best_ratio and idx not in updated_wishes_indices:
+            if (
+                ratio > 0.6
+                and ratio > best_ratio
+                and wish_id not in updated_wishes_indices
+            ):
                 best_ratio = ratio
-                new_wish = gs_wish
-                new_comment = gs_comment
-                to_replace = u_wish
-                to_replace_idx = idx
+                new_wish_with_comment = (gs_wish, gs_comment)
+                wish_to_replace_id = wish_id
 
-                logger.debug('ratio: "%s" / "%s": %i', new_wish, to_replace.wish, ratio)
+                logger.debug(
+                    'ratio to replace %i by "%s" : %i',
+                    wish_to_replace_id,
+                    new_wish_with_comment[0],
+                    ratio,
+                )
 
         # if a match is found and it hasn't been updated yet
-        if new_wish and to_replace is not None:
-            logger.info('updating wish "%s" with "%s"', to_replace.wish, new_wish)
-            user.wishes[to_replace_idx].wish = new_wish
-            user.wishes[to_replace_idx].comment = new_comment
-            updated_wishes_indices.add(to_replace_idx)
+        if new_wish_with_comment and wish_to_replace_id is not None:
+            logger.info(
+                'updating wish "%i" with "%s"',
+                wish_to_replace_id,
+                new_wish_with_comment[0],
+            )
+            # update wish and comment in database on one go
+            (
+                user.wishes[wish_to_replace_id].wish,
+                user.wishes[wish_to_replace_id].comment,
+            ) = new_wish_with_comment
+            updated_wishes_indices.add(wish_to_replace_id)
         else:
             # no match found or wish already updated
             logger.info("no match found for %s. This is a new one", gs_wish)
@@ -119,8 +134,7 @@ def update_user_wishes(user: User, wishes: list, comments: list) -> None:
 
     logger.debug(user.wishes)
 
-    user_manager = UserManager()
-    user_manager.update_user(user)
+    UserManager().update_user(user)
 
 
 def update_wishes_list() -> None:
@@ -186,14 +200,25 @@ def user_comments_message(user_name: str) -> str:
 
 # Commands called from keyboards
 def set_wish_giver(user_id: int, wish_index: int, giver: int) -> str:
+    """Set the giver of a wish so it is reserved and no one else can offer it.
+
+    Args:
+        user_id (int): id of the user who will receive the gift
+        wish_index (int): index of the wish in the user's wish list
+        giver (int): id of the user who offers the gift
+
+    Returns:
+        str: text to reply
+    """
     logger.info("set wish giver: %s %s %s", user_id, wish_index, giver)
-    """Set the giver of a wish. Returns the text to reply"""
     user_manager = UserManager()
     user = user_manager.get_user(user_id)
 
     if user_id == giver:
-        return "Tu ne peux pas t'offrir un cadeau à toi même. Si tu es Geoffroy contact l'admin."
-
+        return (
+            "Tu ne peux pas t'offrir un cadeau à toi même."
+            "Si tu es Geoffroy contact l'admin."
+        )
     if user.wishes[wish_index].giver:
         return (
             "Ce cadeau est déjà offert par "
@@ -206,8 +231,10 @@ def set_wish_giver(user_id: int, wish_index: int, giver: int) -> str:
     return "Youpi! Tu offres " + user.wishes[wish_index].wish + " à " + user.name
 
 
-# WIP
 def unset_wish_giver(user_id: int, wish_index: int) -> str:
+    """[WIP] Unset the giver of a wish so it is available again.
+    TODO finish implementation
+    """
     gifts = []
     for user in UserManager().users:
         if user.tg_id == user_id:
@@ -238,52 +265,3 @@ def update_gifts_background_task(interval_sec: int = 600) -> None:
     while True:
         update_wishes_list()
         ticker.wait(interval_sec)
-
-
-# TODO use or remove that function
-def compare_wishes(user: User) -> list:
-    """for a given user, compare the wish list from from google sheet
-    with the one already in database.
-    Compareason is based on wish field. We Check if the name of a gift changed slightly
-    in order to only update the wish field while keeping the giver field state in database.
-    Add new wishes and delete removed ones in google sheet."""
-    gifts = download_google_sheet()
-    wishes = gifts[gifts.index(user.name) + 1]
-    comments = gifts[gifts.index(user.name) + 2]
-    logger.info("comparing wishes for %s", user.name)
-    logger.debug("wishes: %s", wishes)
-    logger.debug("comments: %s", comments)
-
-    # check if only a comment has been changed
-    for wish in user.wishes:
-        if wish.wish in wishes:
-            if wish.comment != comments[wishes.index(wish.wish)]:
-                logger.info(
-                    "comment for %s has been changed: %s",
-                    wish.wish,
-                    wish.comment,
-                )
-                wish.comment = comments[wishes.index(wish.wish)]
-
-    for wish in user.wishes:
-        for w in wishes:
-            logger.info(
-                "ratio %s between %s and %s",
-                SequenceMatcher(a=wish, b=w).ratio(),
-                wish,
-                w,
-            )
-
-    # # check if a wish has been removed
-    # for wish in user.wishes:
-    #     if wish.wish not in wishes:
-    #         logger.info("wish %s has been removed", wish.wish)
-    #         user.wishes.remove(wish)
-
-    # check if a wish has been added
-    for wish, comment in zip(wishes, comments):
-        if wish not in [w.wish for w in user.wishes]:
-            logger.info("wish %s has been added", wish)
-            user.wishes.append(Wish(wish=wish, comment=comment))
-
-    return user.wishes

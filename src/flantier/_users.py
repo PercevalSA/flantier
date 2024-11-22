@@ -34,7 +34,8 @@ class Wish:
 class User:
     """Represents a person registered for secret santa."""
 
-    tg_id: int  # telegram id of the new user; positive integer; if negative integer the user has no telegram account
+    tg_id: int  # telegram id of the new user; positive integer;
+    # if negative integer the user has no telegram account
     name: str  # name of the user used to filter gifts column in Google Sheets
     spouse: int = 0  # telegram id of the spouse
     giftee: int = 0  # telegram id of the person to offer a gift
@@ -89,28 +90,28 @@ class UserManager:
     # user management
     #
 
-    def get_user(self, tg_id: int) -> Optional[User]:
+    def get_user(self, tg_id: int) -> User:
         """Récupère un utilisateur par son tg_id"""
         for user in self.users:
             if user.tg_id == tg_id:
                 return user
 
-        return None
+        raise NameError(f"user {tg_id} does not exist")
 
-    def search_user(self, name: str) -> Optional[User]:
+    def search_user(self, name: str) -> User:
         """Récupère un utilisateur par son nom"""
         for user in self.users:
             if user.name == name:
                 return user
 
-        return None
+        raise NameError(f"user {name} does not exist")
 
     def is_registered(self, tg_id: int) -> bool:
         """Renvoie True si l'utilisateur est inscrit au tirage au sort."""
-        user = self.get_user(tg_id)
-        if user:
-            return user.registered
-        return False
+        try:
+            return self.get_user(tg_id).registered
+        except NameError:
+            return False
 
     def add_user(self, name: str, tg_id: Optional[int] = None) -> bool:
         """récupère l'id telegram et ajoute l'utilisateur au fichier.

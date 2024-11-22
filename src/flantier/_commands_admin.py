@@ -6,6 +6,7 @@ from telegram import (
     Bot,
     Update,
 )
+from telegram.error import TelegramError
 from telegram.ext import (
     CallbackContext,
     CommandHandler,
@@ -62,12 +63,16 @@ def send_admin_notification(message: str) -> None:
 
 
 def update_last_year_giftees(update: Update, context: CallbackContext) -> None:
+    """Update the last year giftees for all users to use them as constraints for this year
+    Takes the giftee of each user and put it in last_giftee field and reset giftee field.
+    """
     if not is_admin(update, context):
         return
     logger.info("updating last year giftees for all users")
     UserManager().update_with_last_year_results()
     update.message.reply_text(
-        "🎅 Les résultats de l'année dernière ont été utilisés en tant que contraintes pour cette année."
+        "🎅 Les résultats de l'année dernière ont été utilisés "
+        "en tant que contraintes pour cette année."
     )
 
 
@@ -156,7 +161,7 @@ def send_result_to_all_users(update: Update, context: CallbackContext) -> None:
                 user.tg_id,
                 text=f"🎅 Youpi tu offres à {giftee.name}",
             )
-        except Exception as e:
+        except TelegramError as e:
             logger.error("error sending message to %s: %s", user.name, e)
 
         context.bot.send_message(
@@ -166,7 +171,7 @@ def send_result_to_all_users(update: Update, context: CallbackContext) -> None:
 
 
 def register_admin_commands(dispatcher: Dispatcher) -> None:
-    """Register all admin commands."""
+    """Register all admin commands. Manage the secret santa regisrations and draw"""
     dispatcher.add_handler(CommandHandler("open", open_registrations))
     dispatcher.add_handler(CommandHandler("close", close_registrations))
     dispatcher.add_handler(CommandHandler("tirage", draw_secret_santas))
