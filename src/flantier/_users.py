@@ -50,7 +50,7 @@ class UserJSONEncoder(json.JSONEncoder):
 
     def default(self, o):
         if is_dataclass(o):
-            return asdict(o)
+            return asdict(o)  # type: ignore
         return super().default(o)
 
 

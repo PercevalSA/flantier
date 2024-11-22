@@ -149,7 +149,7 @@ def user_button(query: CallbackQuery) -> None:
         )
         user_manager.set_spouse(user_id, spouse_user_id)
 
-    query.edit_message_text(text=text, reply_markup=markup)
+    query.edit_message_text(text=text, reply_markup=markup)  # type: ignore
 
 
 def gift_button(query: CallbackQuery) -> None:
