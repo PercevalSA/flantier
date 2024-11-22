@@ -211,7 +211,6 @@ async def inline_button_pressed(update: Update, _: ContextTypes.DEFAULT_TYPE) ->
 
     if keyboard_type == "cancel":
         text = "🙅 Opération annulée."
-        query.edit_message_text
         await query.edit_message_text(text=text)
         return
 
